@@ -1,14 +1,14 @@
-import { PrismaClient, RequestStatus, type Prisma } from "@prisma/client";
+import { eq } from "drizzle-orm";
+
+import { paymentRequests } from "@/drizzle/schema";
 
 import { db } from "@/lib/db";
-import { computeExpiresAt, isRequestExpired, syncExpiredRequest } from "@/lib/requests/expiry";
+import { computeExpiresAt, isRequestExpired } from "@/lib/requests/expiry";
 import { isPendingStatus } from "@/lib/requests/status";
 import {
   findUserByNormalizedContact,
   getRequestById,
 } from "@/lib/requests/queries";
-
-type DatabaseClient = Prisma.TransactionClient | PrismaClient;
 
 export interface CreatePaymentRequestInput {
   amountCents: number;
@@ -29,23 +29,18 @@ export function getRequestRevalidationPaths(requestId: string) {
 
 async function getFreshPendingRequestOrThrow(
   requestId: string,
-  client: DatabaseClient = db,
 ) {
-  const request = await client.paymentRequest.findUnique({
-    where: { id: requestId },
-  });
+  const request = await getRequestById(requestId);
 
   if (!request) {
     throw new Error("Request not found.");
   }
 
-  const syncedRequest = await syncExpiredRequest(client, request);
-
-  if (!isPendingStatus(syncedRequest.status)) {
+  if (!isPendingStatus(request.status)) {
     throw new Error("Only pending requests can be changed.");
   }
 
-  return syncedRequest;
+  return request;
 }
 
 export async function createPaymentRequest(input: CreatePaymentRequestInput) {
@@ -54,23 +49,30 @@ export async function createPaymentRequest(input: CreatePaymentRequestInput) {
     input.recipientContactValue,
   );
 
-  return db.paymentRequest.create({
-    data: {
+  const [createdRequest] = await db
+    .insert(paymentRequests)
+    .values({
       amountCents: input.amountCents,
       expiresAt: computeExpiresAt(),
       lastStatusChangedAt: new Date(),
       note: input.note,
-      recipientContactType:
-        input.recipientContactType === "email" ? "EMAIL" : "PHONE",
+      recipientContactType: input.recipientContactType,
       recipientContactValue: input.recipientContactValue,
       recipientMatchedUserId: recipientMatchedUser?.id,
       senderUserId: input.senderUserId,
-    },
-    include: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
+      updatedAt: new Date(),
+    })
+    .returning({
+      id: paymentRequests.id,
+    });
+
+  const request = await getRequestById(createdRequest.id);
+
+  if (!request) {
+    throw new Error("We couldn’t load the created request.");
+  }
+
+  return request;
 }
 
 export async function cancelPaymentRequest(requestId: string, actorUserId: string) {
@@ -80,14 +82,18 @@ export async function cancelPaymentRequest(requestId: string, actorUserId: strin
     throw new Error("Only the sender can cancel this request.");
   }
 
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
       cancelledAt: new Date(),
       lastStatusChangedAt: new Date(),
-      status: RequestStatus.CANCELLED,
-    },
-  });
+      status: "Cancelled",
+      updatedAt: new Date(),
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }
 
 export async function declinePaymentRequest(requestId: string, actorUserId: string) {
@@ -97,14 +103,18 @@ export async function declinePaymentRequest(requestId: string, actorUserId: stri
     throw new Error("Only the intended recipient can decline this request.");
   }
 
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
       declinedAt: new Date(),
       lastStatusChangedAt: new Date(),
-      status: RequestStatus.DECLINED,
-    },
-  });
+      status: "Declined",
+      updatedAt: new Date(),
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }
 
 export async function payPaymentRequest(requestId: string, actorUserId: string) {
@@ -123,25 +133,33 @@ export async function payPaymentRequest(requestId: string, actorUserId: string) 
   }
 
   if (isRequestExpired(freshRequest.expiresAt)) {
-    return db.paymentRequest.update({
-      where: { id: requestId },
-      data: {
+    const [updatedRequest] = await db
+      .update(paymentRequests)
+      .set({
         lastStatusChangedAt: new Date(),
-        status: RequestStatus.EXPIRED,
-      },
-    });
+        status: "Expired",
+        updatedAt: new Date(),
+      })
+      .where(eq(paymentRequests.id, requestId))
+      .returning();
+
+    return updatedRequest;
   }
 
   if (!isPendingStatus(freshRequest.status)) {
     throw new Error("Only pending requests can be paid.");
   }
 
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
       lastStatusChangedAt: new Date(),
       paidAt: new Date(),
-      status: RequestStatus.PAID,
-    },
-  });
+      status: "Paid",
+      updatedAt: new Date(),
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }

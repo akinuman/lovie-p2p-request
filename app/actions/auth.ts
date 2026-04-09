@@ -1,5 +1,6 @@
 "use server";
 
+import { users } from "@/drizzle/schema";
 import { redirect } from "next/navigation";
 
 import { setSessionCookie, clearSessionCookie } from "@/lib/auth/session";
@@ -11,15 +12,19 @@ export async function signInAction(formData: FormData) {
     email: formData.get("email"),
   });
 
-  const user = await db.user.upsert({
-    where: {
+  const [user] = await db
+    .insert(users)
+    .values({
       email: parsed.email,
-    },
-    update: {},
-    create: {
-      email: parsed.email,
-    },
-  });
+    })
+    .onConflictDoUpdate({
+      set: {
+        email: parsed.email,
+        updatedAt: new Date(),
+      },
+      target: users.email,
+    })
+    .returning();
 
   await setSessionCookie({
     email: user.email,

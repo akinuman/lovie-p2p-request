@@ -28,7 +28,7 @@ description: "Task list for implementing the P2P payment request flow"
 
 ## Path Conventions
 
-- Next.js monolith: `app/`, `components/`, `lib/`, `prisma/`, `tests/`
+- Next.js monolith: `app/`, `components/`, `drizzle/`, `lib/`, `tests/`
 - Documentation: `README.md`, `specs/001-p2p-payment-request-flow/`
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -48,8 +48,8 @@ description: "Task list for implementing the P2P payment request flow"
 
 **⚠️ CRITICAL**: Complete this phase before story implementation.
 
-- [X] T005 Define the minimal Prisma schema for `users` and `payment_requests` in `/Users/akin/Codes/lovie-p2p-request/prisma/schema.prisma`
-- [X] T006 Create the initial Prisma migration and demo seed users for sender/email recipient/phone recipient flows in `/Users/akin/Codes/lovie-p2p-request/prisma/migrations/` and `/Users/akin/Codes/lovie-p2p-request/prisma/seed.ts`
+- [X] T005 Define the minimal Drizzle schema for `users` and `payment_requests` in `/Users/akin/Codes/lovie-p2p-request/drizzle/schema.ts`
+- [X] T006 Configure the initial Drizzle migration workflow and demo seed users for sender/email recipient/phone recipient flows in `/Users/akin/Codes/lovie-p2p-request/drizzle.config.ts` and `/Users/akin/Codes/lovie-p2p-request/drizzle/seed.ts`
 - [X] T007 [P] Add typed database and environment helpers in `/Users/akin/Codes/lovie-p2p-request/lib/db.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/env.ts`
 - [X] T008 [P] Implement integer-cent money parsing and formatting helpers in `/Users/akin/Codes/lovie-p2p-request/lib/money/parse-amount.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
 - [X] T009 [P] Implement Zod schemas for sign-in, request creation, and dashboard filters in `/Users/akin/Codes/lovie-p2p-request/lib/validation/auth.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/validation/requests.ts`
@@ -59,7 +59,7 @@ description: "Task list for implementing the P2P payment request flow"
 - [X] T013 Implement the root redirect, sign-in route, and protected app layout shell in `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/sign-in/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/actions/auth.ts`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/layout.tsx`
 - [X] T014 Configure Playwright fixtures, seeded test setup, and always-on video capture in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/fixtures.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/e2e/global.setup.ts`, and `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`
 
-**Checkpoint**: The repo can boot, connect to Neon via Prisma, authenticate a mock user, and support repeatable seeded test runs.
+**Checkpoint**: The repo can boot, connect to Neon via Drizzle, authenticate a mock user, and support repeatable seeded test runs.
 
 ---
 
@@ -78,11 +78,14 @@ description: "Task list for implementing the P2P payment request flow"
 
 - [X] T017 [US1] Build the sign-in form and authenticated navigation shell in `/Users/akin/Codes/lovie-p2p-request/components/auth/sign-in-form.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-nav.tsx`
 - [X] T018 [US1] Build the request-creation page and form UI for recipient, amount, and note input in `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/new/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`
+  Ensure the `useActionState`-backed form normalizes unexpected or undefined action-state payloads on the initial render before reading nested `values` or `errors`, and keep the shared initial state in a non-`use server` module.
 - [X] T019 [US1] Implement `createRequestAction` and persistence for normalized contacts, integer cents, and share-link generation in `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
+  Keep the post-create redirect outside the mutation `try`/`catch` so Next.js redirect control flow is not surfaced back into the form as a `NEXT_REDIRECT` error.
 - [X] T020 [US1] Build the outgoing dashboard route and sender request list UI in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`
 - [X] T021 [US1] Build reusable request status and summary presentation components in `/Users/akin/Codes/lovie-p2p-request/components/requests/status-badge.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx`
 - [X] T022 [US1] Build the public share-link summary route with limited non-recipient visibility in `/Users/akin/Codes/lovie-p2p-request/app/r/[requestId]/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`
 - [X] T023 [US1] Add sender-focused empty, validation, and success states for create/share/outgoing flows in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`
+  Preserve a stable fallback state for field values and errors so validation UI does not crash before the first action response.
 
 **Checkpoint**: A sender can sign in, create a request, copy/share the link, and verify the request in the outgoing dashboard and public summary page.
 

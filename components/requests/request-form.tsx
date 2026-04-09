@@ -5,13 +5,16 @@ import { useFormStatus } from "react-dom";
 
 import {
   createRequestAction,
-  initialCreateRequestActionState,
 } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  initialCreateRequestActionState,
+  type CreateRequestActionState,
+} from "@/lib/requests/create-request-action-state";
 import { cn } from "@/lib/utils";
 
 function FieldError({ message }: { message?: string }) {
@@ -36,11 +39,41 @@ function SubmitButton() {
   );
 }
 
+function normalizeCreateRequestActionState(
+  state: unknown,
+): CreateRequestActionState {
+  if (!state || typeof state !== "object") {
+    return initialCreateRequestActionState;
+  }
+
+  const candidate = state as Partial<CreateRequestActionState>;
+  const values =
+    candidate.values && typeof candidate.values === "object"
+      ? candidate.values
+      : {};
+  const errors =
+    candidate.errors && typeof candidate.errors === "object"
+      ? candidate.errors
+      : {};
+
+  return {
+    errors: {
+      ...initialCreateRequestActionState.errors,
+      ...errors,
+    },
+    values: {
+      ...initialCreateRequestActionState.values,
+      ...values,
+    },
+  };
+}
+
 export function RequestForm() {
   const [state, formAction] = useActionState(
     createRequestAction,
     initialCreateRequestActionState,
   );
+  const safeState = normalizeCreateRequestActionState(state);
 
   return (
     <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
@@ -60,11 +93,11 @@ export function RequestForm() {
               id="recipientContact"
               name="recipientContact"
               placeholder="recipient@example.com or +1 555 222 3000"
-              defaultValue={state.values.recipientContact}
-              aria-invalid={Boolean(state.errors.recipientContact)}
+              defaultValue={safeState.values.recipientContact}
+              aria-invalid={Boolean(safeState.errors.recipientContact)}
               className={cn(
                 "rounded-2xl",
-                state.errors.recipientContact && "border-destructive",
+                safeState.errors.recipientContact && "border-destructive",
               )}
               required
             />
@@ -72,7 +105,7 @@ export function RequestForm() {
               We normalize email to lowercase and phone numbers to E.164-style
               `+1...` values for matching.
             </p>
-            <FieldError message={state.errors.recipientContact} />
+            <FieldError message={safeState.errors.recipientContact} />
           </div>
 
           <div className="grid gap-5 md:grid-cols-[0.7fr_1fr]">
@@ -83,15 +116,15 @@ export function RequestForm() {
                 name="amount"
                 inputMode="decimal"
                 placeholder="24.50"
-                defaultValue={state.values.amount}
-                aria-invalid={Boolean(state.errors.amount)}
+                defaultValue={safeState.values.amount}
+                aria-invalid={Boolean(safeState.errors.amount)}
                 className={cn(
                   "rounded-2xl",
-                  state.errors.amount && "border-destructive",
+                  safeState.errors.amount && "border-destructive",
                 )}
                 required
               />
-              <FieldError message={state.errors.amount} />
+              <FieldError message={safeState.errors.amount} />
             </div>
 
             <div className="space-y-2">
@@ -100,20 +133,20 @@ export function RequestForm() {
                 id="note"
                 name="note"
                 placeholder="Split dinner from Friday night"
-                defaultValue={state.values.note}
-                aria-invalid={Boolean(state.errors.note)}
+                defaultValue={safeState.values.note}
+                aria-invalid={Boolean(safeState.errors.note)}
                 className={cn(
                   "min-h-[96px] rounded-2xl",
-                  state.errors.note && "border-destructive",
+                  safeState.errors.note && "border-destructive",
                 )}
               />
-              <FieldError message={state.errors.note} />
+              <FieldError message={safeState.errors.note} />
             </div>
           </div>
 
-          {state.errors.form ? (
+          {safeState.errors.form ? (
             <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
-              {state.errors.form}
+              {safeState.errors.form}
             </div>
           ) : null}
 

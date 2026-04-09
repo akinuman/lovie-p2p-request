@@ -4,27 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/current-user";
+import {
+  initialCreateRequestActionState,
+  type CreateRequestActionState,
+  type RequestFormField,
+} from "@/lib/requests/create-request-action-state";
 import { createPaymentRequest, getRequestRevalidationPaths } from "@/lib/requests/mutations";
 import {
   isSelfRequestRecipient,
   requestCreateSchema,
 } from "@/lib/validation/requests";
-
-type RequestFormField = "amount" | "note" | "recipientContact";
-
-export interface CreateRequestActionState {
-  errors: Partial<Record<RequestFormField | "form", string>>;
-  values: Record<RequestFormField, string>;
-}
-
-export const initialCreateRequestActionState: CreateRequestActionState = {
-  errors: {},
-  values: {
-    amount: "",
-    note: "",
-    recipientContact: "",
-  },
-};
 
 function getStringValue(formData: FormData, key: RequestFormField) {
   const value = formData.get(key);
@@ -73,6 +62,8 @@ export async function createRequestAction(
     };
   }
 
+  let requestId: string;
+
   try {
     const request = await createPaymentRequest({
       amountCents: parsed.data.amountCents,
@@ -82,11 +73,8 @@ export async function createRequestAction(
       senderUserId: currentUser.id,
     });
 
-    for (const path of [...getRequestRevalidationPaths(request.id), "/requests/new"]) {
-      revalidatePath(path);
-    }
+    requestId = request.id;
 
-    redirect(`/dashboard/outgoing?created=${request.id}`);
   } catch (error) {
     return {
       errors: {
@@ -98,4 +86,10 @@ export async function createRequestAction(
       values,
     };
   }
+
+  for (const path of [...getRequestRevalidationPaths(requestId), "/requests/new"]) {
+    revalidatePath(path);
+  }
+
+  redirect(`/dashboard/outgoing?created=${requestId}`);
 }

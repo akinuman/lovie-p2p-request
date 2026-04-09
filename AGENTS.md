@@ -3,16 +3,16 @@
 Auto-generated from all feature plans. Last updated: 2026-04-09
 
 ## Active Technologies
-- TypeScript 5.x on Node.js LTS + Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright (001-p2p-payment-request-flow)
-- Neon PostgreSQL accessed through Prisma (001-p2p-payment-request-flow)
+- TypeScript 5.x on Node.js LTS + Next.js App Router, React, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright (001-p2p-payment-request-flow)
+- Neon PostgreSQL accessed through Drizzle ORM with postgres-js (001-p2p-payment-request-flow)
 
 ## Project Structure
 
 ```text
 app/
 components/
+drizzle/
 lib/
-prisma/
 tests/
 ```
 
@@ -28,8 +28,8 @@ tests/
 
 - `bun install`
 - `bun run dev`
-- `bun run prisma:migrate`
-- `bun run prisma:seed`
+- `bun run db:migrate`
+- `bun run db:seed`
 - `bun run test:e2e`
 - `bun run test`
 
@@ -41,9 +41,9 @@ currency parsing and formatting boundaries, and inline Tailwind composition
 with shared shadcn/ui primitives for UI consistency.
 
 ## Recent Changes
-- 001-p2p-payment-request-flow: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwrigh
-- 001-p2p-payment-request-flow: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, Playwrigh
-- 001-p2p-payment-request-flow: Added a monolithic Next.js App Router plan with Neon, Prisma, mock auth, Playwright video coverage, and Vercel deployment
+- 001-p2p-payment-request-flow: Adopted Drizzle ORM with postgres-js across implementation, setup scripts, and planning artifacts
+- 001-p2p-payment-request-flow: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright
+- 001-p2p-payment-request-flow: Added a monolithic Next.js App Router plan with Neon, Drizzle, mock auth, Playwright video coverage, and Vercel deployment
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

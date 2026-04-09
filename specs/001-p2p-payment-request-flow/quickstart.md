@@ -7,8 +7,8 @@
    - `DATABASE_URL`
    - `SESSION_SECRET`
    - `NEXT_PUBLIC_APP_URL`
-3. Run database migrations with `bun run prisma:migrate`.
-4. Seed demo users with `bun run prisma:seed`.
+3. Apply the Drizzle schema with `bun run db:migrate`.
+4. Seed demo users with `bun run db:seed`.
 5. Start the app with `bun run dev`.
 
 ## Demo Users

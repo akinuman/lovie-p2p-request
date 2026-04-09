@@ -9,7 +9,7 @@
 
 Build a single-repo monolithic Next.js App Router application for the P2P
 payment request assignment. The app uses mock email auth, Neon PostgreSQL,
-Prisma, shadcn/ui, and Vercel deployment to optimize for interview-ready
+Drizzle ORM with postgres-js, shadcn/ui, and Vercel deployment to optimize for interview-ready
 clarity, fast execution, responsive UX, and strong Playwright evidence. The
 feature centers on a single canonical `payment_requests` lifecycle with clear
 authorization rules, integer-cent money handling, a live expiration countdown
@@ -18,8 +18,8 @@ on request details, and URL-driven dashboard search/filter.
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x on Node.js LTS  
-**Primary Dependencies**: Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright  
-**Storage**: Neon PostgreSQL accessed through Prisma  
+**Primary Dependencies**: Next.js App Router, React, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright  
+**Storage**: Neon PostgreSQL accessed through Drizzle ORM with postgres-js  
 **Testing**: Playwright E2E with video recording for critical flows; Vitest for targeted domain and validation helpers  
 **Target Platform**: Public Vercel-hosted web application for modern mobile and desktop browsers  
 **Project Type**: Single-repo monolithic Next.js web app  
@@ -104,16 +104,18 @@ lib/
     ├── auth.ts
     └── requests.ts
 
-prisma/
-├── schema.prisma
+drizzle/
+├── schema.ts
 └── seed.ts
+
+drizzle.config.ts
 
 tests/
 └── e2e/
 ```
 
 **Structure Decision**: Use a single Next.js codebase with App Router pages,
-Server Actions, local domain helpers, one Prisma schema, and owned shadcn/ui
+Server Actions, local domain helpers, one Drizzle schema, and owned shadcn/ui
 primitives under `components/ui`. This keeps the implementation easy to follow
 while still showing full-stack competence.
 
@@ -135,8 +137,9 @@ while still showing full-stack competence.
 - **Next.js App Router**: best fit for a Vercel-hosted monolith with server
   rendering, dynamic routes, and form-driven mutations.
 - **TypeScript**: keeps lifecycle and validation logic explicit and safer.
-- **Prisma + Neon PostgreSQL**: readable schema, typed queries, and a realistic
-  hosted relational database without extra infrastructure.
+- **Drizzle ORM + postgres-js + Neon PostgreSQL**: schema-in-code, typed
+  queries, and a lightweight relational setup that fits a focused Next.js
+  monolith without extra client generation steps.
 - **Zod**: simple server-side input validation with reusable schemas.
 - **Tailwind CSS**: fastest path to responsive UI using inline utility classes
   instead of custom per-page stylesheet classes.
@@ -185,7 +188,7 @@ while still showing full-stack competence.
   - `cancelRequestAction`
   - `declineRequestAction`
   - `payRequestAction`
-- Use Server Components and direct Prisma queries for reads.
+- Use Server Components and direct Drizzle queries for reads.
 - Do not build a broad REST API unless a very small route handler is needed for
   operational convenience; this keeps the assignment simpler and easier to
   review.
@@ -264,7 +267,7 @@ while still showing full-stack competence.
   - `SESSION_SECRET`
   - `NEXT_PUBLIC_APP_URL`
   - `PLAYWRIGHT_BASE_URL` for deployed-environment testing when desired
-- Run Prisma migrations before or during deployment setup.
+- Run the Drizzle schema push before or during deployment setup.
 - Keep the production experience simple: one Vercel project, one Neon database,
   no background workers.
 

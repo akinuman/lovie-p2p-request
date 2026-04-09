@@ -1,22 +1,22 @@
-import { RequestStatus } from "@prisma/client";
+import type { RequestStatus } from "@/drizzle/schema";
 
 export const TERMINAL_REQUEST_STATUSES = new Set<RequestStatus>([
-  RequestStatus.CANCELLED,
-  RequestStatus.DECLINED,
-  RequestStatus.EXPIRED,
-  RequestStatus.PAID,
+  "Cancelled",
+  "Declined",
+  "Expired",
+  "Paid",
 ]);
 
-export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
-  [RequestStatus.CANCELLED]: "Cancelled",
-  [RequestStatus.DECLINED]: "Declined",
-  [RequestStatus.EXPIRED]: "Expired",
-  [RequestStatus.PAID]: "Paid",
-  [RequestStatus.PENDING]: "Pending",
+export const REQUEST_STATUS_LABELS: Record<RequestStatus, RequestStatus> = {
+  Cancelled: "Cancelled",
+  Declined: "Declined",
+  Expired: "Expired",
+  Paid: "Paid",
+  Pending: "Pending",
 };
 
 export function isPendingStatus(status: RequestStatus) {
-  return status === RequestStatus.PENDING;
+  return status === "Pending";
 }
 
 export function isTerminalStatus(status: RequestStatus) {
