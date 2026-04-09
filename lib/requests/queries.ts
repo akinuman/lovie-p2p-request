@@ -4,6 +4,7 @@ import {
   type User,
 } from "@/drizzle/schema";
 
+import { getRequestViewerRole } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { syncExpiredRequest } from "@/lib/requests/expiry";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
@@ -12,6 +13,7 @@ export type PaymentRequestRecord = PaymentRequest & {
   recipientMatchedUser: User | null;
   sender: User;
 };
+type UserIdentity = Pick<User, "email" | "id" | "phone">;
 
 function buildStatusFilter(status?: DashboardFilterInput["status"]) {
   if (!status) {
@@ -104,6 +106,13 @@ export async function findUserByNormalizedContact(
   });
 }
 
+function matchesIncomingRecipient(
+  request: PaymentRequestRecord,
+  user: UserIdentity,
+) {
+  return getRequestViewerRole(user, request) === "recipient";
+}
+
 export async function getOutgoingRequestsForUser(
   userId: string,
   filters: DashboardFilterInput = {},
@@ -129,14 +138,13 @@ export async function getOutgoingRequestsForUser(
 }
 
 export async function getIncomingRequestsForUser(
-  userId: string,
+  user: UserIdentity,
   filters: DashboardFilterInput = {},
 ) {
   const status = buildStatusFilter(filters.status);
   const search = buildSearchTerm(filters.q);
   const requests = await db.query.paymentRequests.findMany({
     orderBy: (table, { desc }) => [desc(table.createdAt)],
-    where: (table, { eq }) => eq(table.recipientMatchedUserId, userId),
     with: {
       recipientMatchedUser: true,
       sender: true,
@@ -147,6 +155,7 @@ export async function getIncomingRequestsForUser(
 
   return syncedRequests.filter(
     (request) =>
+      matchesIncomingRecipient(request, user) &&
       (!status || request.status === status) &&
       matchesIncomingSearch(request, search),
   );
@@ -162,17 +171,17 @@ export async function getRequestById(requestId: string) {
   return syncExpiredRecord(request);
 }
 
-export async function getRequestForUser(requestId: string, userId: string) {
+export async function getRequestForUser(
+  requestId: string,
+  user: UserIdentity,
+) {
   const request = await getRequestById(requestId);
 
   if (!request) {
     return null;
   }
 
-  if (
-    request.senderUserId !== userId &&
-    request.recipientMatchedUserId !== userId
-  ) {
+  if (getRequestViewerRole(user, request) === "none") {
     return null;
   }
 

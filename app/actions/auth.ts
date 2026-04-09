@@ -11,16 +11,19 @@ export async function signInAction(formData: FormData) {
   const parsed = signInSchema.parse({
     email: formData.get("email"),
   });
+  const now = new Date();
 
   const [user] = await db
     .insert(users)
     .values({
+      createdAt: now,
       email: parsed.email,
+      updatedAt: now,
     })
     .onConflictDoUpdate({
       set: {
         email: parsed.email,
-        updatedAt: new Date(),
+        updatedAt: now,
       },
       target: users.email,
     })

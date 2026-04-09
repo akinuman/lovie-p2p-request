@@ -2,9 +2,13 @@ import { eq } from "drizzle-orm";
 
 import { paymentRequests } from "@/drizzle/schema";
 
+import {
+  getRequestViewerRole,
+  getUserById,
+} from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { computeExpiresAt, isRequestExpired } from "@/lib/requests/expiry";
-import { isPendingStatus } from "@/lib/requests/status";
+import { computeExpiresAt } from "@/lib/requests/expiry";
+import { getRecipientActionGuardMessage } from "@/lib/requests/status";
 import {
   findUserByNormalizedContact,
   getRequestById,
@@ -27,17 +31,11 @@ export function getRequestRevalidationPaths(requestId: string) {
   ];
 }
 
-async function getFreshPendingRequestOrThrow(
-  requestId: string,
-) {
+async function getFreshRequestOrThrow(requestId: string) {
   const request = await getRequestById(requestId);
 
   if (!request) {
     throw new Error("Request not found.");
-  }
-
-  if (!isPendingStatus(request.status)) {
-    throw new Error("Only pending requests can be changed.");
   }
 
   return request;
@@ -76,7 +74,7 @@ export async function createPaymentRequest(input: CreatePaymentRequestInput) {
 }
 
 export async function cancelPaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const request = await getFreshRequestOrThrow(requestId);
 
   if (request.senderUserId !== actorUserId) {
     throw new Error("Only the sender can cancel this request.");
@@ -97,19 +95,34 @@ export async function cancelPaymentRequest(requestId: string, actorUserId: strin
 }
 
 export async function declinePaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const [actorUser, request] = await Promise.all([
+    getUserById(actorUserId),
+    getFreshRequestOrThrow(requestId),
+  ]);
 
-  if (request.recipientMatchedUserId !== actorUserId) {
-    throw new Error("Only the intended recipient can decline this request.");
+  if (!actorUser) {
+    throw new Error("User not found.");
   }
 
+  const errorMessage = getRecipientActionGuardMessage("decline", {
+    expiresAt: request.expiresAt,
+    status: request.status,
+    viewerRole: getRequestViewerRole(actorUser, request),
+  });
+
+  if (errorMessage) {
+    throw new Error(errorMessage);
+  }
+
+  const now = new Date();
   const [updatedRequest] = await db
     .update(paymentRequests)
     .set({
-      declinedAt: new Date(),
-      lastStatusChangedAt: new Date(),
+      declinedAt: now,
+      lastStatusChangedAt: now,
+      recipientMatchedUserId: actorUser.id,
       status: "Declined",
-      updatedAt: new Date(),
+      updatedAt: now,
     })
     .where(eq(paymentRequests.id, requestId))
     .returning();
@@ -118,45 +131,51 @@ export async function declinePaymentRequest(requestId: string, actorUserId: stri
 }
 
 export async function payPaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const [actorUser, request] = await Promise.all([
+    getUserById(actorUserId),
+    getFreshRequestOrThrow(requestId),
+  ]);
 
-  if (request.recipientMatchedUserId !== actorUserId) {
-    throw new Error("Only the intended recipient can pay this request.");
+  if (!actorUser) {
+    throw new Error("User not found.");
+  }
+
+  const preflightError = getRecipientActionGuardMessage("pay", {
+    expiresAt: request.expiresAt,
+    status: request.status,
+    viewerRole: getRequestViewerRole(actorUser, request),
+  });
+
+  if (preflightError) {
+    throw new Error(preflightError);
   }
 
   await new Promise((resolve) => setTimeout(resolve, 2_500));
 
-  const freshRequest = await getRequestById(requestId);
+  const freshRequest = await getFreshRequestOrThrow(requestId);
+  const completionError = getRecipientActionGuardMessage("pay", {
+    expiresAt: freshRequest.expiresAt,
+    status: freshRequest.status,
+    viewerRole: getRequestViewerRole(actorUser, freshRequest),
+  });
 
-  if (!freshRequest) {
-    throw new Error("Request not found.");
+  if (completionError) {
+    if (freshRequest.status === "Expired") {
+      return freshRequest;
+    }
+
+    throw new Error(completionError);
   }
 
-  if (isRequestExpired(freshRequest.expiresAt)) {
-    const [updatedRequest] = await db
-      .update(paymentRequests)
-      .set({
-        lastStatusChangedAt: new Date(),
-        status: "Expired",
-        updatedAt: new Date(),
-      })
-      .where(eq(paymentRequests.id, requestId))
-      .returning();
-
-    return updatedRequest;
-  }
-
-  if (!isPendingStatus(freshRequest.status)) {
-    throw new Error("Only pending requests can be paid.");
-  }
-
+  const now = new Date();
   const [updatedRequest] = await db
     .update(paymentRequests)
     .set({
-      lastStatusChangedAt: new Date(),
-      paidAt: new Date(),
+      lastStatusChangedAt: now,
+      paidAt: now,
+      recipientMatchedUserId: actorUser.id,
       status: "Paid",
-      updatedAt: new Date(),
+      updatedAt: now,
     })
     .where(eq(paymentRequests.id, requestId))
     .returning();

@@ -21,16 +21,20 @@ async function main() {
   await db.delete(paymentRequests);
 
   for (const user of demoUsers) {
+    const now = new Date();
+
     await db
       .insert(users)
       .values({
+        createdAt: now,
         email: normalizeEmail(user.email),
         phone: user.phone,
+        updatedAt: now,
       })
       .onConflictDoUpdate({
         set: {
           phone: user.phone,
-          updatedAt: new Date(),
+          updatedAt: now,
         },
         target: users.email,
       });

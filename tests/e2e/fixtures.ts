@@ -1,6 +1,7 @@
 import { expect, test as base } from "@playwright/test";
 
 export const demoUsers = {
+  recipientPhoneContact: "+1 (555) 222-3000",
   recipient: "recipient@example.com",
   recipientPhone: "recipient-phone@example.com",
   sender: "sender@example.com",
