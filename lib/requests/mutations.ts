@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { computeExpiresAt } from "@/lib/requests/expiry";
-import { getRecipientActionGuardMessage } from "@/lib/requests/status";
+import { getRequestActionGuardMessage } from "@/lib/requests/status";
 import {
   findUserByNormalizedContact,
   getRequestById,
@@ -74,19 +74,33 @@ export async function createPaymentRequest(input: CreatePaymentRequestInput) {
 }
 
 export async function cancelPaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshRequestOrThrow(requestId);
+  const [actorUser, request] = await Promise.all([
+    getUserById(actorUserId),
+    getFreshRequestOrThrow(requestId),
+  ]);
 
-  if (request.senderUserId !== actorUserId) {
-    throw new Error("Only the sender can cancel this request.");
+  if (!actorUser) {
+    throw new Error("User not found.");
   }
 
+  const errorMessage = getRequestActionGuardMessage("cancel", {
+    expiresAt: request.expiresAt,
+    status: request.status,
+    viewerRole: getRequestViewerRole(actorUser, request),
+  });
+
+  if (errorMessage) {
+    throw new Error(errorMessage);
+  }
+
+  const now = new Date();
   const [updatedRequest] = await db
     .update(paymentRequests)
     .set({
-      cancelledAt: new Date(),
-      lastStatusChangedAt: new Date(),
+      cancelledAt: now,
+      lastStatusChangedAt: now,
       status: "Cancelled",
-      updatedAt: new Date(),
+      updatedAt: now,
     })
     .where(eq(paymentRequests.id, requestId))
     .returning();
@@ -104,7 +118,7 @@ export async function declinePaymentRequest(requestId: string, actorUserId: stri
     throw new Error("User not found.");
   }
 
-  const errorMessage = getRecipientActionGuardMessage("decline", {
+  const errorMessage = getRequestActionGuardMessage("decline", {
     expiresAt: request.expiresAt,
     status: request.status,
     viewerRole: getRequestViewerRole(actorUser, request),
@@ -140,7 +154,7 @@ export async function payPaymentRequest(requestId: string, actorUserId: string) 
     throw new Error("User not found.");
   }
 
-  const preflightError = getRecipientActionGuardMessage("pay", {
+  const preflightError = getRequestActionGuardMessage("pay", {
     expiresAt: request.expiresAt,
     status: request.status,
     viewerRole: getRequestViewerRole(actorUser, request),
@@ -153,7 +167,7 @@ export async function payPaymentRequest(requestId: string, actorUserId: string) 
   await new Promise((resolve) => setTimeout(resolve, 2_500));
 
   const freshRequest = await getFreshRequestOrThrow(requestId);
-  const completionError = getRecipientActionGuardMessage("pay", {
+  const completionError = getRequestActionGuardMessage("pay", {
     expiresAt: freshRequest.expiresAt,
     status: freshRequest.status,
     viewerRole: getRequestViewerRole(actorUser, freshRequest),

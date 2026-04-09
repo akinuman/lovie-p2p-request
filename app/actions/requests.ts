@@ -9,6 +9,7 @@ import {
   type RequestFormField,
 } from "@/lib/requests/create-request-action-state";
 import {
+  cancelPaymentRequest,
   createPaymentRequest,
   declinePaymentRequest,
   getRequestRevalidationPaths,
@@ -145,7 +146,7 @@ export async function declineRequestAction(formData: FormData) {
     const request = await declinePaymentRequest(requestId, currentUser.id);
     revalidateRequestPaths(request.id);
     redirectPath = buildRedirectUrl(returnTo, {
-      status: request.status,
+      updatedStatus: request.status,
       updated: request.id,
     });
   } catch (error) {
@@ -169,7 +170,7 @@ export async function payRequestAction(formData: FormData) {
     const request = await payPaymentRequest(requestId, currentUser.id);
     revalidateRequestPaths(request.id);
     redirectPath = buildRedirectUrl(returnTo, {
-      status: request.status,
+      updatedStatus: request.status,
       updated: request.id,
     });
   } catch (error) {
@@ -178,6 +179,35 @@ export async function payRequestAction(formData: FormData) {
         error instanceof Error
           ? error.message
           : "We couldn’t process that payment. Please try again.",
+    });
+  }
+
+  redirect(redirectPath);
+}
+
+export async function cancelRequestAction(formData: FormData) {
+  const currentUser = await requireCurrentUser();
+  const requestId = getOptionalStringValue(formData, "requestId");
+  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/outgoing";
+  let redirectPath: string;
+
+  if (!requestId) {
+    throw new Error("Request not found.");
+  }
+
+  try {
+    const request = await cancelPaymentRequest(requestId, currentUser.id);
+    revalidateRequestPaths(request.id);
+    redirectPath = buildRedirectUrl(returnTo, {
+      updatedStatus: request.status,
+      updated: request.id,
+    });
+  } catch (error) {
+    redirectPath = buildRedirectUrl(returnTo, {
+      requestError:
+        error instanceof Error
+          ? error.message
+          : "We couldn’t cancel that request. Please try again.",
     });
   }
 

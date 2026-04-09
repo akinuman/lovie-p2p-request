@@ -17,13 +17,17 @@ const demoUsers = [
   },
 ] as const;
 
+const seededExpiredRequestNote = "Expired seeded request";
+
 async function main() {
   await db.delete(paymentRequests);
+
+  const createdUsers = new Map<string, { email: string; id: string }>();
 
   for (const user of demoUsers) {
     const now = new Date();
 
-    await db
+    const [createdUser] = await db
       .insert(users)
       .values({
         createdAt: now,
@@ -37,8 +41,42 @@ async function main() {
           updatedAt: now,
         },
         target: users.email,
+      })
+      .returning({
+        email: users.email,
+        id: users.id,
       });
+
+    createdUsers.set(user.email, {
+      email: createdUser.email,
+      id: createdUser.id,
+    });
   }
+
+  const sender = createdUsers.get("sender@example.com");
+  const emailRecipient = createdUsers.get("recipient@example.com");
+
+  if (!sender || !emailRecipient) {
+    throw new Error("Failed to seed required demo users.");
+  }
+
+  const now = new Date();
+  const createdAt = new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  await db.insert(paymentRequests).values({
+    amountCents: 4200,
+    createdAt,
+    expiresAt,
+    lastStatusChangedAt: createdAt,
+    note: seededExpiredRequestNote,
+    recipientContactType: "email",
+    recipientContactValue: normalizeEmail(emailRecipient.email),
+    recipientMatchedUserId: emailRecipient.id,
+    senderUserId: sender.id,
+    status: "Pending",
+    updatedAt: createdAt,
+  });
 }
 
 main()

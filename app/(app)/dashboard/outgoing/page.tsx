@@ -1,11 +1,16 @@
 import Link from "next/link";
 
+import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { OutgoingList } from "@/components/dashboard/outgoing-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
 import { getOutgoingRequestsForUser } from "@/lib/requests/queries";
+import {
+  dashboardFilterSchema,
+  type DashboardFilterInput,
+} from "@/lib/validation/requests";
 
 function readStringParam(
   value: string | string[] | undefined,
@@ -21,19 +26,54 @@ function readStatusMessage(status?: string) {
   return `Request updated to ${status}.`;
 }
 
+function readDashboardFilters(
+  searchParams: Record<string, string | string[] | undefined>,
+): DashboardFilterInput {
+  const parsed = dashboardFilterSchema.safeParse({
+    q: readStringParam(searchParams.q),
+    status: readStringParam(searchParams.status),
+  });
+
+  if (!parsed.success) {
+    return {};
+  }
+
+  return parsed.data;
+}
+
+function buildCurrentPath(
+  basePath: string,
+  filters: DashboardFilterInput,
+) {
+  const url = new URL(basePath, "http://localhost");
+
+  if (filters.q) {
+    url.searchParams.set("q", filters.q);
+  }
+
+  if (filters.status) {
+    url.searchParams.set("status", filters.status);
+  }
+
+  return `${url.pathname}${url.search}`;
+}
+
 export default async function OutgoingDashboardPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const currentUser = await requireCurrentUser();
-  const requests = await getOutgoingRequestsForUser(currentUser.id);
   const resolvedSearchParams = await searchParams;
+  const filters = readDashboardFilters(resolvedSearchParams);
+  const requests = await getOutgoingRequestsForUser(currentUser.id, filters);
   const createdRequestId = readStringParam(resolvedSearchParams.created);
   const createdRequest = requests.find((request) => request.id === createdRequestId);
   const statusMessage = readStatusMessage(
-    readStringParam(resolvedSearchParams.status),
+    readStringParam(resolvedSearchParams.updatedStatus),
   );
+  const requestError = readStringParam(resolvedSearchParams.requestError);
+  const currentPath = buildCurrentPath("/dashboard/outgoing", filters);
   const shareBaseUrl = getEnv().NEXT_PUBLIC_APP_URL;
 
   return (
@@ -78,6 +118,12 @@ export default async function OutgoingDashboardPage({
         </Card>
       </section>
 
+      <DashboardFilters
+        basePath="/dashboard/outgoing"
+        filters={filters}
+        queryLabel="Search outgoing requests"
+      />
+
       {createdRequest ? (
         <Card className="border-primary/25 bg-primary/5 shadow-none">
           <CardContent className="flex flex-col gap-4 pt-6 lg:flex-row lg:items-center lg:justify-between">
@@ -102,6 +148,14 @@ export default async function OutgoingDashboardPage({
         </Card>
       ) : null}
 
+      {requestError ? (
+        <Card className="border-destructive/30 bg-destructive/10 shadow-none">
+          <CardContent className="pt-6 text-sm leading-6 text-destructive">
+            {requestError}
+          </CardContent>
+        </Card>
+      ) : null}
+
       {statusMessage ? (
         <Card className="border-primary/25 bg-primary/5 shadow-none">
           <CardContent className="pt-6 text-sm leading-6 text-foreground">
@@ -112,6 +166,8 @@ export default async function OutgoingDashboardPage({
 
       <OutgoingList
         createdRequestId={createdRequestId}
+        currentPath={currentPath}
+        hasActiveFilters={Boolean(filters.q || filters.status)}
         requests={requests}
         shareBaseUrl={shareBaseUrl}
       />

@@ -4,14 +4,14 @@ import { RequestActions } from "@/components/requests/request-actions";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { RequestViewerRole } from "@/lib/auth/current-user";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
 import type { PaymentRequestRecord } from "@/lib/requests/queries";
 
 interface IncomingListProps {
+  currentPath: string;
+  hasActiveFilters?: boolean;
   requests: PaymentRequestRecord[];
   updatedRequestId?: string;
-  viewerRole?: RequestViewerRole;
 }
 
 function formatDateTime(value: Date) {
@@ -22,6 +22,8 @@ function formatDateTime(value: Date) {
 }
 
 export function IncomingList({
+  currentPath,
+  hasActiveFilters = false,
   requests,
   updatedRequestId,
 }: IncomingListProps) {
@@ -30,16 +32,21 @@ export function IncomingList({
       <Card className="border-dashed border-border/80 bg-card/80">
         <CardHeader>
           <CardTitle className="text-xl tracking-[-0.04em]">
-            No incoming requests yet
+            {hasActiveFilters
+              ? "No incoming requests match these filters"
+              : "No incoming requests yet"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
           <p>
-            Requests addressed to your email or saved phone number will appear
-            here as soon as they are created.
+            {hasActiveFilters
+              ? "Try a broader search or clear the filters to see the full incoming queue again."
+              : "Requests addressed to your email or saved phone number will appear here as soon as they are created."}
           </p>
           <Button asChild variant="outline" className="rounded-full">
-            <Link href="/dashboard/outgoing">Review your sent requests</Link>
+            <Link href={hasActiveFilters ? "/dashboard/incoming" : "/dashboard/outgoing"}>
+              {hasActiveFilters ? "Clear filters" : "Review your sent requests"}
+            </Link>
           </Button>
         </CardContent>
       </Card>
@@ -54,6 +61,7 @@ export function IncomingList({
         return (
           <Card
             key={request.id}
+            data-testid="incoming-request-card"
             className={
               isUpdated
                 ? "border-primary/30 bg-primary/5 shadow-[0_0_0_1px_rgba(194,120,3,0.18)]"
@@ -117,7 +125,7 @@ export function IncomingList({
                   </Button>
                   <RequestActions
                     requestId={request.id}
-                    returnTo="/dashboard/incoming"
+                    returnTo={currentPath}
                     status={request.status}
                     viewerRole="recipient"
                   />
