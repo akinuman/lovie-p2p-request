@@ -2,14 +2,14 @@
 
 ## Setup
 
-1. Install dependencies with `pnpm install`.
+1. Install dependencies with `bun install`.
 2. Configure environment variables:
    - `DATABASE_URL`
    - `SESSION_SECRET`
    - `NEXT_PUBLIC_APP_URL`
-3. Run database migrations with `pnpm prisma migrate dev`.
-4. Seed demo users with `pnpm prisma db seed`.
-5. Start the app with `pnpm dev`.
+3. Run database migrations with `bun run prisma:migrate`.
+4. Seed demo users with `bun run prisma:seed`.
+5. Start the app with `bun run dev`.
 
 ## Demo Users
 
@@ -56,7 +56,7 @@
 
 ## Playwright Evidence
 
-- Run `pnpm playwright test`.
+- Run `bun run test:e2e`.
 - Configure Playwright with video recording enabled for every test run.
 - Critical specs should cover:
   - create and share request

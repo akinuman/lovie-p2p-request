@@ -52,15 +52,19 @@
   ceremony for an internal monolith. Client-heavy data fetching was rejected
   because it complicates auth and state consistency.
 
-## Decision 6: Use Tailwind CSS with a small custom component set
+## Decision 6: Use Tailwind CSS with shadcn/ui primitives
 
-- **Decision**: Build the UI with Tailwind CSS and a minimal local component
-  library for forms, tables/cards, filters, and status badges.
-- **Rationale**: Tailwind is fast for responsive iteration and keeps styling
-  colocated with components. A small local component set avoids introducing an
-  additional design-system dependency.
-- **Alternatives considered**: A heavyweight component library was rejected
-  because it adds setup cost and can make a take-home feel less intentional.
+- **Decision**: Build the UI with inline Tailwind utility classes and a local
+  shadcn/ui setup for shared primitives such as buttons, cards, badges, and
+  form controls.
+- **Rationale**: Tailwind keeps page-level styling fast and colocated, while
+  shadcn/ui gives us owned, accessible component source that keeps the app
+  visually consistent without hiding the implementation behind a black-box
+  library.
+- **Alternatives considered**: Large component libraries were rejected because
+  they add setup weight and can make a take-home feel generic. A purely custom
+  CSS-class approach was rejected because it drifts faster and makes future
+  UI work less consistent.
 
 ## Decision 7: Represent money as integer cents with explicit parsing helpers
 

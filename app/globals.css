@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --background: 42 55% 96%;
+  --foreground: 24 24% 13%;
+  --card: 44 63% 98%;
+  --card-foreground: 24 24% 13%;
+  --popover: 44 63% 98%;
+  --popover-foreground: 24 24% 13%;
+  --primary: 21 70% 50%;
+  --primary-foreground: 42 100% 97%;
+  --secondary: 37 44% 91%;
+  --secondary-foreground: 24 24% 18%;
+  --muted: 40 34% 90%;
+  --muted-foreground: 27 12% 35%;
+  --accent: 145 32% 87%;
+  --accent-foreground: 152 45% 18%;
+  --destructive: 0 76% 56%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 30 21% 82%;
+  --input: 30 21% 82%;
+  --ring: 21 70% 50%;
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100vh;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: var(--font-sans), sans-serif;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

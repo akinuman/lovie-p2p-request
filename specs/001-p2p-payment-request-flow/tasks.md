@@ -10,10 +10,10 @@ description: "Task list for implementing the P2P payment request flow"
 
 **Minimum high-value skills selected via `find-skills` review**:
 - `nextjs-app-router-patterns`: highest-value implementation guidance for the Next.js App Router monolith.
+- `vercel:shadcn`: highest-value UI-system guidance for shared, source-owned components and consistent Tailwind composition.
 - `vercel:deployments-cicd`: highest-value deployment guidance for shipping the public Vercel deliverable.
 
 **Deliberately not selected**:
-- No extra React or Tailwind skill because `nextjs-app-router-patterns` already covers the highest-risk implementation choices for this assignment.
 - No extra E2E skill because Playwright coverage and video requirements are already explicit in the plan and quickstart, and no installed Playwright-specific skill adds unique value here.
 
 **Tests**: Playwright end-to-end coverage with automated video recording is REQUIRED for critical flows. Targeted Vitest coverage is included for money parsing, auth guards, lifecycle rules, and query filtering.
@@ -35,10 +35,10 @@ description: "Task list for implementing the P2P payment request flow"
 
 **Purpose**: Bootstrap the monolithic Next.js project and local toolchain so implementation can start cleanly.
 
-- [ ] T001 Initialize the Next.js App Router monolith and package scripts in `/Users/akin/Codes/lovie-p2p-request/package.json`, `/Users/akin/Codes/lovie-p2p-request/next.config.ts`, `/Users/akin/Codes/lovie-p2p-request/tsconfig.json`, `/Users/akin/Codes/lovie-p2p-request/postcss.config.mjs`, and `/Users/akin/Codes/lovie-p2p-request/eslint.config.mjs`
-- [ ] T002 Configure the global app shell and base styling for a responsive assignment UI in `/Users/akin/Codes/lovie-p2p-request/app/layout.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/globals.css`
-- [ ] T003 [P] Add local environment scaffolding and developer scripts in `/Users/akin/Codes/lovie-p2p-request/.env.example` and `/Users/akin/Codes/lovie-p2p-request/package.json`
-- [ ] T004 [P] Configure Playwright and Vitest toolchain files in `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`, `/Users/akin/Codes/lovie-p2p-request/vitest.config.ts`, and `/Users/akin/Codes/lovie-p2p-request/tsconfig.json`
+- [X] T001 Initialize the Next.js App Router monolith, shadcn/ui configuration, and package scripts in `/Users/akin/Codes/lovie-p2p-request/package.json`, `/Users/akin/Codes/lovie-p2p-request/next.config.ts`, `/Users/akin/Codes/lovie-p2p-request/tsconfig.json`, `/Users/akin/Codes/lovie-p2p-request/postcss.config.mjs`, `/Users/akin/Codes/lovie-p2p-request/eslint.config.mjs`, and `/Users/akin/Codes/lovie-p2p-request/components.json`
+- [X] T002 Configure the global app shell, theme tokens, inline Tailwind styling, and shared shadcn/ui primitives in `/Users/akin/Codes/lovie-p2p-request/app/layout.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/globals.css`, `/Users/akin/Codes/lovie-p2p-request/components/ui/`, and `/Users/akin/Codes/lovie-p2p-request/lib/utils.ts`
+- [X] T003 [P] Add local environment scaffolding and developer scripts in `/Users/akin/Codes/lovie-p2p-request/.env.example` and `/Users/akin/Codes/lovie-p2p-request/package.json`
+- [X] T004 [P] Configure Playwright and Vitest toolchain files in `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`, `/Users/akin/Codes/lovie-p2p-request/vitest.config.ts`, and `/Users/akin/Codes/lovie-p2p-request/tsconfig.json`
 
 ---
 
