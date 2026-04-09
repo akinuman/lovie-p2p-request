@@ -48,16 +48,16 @@ description: "Task list for implementing the P2P payment request flow"
 
 **⚠️ CRITICAL**: Complete this phase before story implementation.
 
-- [ ] T005 Define the minimal Prisma schema for `users` and `payment_requests` in `/Users/akin/Codes/lovie-p2p-request/prisma/schema.prisma`
-- [ ] T006 Create the initial Prisma migration and demo seed users for sender/email recipient/phone recipient flows in `/Users/akin/Codes/lovie-p2p-request/prisma/migrations/` and `/Users/akin/Codes/lovie-p2p-request/prisma/seed.ts`
-- [ ] T007 [P] Add typed database and environment helpers in `/Users/akin/Codes/lovie-p2p-request/lib/db.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/env.ts`
-- [ ] T008 [P] Implement integer-cent money parsing and formatting helpers in `/Users/akin/Codes/lovie-p2p-request/lib/money/parse-amount.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
-- [ ] T009 [P] Implement Zod schemas for sign-in, request creation, and dashboard filters in `/Users/akin/Codes/lovie-p2p-request/lib/validation/auth.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/validation/requests.ts`
-- [ ] T010 Implement signed cookie mock-auth session helpers and current-user lookup in `/Users/akin/Codes/lovie-p2p-request/lib/auth/session.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/auth/current-user.ts`
-- [ ] T011 Implement canonical lifecycle and expiry domain helpers in `/Users/akin/Codes/lovie-p2p-request/lib/requests/status.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/expiry.ts`
-- [ ] T012 Implement shared request read/write service functions and cache revalidation helpers in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
-- [ ] T013 Implement the root redirect, sign-in route, and protected app layout shell in `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/sign-in/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/actions/auth.ts`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/layout.tsx`
-- [ ] T014 Configure Playwright fixtures, seeded test setup, and always-on video capture in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/fixtures.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/e2e/global.setup.ts`, and `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`
+- [X] T005 Define the minimal Prisma schema for `users` and `payment_requests` in `/Users/akin/Codes/lovie-p2p-request/prisma/schema.prisma`
+- [X] T006 Create the initial Prisma migration and demo seed users for sender/email recipient/phone recipient flows in `/Users/akin/Codes/lovie-p2p-request/prisma/migrations/` and `/Users/akin/Codes/lovie-p2p-request/prisma/seed.ts`
+- [X] T007 [P] Add typed database and environment helpers in `/Users/akin/Codes/lovie-p2p-request/lib/db.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/env.ts`
+- [X] T008 [P] Implement integer-cent money parsing and formatting helpers in `/Users/akin/Codes/lovie-p2p-request/lib/money/parse-amount.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
+- [X] T009 [P] Implement Zod schemas for sign-in, request creation, and dashboard filters in `/Users/akin/Codes/lovie-p2p-request/lib/validation/auth.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/validation/requests.ts`
+- [X] T010 Implement signed cookie mock-auth session helpers and current-user lookup in `/Users/akin/Codes/lovie-p2p-request/lib/auth/session.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/auth/current-user.ts`
+- [X] T011 Implement canonical lifecycle and expiry domain helpers in `/Users/akin/Codes/lovie-p2p-request/lib/requests/status.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/expiry.ts`
+- [X] T012 Implement shared request read/write service functions and cache revalidation helpers in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
+- [X] T013 Implement the root redirect, sign-in route, and protected app layout shell in `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/sign-in/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/actions/auth.ts`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/layout.tsx`
+- [X] T014 Configure Playwright fixtures, seeded test setup, and always-on video capture in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/fixtures.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/e2e/global.setup.ts`, and `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`
 
 **Checkpoint**: The repo can boot, connect to Neon via Prisma, authenticate a mock user, and support repeatable seeded test runs.
 

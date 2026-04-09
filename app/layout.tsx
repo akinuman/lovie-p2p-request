@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Lovie P2P Requests",
-  description: "Interview-ready P2P payment request flow built with Next.js.",
+  description: "P2P payment request flow built with Next.js.",
 };
 
 export default function RootLayout({
