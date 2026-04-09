@@ -1,8 +1,17 @@
-import { Prisma, RequestStatus, type PaymentRequest } from "@prisma/client";
+import { Prisma, RequestStatus } from "@prisma/client";
 
 import { db } from "@/lib/db";
 import { syncExpiredRequest } from "@/lib/requests/expiry";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
+
+const paymentRequestInclude = {
+  recipientMatchedUser: true,
+  sender: true,
+} satisfies Prisma.PaymentRequestInclude;
+
+export type PaymentRequestRecord = Prisma.PaymentRequestGetPayload<{
+  include: typeof paymentRequestInclude;
+}>;
 
 function buildSearchFilter(search?: string) {
   if (!search) {
@@ -31,8 +40,21 @@ function buildStatusFilter(status?: DashboardFilterInput["status"]) {
   return statusMap[status];
 }
 
-async function syncExpiredRequests<T extends PaymentRequest>(requests: T[]) {
-  return Promise.all(requests.map((request) => syncExpiredRequest(db, request)));
+async function syncExpiredRecord(request: PaymentRequestRecord) {
+  const syncedRequest = await syncExpiredRequest(db, request);
+
+  if (syncedRequest.status === request.status) {
+    return request;
+  }
+
+  return db.paymentRequest.findUniqueOrThrow({
+    where: { id: request.id },
+    include: paymentRequestInclude,
+  });
+}
+
+async function syncExpiredRequests(requests: PaymentRequestRecord[]) {
+  return Promise.all(requests.map((request) => syncExpiredRecord(request)));
 }
 
 export async function findUserByNormalizedContact(
@@ -70,10 +92,7 @@ export async function getOutgoingRequestsForUser(
           }
         : {}),
     },
-    include: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
+    include: paymentRequestInclude,
     orderBy: {
       createdAt: "desc",
     },
@@ -102,10 +121,7 @@ export async function getIncomingRequestsForUser(
           }
         : {}),
     },
-    include: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
+    include: paymentRequestInclude,
     orderBy: {
       createdAt: "desc",
     },
@@ -117,17 +133,14 @@ export async function getIncomingRequestsForUser(
 export async function getRequestById(requestId: string) {
   const request = await db.paymentRequest.findUnique({
     where: { id: requestId },
-    include: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
+    include: paymentRequestInclude,
   });
 
   if (!request) {
     return null;
   }
 
-  return syncExpiredRequest(db, request);
+  return syncExpiredRecord(request);
 }
 
 export async function getRequestForUser(requestId: string, userId: string) {

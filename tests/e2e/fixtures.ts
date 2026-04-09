@@ -14,6 +14,7 @@ export const test = base.extend<AuthFixtures>({
   signInAs: async ({ page }, applyFixture) => {
     await applyFixture(async (email: string) => {
       await page.goto("/sign-in");
+      await page.context().clearCookies();
       await page.getByLabel("Email").fill(email);
       await page.getByRole("button", { name: "Continue to dashboard" }).click();
       await expect(page).toHaveURL(/\/dashboard\/outgoing$/);

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { logoutAction } from "@/app/actions/auth";
+import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
 
@@ -25,22 +26,14 @@ export default async function AppLayout({
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
 
-          <nav className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/dashboard/outgoing">Outgoing</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/dashboard/incoming">Incoming</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/requests/new">New request</Link>
-            </Button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <DashboardNav />
             <form action={logoutAction}>
-              <Button type="submit" variant="outline" size="sm">
+              <Button type="submit" variant="outline" size="sm" className="rounded-full">
                 Log out
               </Button>
             </form>
-          </nav>
+          </div>
         </div>
       </header>
 

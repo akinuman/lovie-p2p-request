@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { signInAction } from "@/app/actions/auth";
+import { SignInForm } from "@/components/auth/sign-in-form";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,8 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 export default async function SignInPage() {
   const user = await getCurrentUser();
@@ -39,29 +36,7 @@ export default async function SignInPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <form action={signInAction} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="sender@example.com"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-
-              <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
-                Demo accounts: <strong>sender@example.com</strong>,{" "}
-                <strong>recipient@example.com</strong>, and{" "}
-                <strong>recipient-phone@example.com</strong>.
-              </div>
-
-              <Button type="submit" className="w-full rounded-full">
-                Continue to dashboard
-              </Button>
-            </form>
+            <SignInForm />
           </CardContent>
         </Card>
       </div>

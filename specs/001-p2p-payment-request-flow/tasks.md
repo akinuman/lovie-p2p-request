@@ -71,18 +71,18 @@ description: "Task list for implementing the P2P payment request flow"
 
 ### Tests for User Story 1
 
-- [ ] T015 [P] [US1] Add Playwright coverage for sender sign-in, request creation, outgoing `Pending` state, and share-link summary video in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-create-and-share.spec.ts`
-- [ ] T016 [P] [US1] Add Vitest coverage for amount parsing, contact validation, and self-request blocking in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/money/parse-amount.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/validation/requests.test.ts`
+- [X] T015 [P] [US1] Add Playwright coverage for sender sign-in, request creation, outgoing `Pending` state, and share-link summary video in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-create-and-share.spec.ts`
+- [X] T016 [P] [US1] Add Vitest coverage for amount parsing, contact validation, and self-request blocking in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/money/parse-amount.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/validation/requests.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Build the sign-in form and authenticated navigation shell in `/Users/akin/Codes/lovie-p2p-request/components/auth/sign-in-form.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-nav.tsx`
-- [ ] T018 [US1] Build the request-creation page and form UI for recipient, amount, and note input in `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/new/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`
-- [ ] T019 [US1] Implement `createRequestAction` and persistence for normalized contacts, integer cents, and share-link generation in `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
-- [ ] T020 [US1] Build the outgoing dashboard route and sender request list UI in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`
-- [ ] T021 [US1] Build reusable request status and summary presentation components in `/Users/akin/Codes/lovie-p2p-request/components/requests/status-badge.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx`
-- [ ] T022 [US1] Build the public share-link summary route with limited non-recipient visibility in `/Users/akin/Codes/lovie-p2p-request/app/r/[requestId]/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`
-- [ ] T023 [US1] Add sender-focused empty, validation, and success states for create/share/outgoing flows in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`
+- [X] T017 [US1] Build the sign-in form and authenticated navigation shell in `/Users/akin/Codes/lovie-p2p-request/components/auth/sign-in-form.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-nav.tsx`
+- [X] T018 [US1] Build the request-creation page and form UI for recipient, amount, and note input in `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/new/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`
+- [X] T019 [US1] Implement `createRequestAction` and persistence for normalized contacts, integer cents, and share-link generation in `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
+- [X] T020 [US1] Build the outgoing dashboard route and sender request list UI in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`
+- [X] T021 [US1] Build reusable request status and summary presentation components in `/Users/akin/Codes/lovie-p2p-request/components/requests/status-badge.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx`
+- [X] T022 [US1] Build the public share-link summary route with limited non-recipient visibility in `/Users/akin/Codes/lovie-p2p-request/app/r/[requestId]/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`
+- [X] T023 [US1] Add sender-focused empty, validation, and success states for create/share/outgoing flows in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`
 
 **Checkpoint**: A sender can sign in, create a request, copy/share the link, and verify the request in the outgoing dashboard and public summary page.
 

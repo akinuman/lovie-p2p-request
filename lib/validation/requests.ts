@@ -70,6 +70,26 @@ export function parseRecipientContact(
   return null;
 }
 
+export function isSelfRequestRecipient(input: {
+  currentUserEmail: string;
+  currentUserPhone?: string | null;
+  recipientContactType: ContactTypeLabel;
+  recipientContactValue: string;
+}) {
+  if (
+    input.recipientContactType === "email" &&
+    normalizeEmail(input.currentUserEmail) === input.recipientContactValue
+  ) {
+    return true;
+  }
+
+  if (!input.currentUserPhone || input.recipientContactType !== "phone") {
+    return false;
+  }
+
+  return normalizePhone(input.currentUserPhone) === input.recipientContactValue;
+}
+
 export const requestCreateSchema = z
   .object({
     amount: z.string().trim().min(1, "Amount is required."),
