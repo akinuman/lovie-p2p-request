@@ -12,7 +12,8 @@ payment request assignment. The app uses mock email auth, Neon PostgreSQL,
 Prisma, and Vercel deployment to optimize for interview-ready clarity, fast
 execution, responsive UX, and strong Playwright evidence. The feature centers
 on a single canonical `payment_requests` lifecycle with clear authorization
-rules, integer-cent money handling, and URL-driven dashboard search/filter.
+rules, integer-cent money handling, a live expiration countdown on request
+details, and URL-driven dashboard search/filter.
 
 ## Technical Context
 
@@ -24,7 +25,7 @@ rules, integer-cent money handling, and URL-driven dashboard search/filter.
 **Project Type**: Single-repo monolithic Next.js web app  
 **Performance Goals**: Fast demo-grade interactions; dashboard and detail reads should feel near-instant on assignment-sized data; simulated pay intentionally waits 2-3 seconds  
 **Constraints**: Integer cents only, mock email auth, no distributed services, minimal schema, requests expire after 7 days, responsive UX, public deployment required  
-**Scale/Scope**: Interview-focused MVP for low-volume demo usage covering create, share, search/filter, pay, decline, cancel, and expire flows
+**Scale/Scope**: Interview-focused MVP for low-volume demo usage covering create, share, search/filter, pay, decline, cancel, expire, and visible detail countdown behavior
 
 ## Constitution Check
 
@@ -41,11 +42,12 @@ rules, integer-cent money handling, and URL-driven dashboard search/filter.
 - PASS: Playwright with always-on video recording is included as a first-class
   quality gate for critical flows.
 - PASS: Scope remains tight to the assignment's core request lifecycle and
-  reviewability, with search/filter added only as an explicit user requirement.
+  reviewability, with search/filter and countdown added only as explicit user
+  requirements.
 
 Post-design re-check: PASS. Research, schema, route design, action strategy,
-and deployment planning all stay within constitution limits and reinforce speed,
-clarity, and testability.
+deployment planning, and countdown presentation all stay within constitution
+limits and reinforce speed, clarity, and testability.
 
 ## Project Structure
 
@@ -91,6 +93,7 @@ lib/
 │   └── current-user.ts
 ├── db.ts
 ├── money/
+│   ├── format-amount.ts
 │   └── parse-amount.ts
 ├── requests/
 │   ├── queries.ts
@@ -121,6 +124,8 @@ implementation easy to follow while still showing full-stack competence.
 - Server Components render dashboard and detail views directly from the
   database.
 - Server Actions handle mutations and revalidate affected routes.
+- A small client-only `ExpirationCountdown` component is embedded in the
+  request detail page where live time updates are required.
 
 ### 2. Chosen tech stack and why
 
@@ -141,7 +146,8 @@ implementation easy to follow while still showing full-stack competence.
 - Persist only `users` and `payment_requests`.
 - No separate session table; mock auth uses a signed cookie.
 - `payment_requests` holds the full canonical lifecycle and is the source for
-  incoming/outgoing dashboards, detail pages, and share links.
+  incoming/outgoing dashboards, detail pages, share links, and countdown
+  source data via `expiresAt`.
 
 ### 4. Auth/session approach
 
@@ -158,7 +164,8 @@ implementation easy to follow while still showing full-stack competence.
 - `/dashboard/outgoing`: sender dashboard with search/filter
 - `/dashboard/incoming`: recipient dashboard with search/filter
 - `/requests/new`: create request form
-- `/requests/[requestId]`: authenticated full-detail route
+- `/requests/[requestId]`: authenticated full-detail route with a small
+  client-side `ExpirationCountdown`
 - `/r/[requestId]`: public share route with limited summary for non-recipients
 - `/`: small entry route that redirects based on auth state
 
@@ -183,6 +190,8 @@ implementation easy to follow while still showing full-stack competence.
 - Normalize email and phone before comparison or persistence.
 - Re-check all lifecycle guards in the mutation layer even if the UI already
   hides invalid actions.
+- Treat the countdown UI as a presentation concern derived from persisted
+  `expiresAt`, not as a separate source of truth.
 
 ### 8. State and status transition rules
 
@@ -214,7 +223,16 @@ implementation easy to follow while still showing full-stack competence.
   - outgoing: request id, recipient contact, note
   - incoming: request id, sender email, note
 
-### 10. E2E testing approach with Playwright video
+### 10. Detail countdown approach
+
+- The detail page remains server-rendered overall.
+- A small client component named `ExpirationCountdown` receives `expiresAt` and
+  renders text such as `Expires in 3d 12h`.
+- When the request reaches expiry, the component transitions cleanly to an
+  expired state message while server-side reads continue to enforce the
+  canonical status.
+
+### 11. E2E testing approach with Playwright video
 
 - Configure Playwright to record video for every critical-flow run.
 - Cover at minimum:
@@ -224,12 +242,13 @@ implementation easy to follow while still showing full-stack competence.
   - decline request
   - cancel request
   - expired request blocked from payment
+  - visible expiration countdown on request details
   - dashboard search/filter
   - share link limited summary for non-recipient
 - Use stable test seeds so sender, email recipient, and phone-matched recipient
   accounts are deterministic.
 
-### 11. Deployment and environment plan
+### 12. Deployment and environment plan
 
 - Deploy the app to Vercel as a public production URL.
 - Connect Neon PostgreSQL through `DATABASE_URL`.
@@ -242,7 +261,7 @@ implementation easy to follow while still showing full-stack competence.
 - Keep the production experience simple: one Vercel project, one Neon database,
   no background workers.
 
-### 12. Explicit tradeoffs and assumptions
+### 13. Explicit tradeoffs and assumptions
 
 - Tradeoff: no full auth provider or email delivery.
   This is intentionally simplified to protect assignment scope.

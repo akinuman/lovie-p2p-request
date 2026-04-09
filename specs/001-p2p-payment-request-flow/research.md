@@ -121,6 +121,17 @@
   because it does not scale as cleanly to persisted server data and is less
   robust for direct linking and reloads.
 
+## Decision 12a: Render the expiration countdown as a tiny client component
+
+- **Decision**: Keep the detail page server-rendered overall, but render the
+  live expiration label through a small client-side `ExpirationCountdown`
+  component fed by persisted `expiresAt`.
+- **Rationale**: The countdown must visibly update over time, which is a good
+  fit for a focused client component without turning the whole detail page into
+  client-side UI.
+- **Alternatives considered**: A server-only countdown label was rejected
+  because it would go stale without constant refreshes.
+
 ## Decision 13: Use Playwright as the browser truth source with video always on
 
 - **Decision**: Playwright is the primary end-to-end test layer, configured to

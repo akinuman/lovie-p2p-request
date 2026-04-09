@@ -29,7 +29,9 @@
 6. Open the incoming dashboard or the shared link.
 7. Confirm the detail view shows full information only for the intended
    recipient.
-8. Click `Pay` and verify:
+8. Confirm the detail view shows a live expiration countdown derived from
+   `expiresAt`.
+9. Click `Pay` and verify:
    - the button enters a 2-3 second processing state
    - the request finishes as `Paid`
    - both outgoing and incoming dashboards reflect the new status
@@ -48,7 +50,9 @@
 7. Try to create a self-request and confirm validation blocks it.
 8. Verify dashboard search and status filtering on both incoming and outgoing
    screens.
-9. Repeat the core flows at mobile and desktop widths.
+9. Verify the countdown remains readable and updates on both mobile and desktop
+   detail views.
+10. Repeat the core flows at mobile and desktop widths.
 
 ## Playwright Evidence
 
@@ -60,6 +64,7 @@
   - decline request
   - cancel request
   - expired request cannot be paid
+  - expiration countdown visibility on request details
   - search and filter on dashboards
   - share link summary restrictions for non-recipients
 - Retain the generated video artifacts in `test-results/` or the configured

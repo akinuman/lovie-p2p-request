@@ -40,6 +40,7 @@ mutations, Zod for server validation, and integer-cents money helpers for all
 currency parsing and formatting boundaries.
 
 ## Recent Changes
+- 001-p2p-payment-request-flow: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, Playwrigh
 - 001-p2p-payment-request-flow: Added a monolithic Next.js App Router plan with Neon, Prisma, mock auth, Playwright video coverage, and Vercel deployment
 
 <!-- MANUAL ADDITIONS START -->

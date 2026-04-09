@@ -82,7 +82,8 @@ run.
    `Decline`, **Then** the request becomes `Declined` in both the incoming and
    outgoing views.
 3. **Given** an incoming request, **When** the recipient opens `View Details`,
-   **Then** they can see amount, note, sender, recipient, status, and timestamp.
+   **Then** they can see amount, note, sender, recipient, status, timestamp,
+   and a live expiration countdown derived from the request expiry time.
 4. **Given** a recipient starts payment near the expiry boundary, **When** the
    request expires before the simulated processing completes, **Then** the
    payment fails and the final status is `Expired`.
@@ -156,6 +157,9 @@ mobile and desktop widths.
   actionable.
 - **FR-008**: The system MUST provide a detail view that shows amount, note,
   sender, recipient, status, request ID, and relevant timestamp information.
+- **FR-008a**: The detail view MUST display a live expiration countdown
+  derived from `expiresAt` while the request is still active or until it
+  becomes expired.
 - **FR-009**: The system MUST allow senders to cancel outgoing requests only
   while they are still pending.
 - **FR-010**: The system MUST simulate payment processing for 2-3 seconds before
@@ -214,6 +218,8 @@ mobile and desktop widths.
   behavior and backend state transitions.
 - **SC-006**: Dashboard search and status filtering return relevant results for
   the current user in both incoming and outgoing views.
+- **SC-007**: The detail page shows a visible expiration countdown that updates
+  in the browser and transitions cleanly when the request becomes expired.
 
 ## Assumptions
 

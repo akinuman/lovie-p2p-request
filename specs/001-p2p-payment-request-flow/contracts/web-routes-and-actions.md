@@ -55,6 +55,7 @@ surface is page routes plus Server Actions rather than a public REST API.
 - Behavior:
   - sender can view their own request
   - intended recipient can view full detail
+  - shows a live expiration countdown derived from `expiresAt`
   - non-participants are rejected
 
 ### `/r/[requestId]`

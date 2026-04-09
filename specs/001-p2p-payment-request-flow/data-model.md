@@ -118,6 +118,23 @@ recipient, and share-link views.
 - `expiresAt`
 - `requiresRecipientAuth`
 
+### RequestDetailView
+
+- `id`
+- `status`
+- `amountCents`
+- `note`
+- `senderLabel`
+- `recipientLabel`
+- `createdAt`
+- `expiresAt`
+- `countdownSource`
+
+**Notes**
+
+- `countdownSource` is the persisted `expiresAt` value passed into a
+  client-side countdown component for live detail-page rendering.
+
 ## State Transition Rules
 
 - `Pending -> Paid`
