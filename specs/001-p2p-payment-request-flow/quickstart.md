@@ -1,52 +1,74 @@
 # Quickstart: P2P Payment Request Flow
 
-## Purpose
+## Setup
 
-Use this guide to validate the planned feature behavior during implementation,
-local demo, and public deployment review.
+1. Install dependencies with `pnpm install`.
+2. Configure environment variables:
+   - `DATABASE_URL`
+   - `SESSION_SECRET`
+   - `NEXT_PUBLIC_APP_URL`
+3. Run database migrations with `pnpm prisma migrate dev`.
+4. Seed demo users with `pnpm prisma db seed`.
+5. Start the app with `pnpm dev`.
 
-## Demo Assumptions
-
-- The app uses mock email authentication.
-- Money is stored as integer cents and formatted only in the UI.
-- A public deployment URL is available for final review.
-
-## Suggested Demo Users
+## Demo Users
 
 - Sender: `sender@example.com`
-- Recipient: `recipient@example.com`
+- Recipient by email: `recipient@example.com`
+- Recipient with phone on profile: `recipient-phone@example.com`
 
 ## Happy Path Validation
 
 1. Sign in as `sender@example.com`.
-2. Create a request for `recipient@example.com` with `amountCents = 1250` and
-   note `Dinner`.
-3. Confirm a unique request ID, shareable link, and `Pending` outgoing status.
-4. Sign in as `recipient@example.com`.
-5. Open the incoming dashboard or shared link and verify the detail view shows
-   sender, recipient, note, amount, status, and timestamp.
-6. Click `Pay` and confirm the UI shows a 2-3 second processing state.
-7. Verify the request becomes `Paid` in both sender and recipient views.
+2. Create a request to `recipient@example.com` for `12.50` with note
+   `Dinner`.
+3. Confirm the app stores and displays the value via `amountCents = 1250`.
+4. Confirm the outgoing dashboard shows the request as `Pending` with a share
+   link.
+5. Sign in as `recipient@example.com`.
+6. Open the incoming dashboard or the shared link.
+7. Confirm the detail view shows full information only for the intended
+   recipient.
+8. Click `Pay` and verify:
+   - the button enters a 2-3 second processing state
+   - the request finishes as `Paid`
+   - both outgoing and incoming dashboards reflect the new status
 
 ## Additional Validation
 
-1. Create a second request and confirm the recipient can `Decline` it.
-2. Create a third request and confirm the sender can `Cancel` it while pending.
-3. Seed or backdate a request older than 7 days and confirm it is `Expired`.
-4. Confirm an expired request cannot be paid.
-5. Repeat the sender and recipient flows at mobile and desktop widths.
+1. Create a second request and decline it as the recipient.
+2. Create a third request and cancel it as the sender while it is still
+   `Pending`.
+3. Confirm cancelled requests remain visible to both parties as `Cancelled`.
+4. Seed or backdate a request older than 7 days and confirm it becomes
+   `Expired`.
+5. Try to pay an expired request and confirm the final state remains `Expired`.
+6. Create a phone-addressed request and confirm only the user with the matching
+   stored phone can see it in the incoming dashboard.
+7. Try to create a self-request and confirm validation blocks it.
+8. Verify dashboard search and status filtering on both incoming and outgoing
+   screens.
+9. Repeat the core flows at mobile and desktop widths.
+
+## Playwright Evidence
+
+- Run `pnpm playwright test`.
+- Configure Playwright with video recording enabled for every test run.
+- Critical specs should cover:
+  - create and share request
+  - pay request
+  - decline request
+  - cancel request
+  - expired request cannot be paid
+  - search and filter on dashboards
+  - share link summary restrictions for non-recipients
+- Retain the generated video artifacts in `test-results/` or the configured
+  Playwright output directory.
 
 ## Public Deployment Checklist
 
-- The deployment is reachable without private network access.
-- Mock authentication works for both sender and recipient demo users.
-- Shareable request links resolve correctly in the deployed environment.
-- Critical Playwright flows run against the deployed or deployment-equivalent
-  environment and produce video artifacts.
-
-## Test Evidence Expectations
-
-- Playwright critical-flow specs live under `tests/e2e/`.
-- Recorded videos are retained as review artifacts from the automated E2E run.
-- At minimum, video evidence covers create/share, pay, decline, cancel, and
-  expired-payment-blocked behavior.
+- Production deployment is hosted on Vercel and reachable publicly.
+- Neon production database is connected through environment variables.
+- Share links use the production app URL.
+- Playwright can run either locally against the production-like app or against
+  the deployed public URL via `PLAYWRIGHT_BASE_URL`.

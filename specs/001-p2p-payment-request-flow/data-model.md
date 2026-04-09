@@ -1,116 +1,149 @@
 # Data Model: P2P Payment Request Flow
 
-## Entity: PaymentRequest
+## Overview
 
-**Purpose**: Represents a request from one user to another for a specific amount
-of money.
+The implementation uses a minimal relational schema with two persisted tables:
+`users` and `payment_requests`. Mock auth is handled by a signed cookie, so no
+database-backed session table is required.
+
+## Entity: User
+
+**Purpose**: Represents an authenticated actor who can send and receive
+requests.
 
 **Fields**
 
-- `id`: opaque unique request identifier used in URLs and API routes
-- `senderUserId`: reference to the authenticated sender
-- `recipientContactType`: enum of `email` or `phone`
-- `recipientContactValue`: normalized contact string
-- `recipientUserId`: optional resolved user identity when the recipient signs in
-- `amountCents`: integer amount in cents, must be `> 0`
-- `note`: optional short free-text note
-- `status`: enum of `Pending`, `Paid`, `Declined`, `Expired`, `Cancelled`
-- `shareUrl`: generated link for opening the request detail route
-- `createdAt`: timestamp when the request was created
-- `expiresAt`: timestamp exactly 7 days after `createdAt`
+- `id`: string primary key (`cuid` or `uuid`)
+- `email`: unique, normalized, required
+- `phone`: unique when present, normalized, nullable
+- `createdAt`: timestamp
+- `updatedAt`: timestamp
+
+**Validation**
+
+- `email` MUST be stored lowercase and unique.
+- `phone` MUST be normalized before storage when present.
+
+**Relationships**
+
+- One `User` has many outgoing `PaymentRequest` records via `senderUserId`.
+- One `User` may be matched to many incoming `PaymentRequest` records via
+  `recipientMatchedUserId`.
+
+## Entity: PaymentRequest
+
+**Purpose**: Represents the canonical request lifecycle record used by sender,
+recipient, and share-link views.
+
+**Fields**
+
+- `id`: public string identifier used in dashboard/detail routes and share links
+- `senderUserId`: foreign key to `users.id`
+- `recipientContactType`: enum `email | phone`
+- `recipientContactValue`: normalized target email or phone
+- `recipientMatchedUserId`: nullable foreign key to `users.id` when the system
+  can resolve the intended recipient
+- `amountCents`: integer, required, `> 0`
+- `note`: nullable text, max 280 characters
+- `status`: enum `Pending | Paid | Declined | Cancelled | Expired`
+- `createdAt`: timestamp
+- `updatedAt`: timestamp
+- `expiresAt`: timestamp, always `createdAt + 7 days`
 - `paidAt`: nullable timestamp
 - `declinedAt`: nullable timestamp
 - `cancelledAt`: nullable timestamp
-- `lastStatusChangedAt`: timestamp for latest terminal or lifecycle transition
+- `lastStatusChangedAt`: timestamp
 
 **Validation**
 
 - `amountCents` MUST be a positive integer.
-- `recipientContactValue` MUST match the chosen contact type format.
-- `note` MAY be empty.
-- `status` transitions MUST follow the allowed state machine.
+- `recipientContactValue` MUST match the selected contact type.
+- The sender MUST NOT be able to create a request to their own email or phone.
+- Only `Pending` requests are mutable.
+- `Expired`, `Cancelled`, `Declined`, and `Paid` are terminal states.
 
 **Relationships**
 
-- Belongs to one sender `UserIdentity`.
-- May resolve to one recipient `UserIdentity`.
+- Belongs to one sender `User`.
+- May resolve to one matched recipient `User`.
 
-## Entity: UserIdentity
+## Non-Persisted Auth Session
 
-**Purpose**: Represents a user who can send or receive payment requests.
+**Purpose**: Represents the current logged-in user through a signed cookie.
 
-**Fields**
+**Cookie payload**
 
-- `id`: unique user identifier
-- `email`: canonical login and display identifier
-- `phone`: optional phone number for matching phone-based requests
-- `createdAt`: timestamp
+- `userId`
+- `email`
+- `issuedAt`
 
-**Validation**
+**Notes**
 
-- `email` MUST be unique when present.
-- `phone` SHOULD be stored in normalized form when present.
+- The cookie is HTTP-only and signed with a server secret.
+- Logout clears the cookie.
+- Authorization always re-loads the user from the database using `userId`.
 
-**Relationships**
+## Derived Query Shapes
 
-- One user can own many outgoing `PaymentRequest` records.
-- One user can receive many incoming `PaymentRequest` records.
-
-## Entity: AuthSession
-
-**Purpose**: Represents a simple/mock authenticated session for the take-home.
-
-**Fields**
-
-- `id`: unique session identifier
-- `userId`: reference to `UserIdentity`
-- `createdAt`: timestamp
-- `expiresAt`: nullable timestamp if the implementation uses session expiry
-
-**Validation**
-
-- A session MUST map to a valid user.
-
-## Derived Views
-
-### OutgoingRequestSummary
+### OutgoingDashboardItem
 
 - `id`
-- `recipientDisplay`
+- `recipientLabel`
 - `amountCents`
 - `status`
+- `notePreview`
 - `createdAt`
 - `expiresAt`
-- `shareUrl`
 - `canCancel`
 
-### IncomingRequestSummary
+### IncomingDashboardItem
 
 - `id`
-- `senderDisplay`
+- `senderLabel`
 - `amountCents`
 - `status`
+- `notePreview`
 - `createdAt`
 - `expiresAt`
 - `canPay`
 - `canDecline`
 
-## State Transitions
+### ShareSummaryView
+
+- `id`
+- `senderLabel`
+- `amountCents`
+- `status`
+- `notePreview`
+- `expiresAt`
+- `requiresRecipientAuth`
+
+## State Transition Rules
 
 - `Pending -> Paid`
-  Trigger: recipient completes simulated payment after 2-3 seconds.
+  Guard: requester is the matched recipient, request is not expired, and the
+  final status check after the 2-3 second delay still finds the request valid.
 - `Pending -> Declined`
-  Trigger: recipient declines the request.
+  Guard: requester is the matched recipient and request is not expired.
 - `Pending -> Cancelled`
-  Trigger: sender cancels the outgoing request before resolution.
+  Guard: requester is the sender and request is not expired.
 - `Pending -> Expired`
-  Trigger: request is older than 7 days when evaluated.
+  Guard: `now >= expiresAt` during read or mutation pre-check.
 - `Paid`, `Declined`, `Cancelled`, and `Expired` are terminal states.
 
-## Business Rules
+## Search and Filter Model
 
-- Expiry MUST be evaluated before allowing `Pay`, `Decline`, or `Cancel`.
-- Sender and recipient dashboards MUST read from the same underlying request
-  record so status changes stay synchronized.
-- Detail views MUST expose the same canonical status and timestamps as the
-  dashboards.
+- Outgoing search operates over request `id`, `recipientContactValue`, and
+  `note`.
+- Incoming search operates over request `id`, sender email, and `note`.
+- Status filter applies to the canonical `status` column.
+- Search and filter are scoped to the current user only.
+
+## Suggested Indexes
+
+- `users(email)` unique
+- `users(phone)` unique where not null
+- `payment_requests(sender_user_id, created_at desc)`
+- `payment_requests(recipient_matched_user_id, created_at desc)`
+- `payment_requests(status, expires_at)`
+- `payment_requests(recipient_contact_value, status)`

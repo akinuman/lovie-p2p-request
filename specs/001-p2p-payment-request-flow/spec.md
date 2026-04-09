@@ -92,8 +92,8 @@ run.
 ### User Story 3 - Users See Accurate Lifecycle Statuses (Priority: P2)
 
 As a sender or recipient, I want request lifecycle rules such as cancellation,
-expiration, and status sync to behave predictably so I can trust the request
-state shown in the app.
+expiration, search/filter, and status sync to behave predictably so I can trust
+the request state shown in the app.
 
 **Why this priority**: Lifecycle accuracy is essential for fintech-style trust,
 but it depends on the core create and resolve flows already existing.
@@ -114,6 +114,9 @@ mobile and desktop widths.
 3. **Given** a user opens dashboards or details on mobile or desktop widths,
    **When** they navigate the primary flows, **Then** the layout remains usable,
    readable, and action buttons remain accessible.
+4. **Given** a user has multiple requests in a dashboard, **When** they apply
+   search or status filters, **Then** the list updates to show only matching
+   requests without changing the underlying data.
 
 ## Edge Cases
 
@@ -181,6 +184,8 @@ mobile and desktop widths.
   `Expired`.
 - **FR-022**: The system MUST block creation of self-requests when the
   recipient contact matches the signed-in user's email or phone.
+- **FR-023**: The system MUST provide dashboard search and status-based
+  filtering for incoming and outgoing requests.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -207,6 +212,8 @@ mobile and desktop widths.
   both mobile and desktop layouts without layout breakage.
 - **SC-005**: Expired requests are consistently blocked from payment in both UI
   behavior and backend state transitions.
+- **SC-006**: Dashboard search and status filtering return relevant results for
+  the current user in both incoming and outgoing views.
 
 ## Assumptions
 

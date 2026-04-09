@@ -3,13 +3,16 @@
 Auto-generated from all feature plans. Last updated: 2026-04-09
 
 ## Active Technologies
-
-- Intentionally deferred until implementation selection per user instruction + Intentionally deferred until implementation selection per user instruction (001-p2p-payment-request-flow)
+- TypeScript 5.x on Node.js LTS + Next.js App Router, React, Prisma ORM, Neon PostgreSQL, Zod, Tailwind CSS, Playwright (001-p2p-payment-request-flow)
+- Neon PostgreSQL accessed through Prisma (001-p2p-payment-request-flow)
 
 ## Project Structure
 
 ```text
-src/
+app/
+components/
+lib/
+prisma/
 tests/
 ```
 
@@ -23,15 +26,21 @@ tests/
 
 ## Commands
 
-# Add commands for Intentionally deferred until implementation selection per user instruction
+- `pnpm install`
+- `pnpm dev`
+- `pnpm prisma migrate dev`
+- `pnpm prisma db seed`
+- `pnpm playwright test`
+- `pnpm test`
 
 ## Code Style
 
-Intentionally deferred until implementation selection per user instruction: Follow standard conventions
+TypeScript/Next.js: Prefer Server Components for reads, Server Actions for
+mutations, Zod for server validation, and integer-cents money helpers for all
+currency parsing and formatting boundaries.
 
 ## Recent Changes
-
-- 001-p2p-payment-request-flow: Added Intentionally deferred until implementation selection per user instruction + Intentionally deferred until implementation selection per user instruction
+- 001-p2p-payment-request-flow: Added a monolithic Next.js App Router plan with Neon, Prisma, mock auth, Playwright video coverage, and Vercel deployment
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

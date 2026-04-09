@@ -1,76 +1,141 @@
 # Research: P2P Payment Request Flow
 
-## Decision 1: Deliver the feature as a public, responsive web application
+## Decision 1: Use a single-repo monolithic Next.js App Router application
 
-- **Decision**: Plan for a publicly deployed web app with authenticated sender
-  and recipient views plus shareable request links.
-- **Rationale**: The feature requires dashboards, detail screens, responsive
-  behavior, and public accessibility, which all map naturally to a web app.
-- **Alternatives considered**: Native mobile app was rejected because it would
-  add unnecessary scope and make public review harder for a take-home.
+- **Decision**: Implement the assignment as one Next.js App Router application
+  in a single repo, without separate frontend/backend services.
+- **Rationale**: This is the clearest fit for the assignment's emphasis on
+  speed of delivery, readability, public deployment, and end-to-end testability.
+  It keeps routing, UI, mutations, and data access in one place.
+- **Alternatives considered**: A split frontend/backend architecture was
+  rejected because it adds coordination and deployment complexity without
+  improving the core take-home evaluation.
 
-## Decision 2: Use mock email authentication as the baseline auth approach
+## Decision 2: Use TypeScript throughout the app
 
-- **Decision**: Treat email-based mock authentication as the default auth model.
-- **Rationale**: The constitution explicitly allows simple/mock email auth, and
-  it keeps the assignment focused on request lifecycle behavior rather than
-  production auth complexity.
-- **Alternatives considered**: Full password auth, OAuth, and magic-link email
-  delivery were rejected for adding scope without improving the evaluation goal.
+- **Decision**: Use TypeScript for application, validation, and test code.
+- **Rationale**: TypeScript improves clarity around request states, money
+  handling, and action inputs while remaining standard and interviewer-friendly.
+- **Alternatives considered**: Plain JavaScript was rejected because it would
+  reduce type safety around lifecycle rules and validated input shapes.
 
-## Decision 3: Defer concrete tech stack selection until implementation
+## Decision 3: Use Neon PostgreSQL with Prisma ORM
 
-- **Decision**: Do not choose language, framework, or hosting vendor in this
-  planning phase.
-- **Rationale**: The user explicitly requested that stack choices stay open
-  unless the planning phase truly requires them. The required behavior can be
-  specified through contracts, data modeling, and workflow decisions first.
-- **Alternatives considered**: Locking in a stack now was rejected because it
-  would constrain later implementation choices without being necessary to define
-  the product behavior.
+- **Decision**: Persist data in Neon PostgreSQL and access it through Prisma.
+- **Rationale**: Neon satisfies the required hosted relational persistence, and
+  Prisma provides a readable schema plus typed queries that are easy to explain
+  during review. This combination balances delivery speed with enough technical
+  depth for the assignment.
+- **Alternatives considered**: SQLite was rejected because the assignment asks
+  for public deployment and realistic persistence. Drizzle was considered, but
+  Prisma is more interviewer-friendly for a concise take-home schema.
 
-## Decision 4: Model request lifecycle with a single canonical status record
+## Decision 4: Use signed cookie mock auth with no persisted session table
 
-- **Decision**: Each request uses one canonical status state shared by sender
-  and recipient views: `Pending`, `Paid`, `Declined`, `Expired`, and an
-  implementation-level `Cancelled` terminal state for cancelled requests.
-- **Rationale**: A single source of truth is the simplest way to guarantee that
-  both dashboards and detail views stay synchronized after state changes.
-- **Alternatives considered**: Separate sender-side and recipient-side status
-  values were rejected because they increase sync complexity and bug risk.
+- **Decision**: Implement mock email auth with a signed, HTTP-only cookie that
+  stores the current user id, backed by a `users` table but no `sessions` table.
+- **Rationale**: The constitution explicitly prefers simple/mock auth, and a
+  signed cookie avoids an unnecessary table while remaining straightforward to
+  reason about in Next.js server code.
+- **Alternatives considered**: NextAuth/Auth.js and custom database sessions
+  were rejected because they add setup and concepts beyond what the assignment
+  needs.
 
-## Decision 5: Enforce expiry lazily from timestamps instead of background jobs
+## Decision 5: Use Server Components for reads and Server Actions for mutations
 
-- **Decision**: Compute expiry from `createdAt + 7 days` and enforce it whenever
-  a request is read or acted on.
-- **Rationale**: This approach keeps the architecture simple, avoids scheduler
-  complexity, and is straightforward to test in Playwright and backend tests.
-- **Alternatives considered**: Scheduled expiration jobs were rejected because
-  they are more infrastructure-heavy than this assignment needs.
+- **Decision**: Render dashboards and detail pages as Server Components and use
+  Next.js Server Actions for login, logout, create, cancel, decline, and pay.
+- **Rationale**: App Router defaults align well with server-first reads,
+  authenticated access control, and mutation flows that can revalidate pages
+  without a separate API layer.
+- **Alternatives considered**: A full REST API was rejected as unnecessary
+  ceremony for an internal monolith. Client-heavy data fetching was rejected
+  because it complicates auth and state consistency.
 
-## Decision 6: Simulate payment with an intentional 2-3 second async transition
+## Decision 6: Use Tailwind CSS with a small custom component set
 
-- **Decision**: `Pay` should enter a temporary processing state for 2-3 seconds
-  before transitioning to `Paid`.
-- **Rationale**: The requirement is explicit, and a controlled async step makes
-  the UI behavior easy to demonstrate and test without real payment rails.
-- **Alternatives considered**: Instant payment completion was rejected because
-  it would not satisfy the required user experience.
+- **Decision**: Build the UI with Tailwind CSS and a minimal local component
+  library for forms, tables/cards, filters, and status badges.
+- **Rationale**: Tailwind is fast for responsive iteration and keeps styling
+  colocated with components. A small local component set avoids introducing an
+  additional design-system dependency.
+- **Alternatives considered**: A heavyweight component library was rejected
+  because it adds setup cost and can make a take-home feel less intentional.
 
-## Decision 7: Protect shareable links with recipient identity checks
+## Decision 7: Represent money as integer cents with explicit parsing helpers
 
-- **Decision**: Share links expose the request detail route, but only an
-  authenticated user matching the intended recipient contact can pay or decline.
-- **Rationale**: This preserves the convenience of sharing while preventing the
-  link itself from becoming authorization.
-- **Alternatives considered**: Fully public action links were rejected because
-  they are too permissive for a fintech-style interaction, even in a mock app.
+- **Decision**: Accept amount input as a string in the form layer, parse it via
+  a dedicated helper, and persist only `amountCents` integers in the database.
+- **Rationale**: This directly enforces the constitution's money rule and keeps
+  formatting isolated to the UI boundary.
+- **Alternatives considered**: Storing decimals or floats was rejected because
+  it violates the constitution and creates avoidable rounding risk.
 
-## Decision 8: Public deployment is a release requirement, not a planning blocker
+## Decision 8: Persist request lifecycle directly on the request record
 
-- **Decision**: Mark public deployment as mandatory while deferring provider
-  selection until implementation.
-- **Rationale**: The requirement is product-facing, but a hosting vendor choice
-  is not needed to define data flow, contracts, or acceptance behavior.
-- **Alternatives considered**: Choosing a hosting provider during planning was
-  rejected because it is a stack decision the user asked to defer.
+- **Decision**: Keep lifecycle state on a single `payment_requests` table using
+  explicit statuses: `Pending`, `Paid`, `Declined`, `Cancelled`, and `Expired`.
+- **Rationale**: A single canonical record is the simplest way to keep sender
+  and recipient views synchronized and easy to test.
+- **Alternatives considered**: Event-sourcing or separate status history tables
+  were rejected as unnecessary for the assignment.
+
+## Decision 9: Expire requests lazily but persist the terminal status
+
+- **Decision**: On relevant reads and before any mutation, run a small expiry
+  sync that converts overdue `Pending` requests to `Expired` in the database.
+- **Rationale**: This avoids background jobs while still keeping the stored
+  status truthful once an expired request is touched.
+- **Alternatives considered**: Cron-based expiration was rejected because it
+  adds platform and operational complexity. Purely computed expiry without
+  persisting the state was rejected because it complicates filtering and UI
+  consistency.
+
+## Decision 10: Make share links summary-visible but action-protected
+
+- **Decision**: Public share links resolve to a summary page that shows limited
+  request information to anyone with the link, while full details and actions
+  require authentication as the intended recipient.
+- **Rationale**: This matches the clarified behavior and keeps the sharing flow
+  convenient without making the link itself the authorization boundary.
+- **Alternatives considered**: Fully private links were rejected because they
+  weaken the sharing experience. Fully public action links were rejected because
+  they are too permissive for a fintech-style flow.
+
+## Decision 11: Support phone recipients through stored user profile data
+
+- **Decision**: A phone-addressed request is visible or actionable only for a
+  signed-in user whose existing profile contains the matching phone number.
+- **Rationale**: This matches the clarification outcome and avoids turning mock
+  auth into an ad hoc phone-claim flow.
+- **Alternatives considered**: Letting any viewer claim a phone request by
+  typing a number was rejected because it weakens identity rules.
+
+## Decision 12: Implement dashboard search and filter in URL search params
+
+- **Decision**: Incoming and outgoing dashboards use `searchParams` such as
+  `q` and `status` to drive server-rendered queries.
+- **Rationale**: URL-based filters are simple, testable, shareable, and align
+  naturally with App Router Server Components.
+- **Alternatives considered**: Client-only in-memory filtering was rejected
+  because it does not scale as cleanly to persisted server data and is less
+  robust for direct linking and reloads.
+
+## Decision 13: Use Playwright as the browser truth source with video always on
+
+- **Decision**: Playwright is the primary end-to-end test layer, configured to
+  record video for all critical flows.
+- **Rationale**: The constitution requires Playwright proof plus automated video
+  artifacts, and Playwright maps directly to the sender/recipient journeys the
+  reviewer cares about.
+- **Alternatives considered**: Relying only on unit or integration tests was
+  rejected because it would not prove the full product flow.
+
+## Decision 14: Deploy on Vercel with a public production URL
+
+- **Decision**: Deploy the monolith to Vercel and connect it to Neon through
+  environment variables.
+- **Rationale**: Vercel is the natural deployment target for a Next.js App
+  Router project and makes it easy to share a public URL for review.
+- **Alternatives considered**: Self-hosting or container deployment was
+  rejected because it would add operational work unrelated to the assignment.
