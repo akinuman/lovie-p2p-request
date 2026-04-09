@@ -1,4 +1,4 @@
-import type { RequestStatus } from "@prisma/client";
+import type { RequestStatus } from "@/drizzle/schema";
 
 import { Badge } from "@/components/ui/badge";
 import { getStatusLabel } from "@/lib/requests/status";
@@ -7,11 +7,11 @@ const STATUS_VARIANTS: Record<
   RequestStatus,
   "default" | "destructive" | "outline" | "secondary"
 > = {
-  CANCELLED: "outline",
-  DECLINED: "destructive",
-  EXPIRED: "outline",
-  PAID: "secondary",
-  PENDING: "default",
+  Cancelled: "outline",
+  Declined: "destructive",
+  Expired: "outline",
+  Paid: "secondary",
+  Pending: "default",
 };
 
 export function StatusBadge({ status }: { status: RequestStatus }) {

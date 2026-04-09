@@ -19,16 +19,19 @@
 - **Alternatives considered**: Plain JavaScript was rejected because it would
   reduce type safety around lifecycle rules and validated input shapes.
 
-## Decision 3: Use Neon PostgreSQL with Prisma ORM
+## Decision 3: Use Neon PostgreSQL with Drizzle ORM
 
-- **Decision**: Persist data in Neon PostgreSQL and access it through Prisma.
+- **Decision**: Persist data in Neon PostgreSQL and access it through Drizzle
+  ORM with postgres-js.
 - **Rationale**: Neon satisfies the required hosted relational persistence, and
-  Prisma provides a readable schema plus typed queries that are easy to explain
-  during review. This combination balances delivery speed with enough technical
-  depth for the assignment.
+  Drizzle keeps the SQL-facing schema close to the application while still
+  providing typed queries and lightweight runtime behavior that fits a small
+  Next.js monolith well. This combination balances delivery speed with enough
+  technical depth for the assignment.
 - **Alternatives considered**: SQLite was rejected because the assignment asks
-  for public deployment and realistic persistence. Drizzle was considered, but
-  Prisma is more interviewer-friendly for a concise take-home schema.
+  for public deployment and realistic persistence. Heavyweight ORM generation
+  workflows were rejected because the project wants a simpler schema-in-code
+  setup.
 
 ## Decision 4: Use signed cookie mock auth with no persisted session table
 

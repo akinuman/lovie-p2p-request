@@ -1,14 +1,18 @@
-import { PrismaClient, RequestStatus, type Prisma } from "@prisma/client";
+import { eq } from "drizzle-orm";
 
+import { paymentRequests } from "@/drizzle/schema";
+
+import {
+  getRequestViewerRole,
+  getUserById,
+} from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { computeExpiresAt, isRequestExpired, syncExpiredRequest } from "@/lib/requests/expiry";
-import { isPendingStatus } from "@/lib/requests/status";
+import { computeExpiresAt } from "@/lib/requests/expiry";
+import { getRecipientActionGuardMessage } from "@/lib/requests/status";
 import {
   findUserByNormalizedContact,
   getRequestById,
 } from "@/lib/requests/queries";
-
-type DatabaseClient = Prisma.TransactionClient | PrismaClient;
 
 export interface CreatePaymentRequestInput {
   amountCents: number;
@@ -27,25 +31,14 @@ export function getRequestRevalidationPaths(requestId: string) {
   ];
 }
 
-async function getFreshPendingRequestOrThrow(
-  requestId: string,
-  client: DatabaseClient = db,
-) {
-  const request = await client.paymentRequest.findUnique({
-    where: { id: requestId },
-  });
+async function getFreshRequestOrThrow(requestId: string) {
+  const request = await getRequestById(requestId);
 
   if (!request) {
     throw new Error("Request not found.");
   }
 
-  const syncedRequest = await syncExpiredRequest(client, request);
-
-  if (!isPendingStatus(syncedRequest.status)) {
-    throw new Error("Only pending requests can be changed.");
-  }
-
-  return syncedRequest;
+  return request;
 }
 
 export async function createPaymentRequest(input: CreatePaymentRequestInput) {
@@ -54,94 +47,138 @@ export async function createPaymentRequest(input: CreatePaymentRequestInput) {
     input.recipientContactValue,
   );
 
-  return db.paymentRequest.create({
-    data: {
+  const [createdRequest] = await db
+    .insert(paymentRequests)
+    .values({
       amountCents: input.amountCents,
       expiresAt: computeExpiresAt(),
       lastStatusChangedAt: new Date(),
       note: input.note,
-      recipientContactType:
-        input.recipientContactType === "email" ? "EMAIL" : "PHONE",
+      recipientContactType: input.recipientContactType,
       recipientContactValue: input.recipientContactValue,
       recipientMatchedUserId: recipientMatchedUser?.id,
       senderUserId: input.senderUserId,
-    },
-    include: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
+      updatedAt: new Date(),
+    })
+    .returning({
+      id: paymentRequests.id,
+    });
+
+  const request = await getRequestById(createdRequest.id);
+
+  if (!request) {
+    throw new Error("We couldn’t load the created request.");
+  }
+
+  return request;
 }
 
 export async function cancelPaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const request = await getFreshRequestOrThrow(requestId);
 
   if (request.senderUserId !== actorUserId) {
     throw new Error("Only the sender can cancel this request.");
   }
 
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
       cancelledAt: new Date(),
       lastStatusChangedAt: new Date(),
-      status: RequestStatus.CANCELLED,
-    },
-  });
+      status: "Cancelled",
+      updatedAt: new Date(),
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }
 
 export async function declinePaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const [actorUser, request] = await Promise.all([
+    getUserById(actorUserId),
+    getFreshRequestOrThrow(requestId),
+  ]);
 
-  if (request.recipientMatchedUserId !== actorUserId) {
-    throw new Error("Only the intended recipient can decline this request.");
+  if (!actorUser) {
+    throw new Error("User not found.");
   }
 
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
-      declinedAt: new Date(),
-      lastStatusChangedAt: new Date(),
-      status: RequestStatus.DECLINED,
-    },
+  const errorMessage = getRecipientActionGuardMessage("decline", {
+    expiresAt: request.expiresAt,
+    status: request.status,
+    viewerRole: getRequestViewerRole(actorUser, request),
   });
+
+  if (errorMessage) {
+    throw new Error(errorMessage);
+  }
+
+  const now = new Date();
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
+      declinedAt: now,
+      lastStatusChangedAt: now,
+      recipientMatchedUserId: actorUser.id,
+      status: "Declined",
+      updatedAt: now,
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }
 
 export async function payPaymentRequest(requestId: string, actorUserId: string) {
-  const request = await getFreshPendingRequestOrThrow(requestId);
+  const [actorUser, request] = await Promise.all([
+    getUserById(actorUserId),
+    getFreshRequestOrThrow(requestId),
+  ]);
 
-  if (request.recipientMatchedUserId !== actorUserId) {
-    throw new Error("Only the intended recipient can pay this request.");
+  if (!actorUser) {
+    throw new Error("User not found.");
+  }
+
+  const preflightError = getRecipientActionGuardMessage("pay", {
+    expiresAt: request.expiresAt,
+    status: request.status,
+    viewerRole: getRequestViewerRole(actorUser, request),
+  });
+
+  if (preflightError) {
+    throw new Error(preflightError);
   }
 
   await new Promise((resolve) => setTimeout(resolve, 2_500));
 
-  const freshRequest = await getRequestById(requestId);
-
-  if (!freshRequest) {
-    throw new Error("Request not found.");
-  }
-
-  if (isRequestExpired(freshRequest.expiresAt)) {
-    return db.paymentRequest.update({
-      where: { id: requestId },
-      data: {
-        lastStatusChangedAt: new Date(),
-        status: RequestStatus.EXPIRED,
-      },
-    });
-  }
-
-  if (!isPendingStatus(freshRequest.status)) {
-    throw new Error("Only pending requests can be paid.");
-  }
-
-  return db.paymentRequest.update({
-    where: { id: requestId },
-    data: {
-      lastStatusChangedAt: new Date(),
-      paidAt: new Date(),
-      status: RequestStatus.PAID,
-    },
+  const freshRequest = await getFreshRequestOrThrow(requestId);
+  const completionError = getRecipientActionGuardMessage("pay", {
+    expiresAt: freshRequest.expiresAt,
+    status: freshRequest.status,
+    viewerRole: getRequestViewerRole(actorUser, freshRequest),
   });
+
+  if (completionError) {
+    if (freshRequest.status === "Expired") {
+      return freshRequest;
+    }
+
+    throw new Error(completionError);
+  }
+
+  const now = new Date();
+  const [updatedRequest] = await db
+    .update(paymentRequests)
+    .set({
+      lastStatusChangedAt: now,
+      paidAt: now,
+      recipientMatchedUserId: actorUser.id,
+      status: "Paid",
+      updatedAt: now,
+    })
+    .where(eq(paymentRequests.id, requestId))
+    .returning();
+
+  return updatedRequest;
 }

@@ -1,6 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { RequestShareSummary } from "@/components/requests/request-share-summary";
+import {
+  getCurrentUser,
+  getRequestViewerRole,
+} from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
 import { getShareSummaryRequest } from "@/lib/requests/queries";
 
@@ -14,6 +18,12 @@ export default async function ShareSummaryPage({
 
   if (!request) {
     notFound();
+  }
+
+  const currentUser = await getCurrentUser();
+
+  if (currentUser && getRequestViewerRole(currentUser, request) === "recipient") {
+    redirect(`/requests/${request.id}`);
   }
 
   const shareUrl = `${getEnv().NEXT_PUBLIC_APP_URL}/r/${request.id}`;

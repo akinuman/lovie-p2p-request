@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
-
+import { db } from "@/lib/db";
+import { paymentRequests, users } from "@/drizzle/schema";
 import { normalizeEmail, normalizePhone } from "@/lib/validation/requests";
-
-const prisma = new PrismaClient();
 
 const demoUsers = [
   {
@@ -20,28 +18,35 @@ const demoUsers = [
 ] as const;
 
 async function main() {
-  await prisma.paymentRequest.deleteMany();
+  await db.delete(paymentRequests);
 
   for (const user of demoUsers) {
-    await prisma.user.upsert({
-      where: { email: normalizeEmail(user.email) },
-      update: {
-        phone: user.phone,
-      },
-      create: {
+    const now = new Date();
+
+    await db
+      .insert(users)
+      .values({
+        createdAt: now,
         email: normalizeEmail(user.email),
         phone: user.phone,
-      },
-    });
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        set: {
+          phone: user.phone,
+          updatedAt: now,
+        },
+        target: users.email,
+      });
   }
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect();
+    await db.$client.end();
   })
   .catch(async (error) => {
     console.error(error);
-    await prisma.$disconnect();
+    await db.$client.end();
     process.exit(1);
   });

@@ -13,6 +13,14 @@ function readStringParam(
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+function readStatusMessage(status?: string) {
+  if (!status) {
+    return null;
+  }
+
+  return `Request updated to ${status}.`;
+}
+
 export default async function OutgoingDashboardPage({
   searchParams,
 }: {
@@ -23,6 +31,9 @@ export default async function OutgoingDashboardPage({
   const resolvedSearchParams = await searchParams;
   const createdRequestId = readStringParam(resolvedSearchParams.created);
   const createdRequest = requests.find((request) => request.id === createdRequestId);
+  const statusMessage = readStatusMessage(
+    readStringParam(resolvedSearchParams.status),
+  );
   const shareBaseUrl = getEnv().NEXT_PUBLIC_APP_URL;
 
   return (
@@ -87,6 +98,14 @@ export default async function OutgoingDashboardPage({
             <Button asChild variant="outline" className="rounded-full">
               <Link href={`/r/${createdRequest.id}`}>Preview share page</Link>
             </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {statusMessage ? (
+        <Card className="border-primary/25 bg-primary/5 shadow-none">
+          <CardContent className="pt-6 text-sm leading-6 text-foreground">
+            {statusMessage}
           </CardContent>
         </Card>
       ) : null}

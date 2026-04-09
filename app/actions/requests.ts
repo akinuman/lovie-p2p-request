@@ -4,31 +4,64 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import { createPaymentRequest, getRequestRevalidationPaths } from "@/lib/requests/mutations";
+import {
+  type CreateRequestActionState,
+  type RequestFormField,
+} from "@/lib/requests/create-request-action-state";
+import {
+  createPaymentRequest,
+  declinePaymentRequest,
+  getRequestRevalidationPaths,
+  payPaymentRequest,
+} from "@/lib/requests/mutations";
 import {
   isSelfRequestRecipient,
   requestCreateSchema,
 } from "@/lib/validation/requests";
 
-type RequestFormField = "amount" | "note" | "recipientContact";
-
-export interface CreateRequestActionState {
-  errors: Partial<Record<RequestFormField | "form", string>>;
-  values: Record<RequestFormField, string>;
-}
-
-export const initialCreateRequestActionState: CreateRequestActionState = {
-  errors: {},
-  values: {
-    amount: "",
-    note: "",
-    recipientContact: "",
-  },
-};
-
 function getStringValue(formData: FormData, key: RequestFormField) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
+}
+
+function getOptionalStringValue(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function buildRedirectUrl(
+  pathname: string,
+  searchParams: Record<string, string | undefined>,
+) {
+  const url = new URL(pathname, "http://localhost");
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
+  }
+
+  return `${url.pathname}${url.search}`;
+}
+
+function getRequestActionPayload(formData: FormData) {
+  const requestId = getOptionalStringValue(formData, "requestId");
+  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/incoming";
+
+  if (!requestId) {
+    throw new Error("Request not found.");
+  }
+
+  return {
+    requestId,
+    returnTo,
+  };
+}
+
+function revalidateRequestPaths(requestId: string) {
+  for (const path of [...getRequestRevalidationPaths(requestId), "/requests/new"]) {
+    revalidatePath(path);
+  }
 }
 
 export async function createRequestAction(
@@ -73,6 +106,8 @@ export async function createRequestAction(
     };
   }
 
+  let requestId: string;
+
   try {
     const request = await createPaymentRequest({
       amountCents: parsed.data.amountCents,
@@ -82,11 +117,8 @@ export async function createRequestAction(
       senderUserId: currentUser.id,
     });
 
-    for (const path of [...getRequestRevalidationPaths(request.id), "/requests/new"]) {
-      revalidatePath(path);
-    }
+    requestId = request.id;
 
-    redirect(`/dashboard/outgoing?created=${request.id}`);
   } catch (error) {
     return {
       errors: {
@@ -98,4 +130,56 @@ export async function createRequestAction(
       values,
     };
   }
+
+  revalidateRequestPaths(requestId);
+
+  redirect(`/dashboard/outgoing?created=${requestId}`);
+}
+
+export async function declineRequestAction(formData: FormData) {
+  const currentUser = await requireCurrentUser();
+  const { requestId, returnTo } = getRequestActionPayload(formData);
+  let redirectPath: string;
+
+  try {
+    const request = await declinePaymentRequest(requestId, currentUser.id);
+    revalidateRequestPaths(request.id);
+    redirectPath = buildRedirectUrl(returnTo, {
+      status: request.status,
+      updated: request.id,
+    });
+  } catch (error) {
+    redirectPath = buildRedirectUrl(returnTo, {
+      requestError:
+        error instanceof Error
+          ? error.message
+          : "We couldn’t decline that request. Please try again.",
+    });
+  }
+
+  redirect(redirectPath);
+}
+
+export async function payRequestAction(formData: FormData) {
+  const currentUser = await requireCurrentUser();
+  const { requestId, returnTo } = getRequestActionPayload(formData);
+  let redirectPath: string;
+
+  try {
+    const request = await payPaymentRequest(requestId, currentUser.id);
+    revalidateRequestPaths(request.id);
+    redirectPath = buildRedirectUrl(returnTo, {
+      status: request.status,
+      updated: request.id,
+    });
+  } catch (error) {
+    redirectPath = buildRedirectUrl(returnTo, {
+      requestError:
+        error instanceof Error
+          ? error.message
+          : "We couldn’t process that payment. Please try again.",
+    });
+  }
+
+  redirect(redirectPath);
 }
