@@ -3,10 +3,12 @@
 ## Setup
 
 1. Install dependencies with `bun install`.
-2. Configure environment variables:
+2. Copy `.env.example` to `.env` and configure environment variables:
    - `DATABASE_URL`
    - `SESSION_SECRET`
    - `NEXT_PUBLIC_APP_URL`
+   - `PLAYWRIGHT_BASE_URL` only if Playwright should target an existing local
+     or deployed app instead of starting `bun run dev`
 3. Apply the Drizzle schema with `bun run db:migrate`.
 4. Seed demo users with `bun run db:seed`.
 5. Start the app with `bun run dev`.
@@ -58,6 +60,7 @@
 
 - Run `bun run test:e2e`.
 - Configure Playwright with video recording enabled for every test run.
+- Open the HTML report with `bun run playwright:report`.
 - Critical specs should cover:
   - create and share request
   - pay request
@@ -69,6 +72,10 @@
   - share link summary restrictions for non-recipients
 - Retain the generated video artifacts in `test-results/` or the configured
   Playwright output directory.
+- Reviewer-friendly mapping of current specs:
+  - `tests/e2e/request-create-and-share.spec.ts`
+  - `tests/e2e/request-resolve.spec.ts`
+  - `tests/e2e/request-lifecycle-and-filtering.spec.ts`
 
 ## Public Deployment Checklist
 
@@ -77,3 +84,18 @@
 - Share links use the production app URL.
 - Playwright can run either locally against the production-like app or against
   the deployed public URL via `PLAYWRIGHT_BASE_URL`.
+- Production verification steps:
+  1. Open the public app URL in a fresh browser session.
+  2. Create a request as `sender@example.com`.
+  3. Confirm a non-recipient only sees the limited share summary.
+  4. Confirm the intended recipient can view details and resolve the request.
+  5. Re-run `bun run test:e2e` with `PLAYWRIGHT_BASE_URL` pointed at the
+     public deployment for reviewer evidence.
+
+## Reviewer Notes
+
+- Money handling remains integer-cents only throughout validation, persistence,
+  and tests.
+- Mock auth is intentional to keep scope aligned with the take-home brief.
+- Route-level loading, error, and not-found states are part of the final polish
+  pass for the authenticated dashboards and request detail view.

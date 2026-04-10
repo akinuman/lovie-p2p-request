@@ -5,12 +5,12 @@ vi.mock("@/lib/requests/expiry", () => ({
     now.getTime() >= expiresAt.getTime(),
 }));
 
-const { getRecipientActionGuardMessage } = await import("@/lib/requests/status");
+const { getRequestActionGuardMessage } = await import("@/lib/requests/status");
 
-describe("getRecipientActionGuardMessage", () => {
+describe("getRequestActionGuardMessage", () => {
   it("allows the matched recipient to resolve a pending request", () => {
     expect(
-      getRecipientActionGuardMessage("pay", {
+      getRequestActionGuardMessage("pay", {
         expiresAt: new Date(Date.now() + 60_000),
         status: "Pending",
         viewerRole: "recipient",
@@ -20,7 +20,7 @@ describe("getRecipientActionGuardMessage", () => {
 
   it("blocks non-recipients from paying", () => {
     expect(
-      getRecipientActionGuardMessage("pay", {
+      getRequestActionGuardMessage("pay", {
         expiresAt: new Date(Date.now() + 60_000),
         status: "Pending",
         viewerRole: "sender",
@@ -30,7 +30,7 @@ describe("getRecipientActionGuardMessage", () => {
 
   it("blocks expired requests from being paid", () => {
     expect(
-      getRecipientActionGuardMessage("pay", {
+      getRequestActionGuardMessage("pay", {
         expiresAt: new Date(Date.now() - 1_000),
         now: new Date(),
         status: "Pending",
@@ -41,11 +41,21 @@ describe("getRecipientActionGuardMessage", () => {
 
   it("blocks terminal requests from being declined", () => {
     expect(
-      getRecipientActionGuardMessage("decline", {
+      getRequestActionGuardMessage("decline", {
         expiresAt: new Date(Date.now() + 60_000),
         status: "Paid",
         viewerRole: "recipient",
       }),
     ).toBe("Only pending requests can be declined.");
+  });
+
+  it("blocks recipients from cancelling sender-owned requests", () => {
+    expect(
+      getRequestActionGuardMessage("cancel", {
+        expiresAt: new Date(Date.now() + 60_000),
+        status: "Pending",
+        viewerRole: "recipient",
+      }),
+    ).toBe("Only the sender can cancel this request.");
   });
 });

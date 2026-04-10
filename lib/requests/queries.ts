@@ -75,7 +75,7 @@ async function syncExpiredRecord(request: PaymentRequestRecord) {
   return reloadedRequest;
 }
 
-async function syncExpiredRequests(requests: PaymentRequestRecord[]) {
+async function syncExpiryForRecords(requests: PaymentRequestRecord[]) {
   return Promise.all(requests.map((request) => syncExpiredRecord(request)));
 }
 
@@ -113,12 +113,40 @@ function matchesIncomingRecipient(
   return getRequestViewerRole(user, request) === "recipient";
 }
 
-export async function getOutgoingRequestsForUser(
-  userId: string,
+export function filterOutgoingRequests(
+  requests: PaymentRequestRecord[],
   filters: DashboardFilterInput = {},
 ) {
   const status = buildStatusFilter(filters.status);
   const search = buildSearchTerm(filters.q);
+
+  return requests.filter(
+    (request) =>
+      (!status || request.status === status) &&
+      matchesOutgoingSearch(request, search),
+  );
+}
+
+export function filterIncomingRequests(
+  requests: PaymentRequestRecord[],
+  user: UserIdentity,
+  filters: DashboardFilterInput = {},
+) {
+  const status = buildStatusFilter(filters.status);
+  const search = buildSearchTerm(filters.q);
+
+  return requests.filter(
+    (request) =>
+      matchesIncomingRecipient(request, user) &&
+      (!status || request.status === status) &&
+      matchesIncomingSearch(request, search),
+  );
+}
+
+export async function getOutgoingRequestsForUser(
+  userId: string,
+  filters: DashboardFilterInput = {},
+) {
   const requests = await db.query.paymentRequests.findMany({
     orderBy: (table, { desc }) => [desc(table.createdAt)],
     where: (table, { eq }) => eq(table.senderUserId, userId),
@@ -128,21 +156,15 @@ export async function getOutgoingRequestsForUser(
     },
   });
 
-  const syncedRequests = await syncExpiredRequests(requests);
+  const syncedRequests = await syncExpiryForRecords(requests);
 
-  return syncedRequests.filter(
-    (request) =>
-      (!status || request.status === status) &&
-      matchesOutgoingSearch(request, search),
-  );
+  return filterOutgoingRequests(syncedRequests, filters);
 }
 
 export async function getIncomingRequestsForUser(
   user: UserIdentity,
   filters: DashboardFilterInput = {},
 ) {
-  const status = buildStatusFilter(filters.status);
-  const search = buildSearchTerm(filters.q);
   const requests = await db.query.paymentRequests.findMany({
     orderBy: (table, { desc }) => [desc(table.createdAt)],
     with: {
@@ -151,14 +173,9 @@ export async function getIncomingRequestsForUser(
     },
   });
 
-  const syncedRequests = await syncExpiredRequests(requests);
+  const syncedRequests = await syncExpiryForRecords(requests);
 
-  return syncedRequests.filter(
-    (request) =>
-      matchesIncomingRecipient(request, user) &&
-      (!status || request.status === status) &&
-      matchesIncomingSearch(request, search),
-  );
+  return filterIncomingRequests(syncedRequests, user, filters);
 }
 
 export async function getRequestById(requestId: string) {

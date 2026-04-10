@@ -125,16 +125,16 @@ description: "Task list for implementing the P2P payment request flow"
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Add Playwright coverage for cancel, expiry, and dashboard search/filter flows with video in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-lifecycle-and-filtering.spec.ts`
-- [ ] T033 [P] [US3] Add Vitest coverage for expiry synchronization and filtered query behavior in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/requests/expiry.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/requests/queries.test.ts`
+- [X] T032 [P] [US3] Add Playwright coverage for cancel, expiry, and dashboard search/filter flows with video in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-lifecycle-and-filtering.spec.ts`
+- [X] T033 [P] [US3] Add Vitest coverage for expiry synchronization and filtered query behavior in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/requests/expiry.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/requests/queries.test.ts`
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Implement `cancelRequestAction` and cancelled-state visibility across dashboards and detail views in `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-actions.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`
-- [ ] T035 [US3] Implement lazy expiry synchronization on reads and mutations in `/Users/akin/Codes/lovie-p2p-request/lib/requests/expiry.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
-- [ ] T036 [US3] Add URL-driven search and status filter controls to both dashboards in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-filters.tsx`
-- [ ] T037 [US3] Implement filtered/sorted dashboard queries and terminal-state messaging in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
-- [ ] T038 [US3] Polish responsive layouts and disabled-action messaging for lifecycle edge cases in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`
+- [X] T034 [US3] Implement `cancelRequestAction` and cancelled-state visibility across dashboards and detail views in `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-actions.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`
+- [X] T035 [US3] Implement lazy expiry synchronization on reads and mutations in `/Users/akin/Codes/lovie-p2p-request/lib/requests/expiry.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`
+- [X] T036 [US3] Add URL-driven search and status filter controls to both dashboards in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-filters.tsx`
+- [X] T037 [US3] Implement filtered/sorted dashboard queries and terminal-state messaging in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
+- [X] T038 [US3] Polish responsive layouts and disabled-action messaging for lifecycle edge cases in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`
 
 **Checkpoint**: Lifecycle transitions, terminal states, and dashboard filtering all behave predictably and are demonstrable through automated browser proof.
 
@@ -144,10 +144,10 @@ description: "Task list for implementing the P2P payment request flow"
 
 **Purpose**: Finalize reliability, reviewer clarity, and public deployment readiness.
 
-- [ ] T039 [P] Add loading, error, and not-found states for key routes in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/error.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/not-found.tsx`
-- [ ] T040 [P] Document local setup, demo accounts, and developer workflow in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/.env.example`
-- [ ] T041 [P] Document Vercel deployment, Neon environment wiring, and public URL verification in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
-- [ ] T042 Verify quickstart scenarios, Playwright video artifacts, and final reviewer notes in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
+- [X] T039 [P] Add loading, error, and not-found states for key routes in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/error.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/not-found.tsx`
+- [X] T040 [P] Document local setup, demo accounts, and developer workflow in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/.env.example`
+- [X] T041 [P] Document Vercel deployment, Neon environment wiring, and public URL verification in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
+- [X] T042 Verify quickstart scenarios, Playwright video artifacts, and final reviewer notes in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
 
 ---
 

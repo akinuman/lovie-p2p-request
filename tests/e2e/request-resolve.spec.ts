@@ -16,6 +16,10 @@ async function createRequest(
   await expect(page).toHaveURL(/\/dashboard\/outgoing\?created=/);
 }
 
+function requestCard(page: Parameters<typeof test>[0], note: string) {
+  return page.getByTestId("incoming-request-card").filter({ hasText: note }).first();
+}
+
 test("recipient can review request details with countdown and pay", async ({
   page,
   signInAs,
@@ -31,7 +35,9 @@ test("recipient can review request details with countdown and pay", async ({
   await expect(page.getByText("Lunch payback")).toBeVisible();
   await expect(page.getByText("Pending")).toBeVisible();
 
-  await page.getByRole("link", { name: "View details" }).first().click();
+  await requestCard(page, "Lunch payback")
+    .getByRole("link", { name: "View details" })
+    .click();
 
   await expect(page).toHaveURL(/\/requests\/.+$/);
   await expect(page.getByText("Lunch payback")).toBeVisible();
@@ -63,7 +69,9 @@ test("phone-matched recipient can see and decline an incoming request", async ({
   await expect(page.getByText("Utilities split")).toBeVisible();
   await expect(page.getByText(demoUsers.recipientPhoneContact)).toBeVisible();
 
-  await page.getByRole("button", { name: "Decline request" }).first().click();
+  await requestCard(page, "Utilities split")
+    .getByRole("button", { name: "Decline request" })
+    .click();
   await expect(page.getByText("Request updated to Declined.")).toBeVisible();
   await expect(page.getByText("Declined")).toBeVisible();
 

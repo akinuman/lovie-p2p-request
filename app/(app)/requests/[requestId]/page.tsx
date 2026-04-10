@@ -40,7 +40,7 @@ export default async function RequestDetailPage({
   const resolvedSearchParams = await searchParams;
   const requestError = readStringParam(resolvedSearchParams.requestError);
   const statusMessage = readStatusMessage(
-    readStringParam(resolvedSearchParams.status),
+    readStringParam(resolvedSearchParams.updatedStatus),
   );
   const viewerRole = getRequestViewerRole(currentUser, request);
 

@@ -30,6 +30,18 @@ function getViewerRoleLabel(viewerRole: RequestViewerRole) {
   return "Request view";
 }
 
+function getActionPanelTitle(viewerRole: RequestViewerRole) {
+  return viewerRole === "sender" ? "Manage request" : "Resolve request";
+}
+
+function getActionPanelCopy(viewerRole: RequestViewerRole) {
+  if (viewerRole === "sender") {
+    return "Senders can cancel a pending request before it is paid, declined, or expired. Terminal states stay visible here for both participants.";
+  }
+
+  return "Intended recipients can pay or decline while the request is still pending. Sender access stays read-only so both sides share the same canonical status.";
+}
+
 export function RequestDetail({
   request,
   viewerRole,
@@ -110,15 +122,11 @@ export function RequestDetail({
       <Card className="border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.08)]">
         <CardHeader>
           <CardTitle className="text-xl tracking-[-0.04em]">
-            Resolve request
+            {getActionPanelTitle(viewerRole)}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
-          <p>
-            Intended recipients can pay or decline while the request is still
-            pending. Sender access stays read-only so both sides share the same
-            canonical status.
-          </p>
+          <p>{getActionPanelCopy(viewerRole)}</p>
           <RequestActions
             requestId={request.id}
             returnTo={`/requests/${request.id}`}

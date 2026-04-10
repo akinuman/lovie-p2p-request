@@ -2,10 +2,15 @@
 
 import { useFormStatus } from "react-dom";
 
-import { declineRequestAction, payRequestAction } from "@/app/actions/requests";
+import {
+  cancelRequestAction,
+  declineRequestAction,
+  payRequestAction,
+} from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import type { RequestStatus } from "@/drizzle/schema";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
+import { getRequestActionAvailabilityMessage } from "@/lib/requests/status";
 
 interface RequestActionsProps {
   requestId: string;
@@ -70,15 +75,7 @@ function RequestActionForm({
 }
 
 function getResolutionMessage(status: RequestStatus, viewerRole: RequestViewerRole) {
-  if (viewerRole !== "recipient") {
-    return "Only the matched recipient can pay or decline this request.";
-  }
-
-  if (status === "Expired") {
-    return "This request has expired and can no longer be acted on.";
-  }
-
-  return `This request is already ${status.toLowerCase()}.`;
+  return getRequestActionAvailabilityMessage(status, viewerRole);
 }
 
 export function RequestActions({
@@ -87,6 +84,19 @@ export function RequestActions({
   status,
   viewerRole,
 }: RequestActionsProps) {
+  if (viewerRole === "sender" && status === "Pending") {
+    return (
+      <RequestActionForm
+        action={cancelRequestAction}
+        idleLabel="Cancel request"
+        pendingLabel="Cancelling..."
+        requestId={requestId}
+        returnTo={returnTo}
+        variant="outline"
+      />
+    );
+  }
+
   if (viewerRole !== "recipient" || status !== "Pending") {
     return (
       <p className="text-sm leading-6 text-muted-foreground">
