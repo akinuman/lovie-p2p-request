@@ -14,3 +14,7 @@ export function formatAmountFromCents(
     style: "currency",
   }).format(amountCents / 100);
 }
+
+export function formatCurrencyCodeLabel(currencyCode?: string): string {
+  return getRequestCurrencyCode(currencyCode);
+}

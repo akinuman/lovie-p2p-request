@@ -1,5 +1,4 @@
 ---
-
 description: "Task list for implementing the request flow polish feature"
 ---
 
@@ -9,12 +8,13 @@ description: "Task list for implementing the request flow polish feature"
 **Prerequisites**: `/Users/akin/Codes/lovie-p2p-request/specs/002-request-flow-polish/plan.md`, `/Users/akin/Codes/lovie-p2p-request/specs/002-request-flow-polish/spec.md`, `/Users/akin/Codes/lovie-p2p-request/specs/002-request-flow-polish/research.md`, `/Users/akin/Codes/lovie-p2p-request/specs/002-request-flow-polish/data-model.md`, `/Users/akin/Codes/lovie-p2p-request/specs/002-request-flow-polish/contracts/web-routes-and-interactions.md`
 
 **Minimum high-value skills selected via `find-skills` review**:
-- `modern-best-practice-react-components`: highest-value guidance for keeping the new client-side dashboard and dialog logic small, derived, and maintainable.
+
 - `vercel:shadcn`: highest-value guidance for reusing the existing Radix-backed primitive layer instead of creating duplicate primitive components.
 - `nextjs-app-router-patterns`: highest-value guidance for App Router reads, Server Actions, middleware redirects, and thin route composition.
 - `playwright-e2e-testing`: highest-value guidance for browser-proofing the user stories and newly clarified edge cases.
 
 **Deliberately not selected**:
+
 - No extra client-side data library skill because the plan keeps the existing Next.js monolith and uses narrow internal route handlers rather than introducing a new fetch/cache framework.
 
 **Tests**: Playwright end-to-end coverage with automated video recording is REQUIRED for all affected user stories and their highest-risk edge cases. Targeted Vitest coverage is included for validation, pagination/query state, auth guard behavior, lifecycle preservation, and shared async UI-state helpers.
@@ -37,9 +37,9 @@ description: "Task list for implementing the request flow polish feature"
 
 **Purpose**: Prepare the polish feature for consistent Radix-backed UI primitives, test scaffolding, and request-flow module boundaries.
 
-- [X] T001 Add the Radix-backed dialog primitive and required package wiring in `/Users/akin/Codes/lovie-p2p-request/package.json` and `/Users/akin/Codes/lovie-p2p-request/components/ui/dialog.tsx`
-- [X] T002 [P] Prepare Playwright and Vitest scaffolding for clipboard, pagination, duplicate-click, and auth-redirect scenarios in `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`, `/Users/akin/Codes/lovie-p2p-request/vitest.config.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/e2e/fixtures.ts`, and `/Users/akin/Codes/lovie-p2p-request/tests/e2e/global.setup.ts`
-- [X] T003 [P] Establish request-flow module scaffolding for the refactor in `/Users/akin/Codes/lovie-p2p-request/lib/data-access/payment-requests.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/data-access/users.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/dashboard.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/presentation.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/query-state.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/currency.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/async-action.ts`
+- [x] T001 Add the Radix-backed dialog primitive and required package wiring in `/Users/akin/Codes/lovie-p2p-request/package.json` and `/Users/akin/Codes/lovie-p2p-request/components/ui/dialog.tsx`
+- [x] T002 [P] Prepare Playwright and Vitest scaffolding for clipboard, pagination, duplicate-click, and auth-redirect scenarios in `/Users/akin/Codes/lovie-p2p-request/playwright.config.ts`, `/Users/akin/Codes/lovie-p2p-request/vitest.config.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/e2e/fixtures.ts`, and `/Users/akin/Codes/lovie-p2p-request/tests/e2e/global.setup.ts`
+- [x] T003 [P] Establish request-flow module scaffolding for the refactor in `/Users/akin/Codes/lovie-p2p-request/lib/data-access/payment-requests.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/data-access/users.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/dashboard.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/presentation.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/query-state.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/currency.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/async-action.ts`
 
 ---
 
@@ -49,15 +49,15 @@ description: "Task list for implementing the request flow polish feature"
 
 **⚠️ CRITICAL**: Complete this phase before story implementation.
 
-- [X] T004 Update persisted request currency support and seeded demo data in `/Users/akin/Codes/lovie-p2p-request/drizzle/schema.ts` and `/Users/akin/Codes/lovie-p2p-request/drizzle/seed.ts`
-- [X] T005 [P] Implement money and validation boundaries for backend-driven currency and the 50,000 maximum amount rule in `/Users/akin/Codes/lovie-p2p-request/lib/validation/requests.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/money/parse-amount.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
-- [X] T006 [P] Implement raw user and request CRUD plus paginated query access in `/Users/akin/Codes/lovie-p2p-request/lib/data-access/payment-requests.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/data-access/users.ts`
-- [X] T007 Implement request-flow use cases and presentation shaping in `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/dashboard.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/presentation.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/async-action.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/currency.ts`
-- [X] T008 Implement URL query-state parsing and cursor pagination helpers in `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/query-state.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`
-- [X] T009 Implement centralized optimistic auth guarding for public and protected request routes in `/Users/akin/Codes/lovie-p2p-request/middleware.ts`, `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/sign-in/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/layout.tsx`
-- [X] T010 Implement shared async button, spinner, and inline form-feedback primitives in `/Users/akin/Codes/lovie-p2p-request/components/ui/button.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/ui/dialog.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/globals.css`
-- [X] T011 Bridge the legacy request modules and action imports to the new boundaries in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/auth/current-user.ts`
-- [X] T012 [P] Add foundational Vitest coverage for query state, async feedback, auth-guard helpers, and currency/amount boundaries in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/query-state.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/async-action.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/validation/requests.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/money/format-amount.test.ts`, and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/auth/current-user.test.ts`
+- [x] T004 Update persisted request currency support and seeded demo data in `/Users/akin/Codes/lovie-p2p-request/drizzle/schema.ts` and `/Users/akin/Codes/lovie-p2p-request/drizzle/seed.ts`
+- [x] T005 [P] Implement money and validation boundaries for backend-driven currency and the 50,000 maximum amount rule in `/Users/akin/Codes/lovie-p2p-request/lib/validation/requests.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/money/parse-amount.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
+- [x] T006 [P] Implement raw user and request CRUD plus paginated query access in `/Users/akin/Codes/lovie-p2p-request/lib/data-access/payment-requests.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/data-access/users.ts`
+- [x] T007 Implement request-flow use cases and presentation shaping in `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/dashboard.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/use-cases/requests/presentation.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/async-action.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/currency.ts`
+- [x] T008 Implement URL query-state parsing and cursor pagination helpers in `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/query-state.ts` and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`
+- [x] T009 Implement centralized optimistic auth guarding for public and protected request routes in `/Users/akin/Codes/lovie-p2p-request/middleware.ts`, `/Users/akin/Codes/lovie-p2p-request/app/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/sign-in/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/layout.tsx`
+- [x] T010 Implement shared async button, spinner, and inline form-feedback primitives in `/Users/akin/Codes/lovie-p2p-request/components/ui/button.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/ui/dialog.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/globals.css`
+- [x] T011 Bridge the legacy request modules and action imports to the new boundaries in `/Users/akin/Codes/lovie-p2p-request/lib/requests/queries.ts`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/mutations.ts`, `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, and `/Users/akin/Codes/lovie-p2p-request/lib/auth/current-user.ts`
+- [x] T012 [P] Add foundational Vitest coverage for query state, async feedback, auth-guard helpers, and currency/amount boundaries in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/query-state.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/async-action.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/validation/requests.test.ts`, `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/money/format-amount.test.ts`, and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/auth/current-user.test.ts`
 
 **Checkpoint**: The repo supports backend-owned currency, the new request-flow module boundaries, middleware redirects, and shared async button/form state before any story-specific UI work begins.
 
@@ -71,17 +71,17 @@ description: "Task list for implementing the request flow polish feature"
 
 ### Tests for User Story 1
 
-- [X] T013 [P] [US1] Add Playwright coverage for debounced search, instant filters, stale-response discard, infinite scroll, and outgoing card actions in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-dashboard-polish.spec.ts`
-- [X] T014 [P] [US1] Add Vitest coverage for paginated dashboard use cases and request-card presentation shaping in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/use-cases/requests/dashboard.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/pagination.test.ts`
+- [x] T013 [P] [US1] Add Playwright coverage for debounced search, instant filters, stale-response discard, infinite scroll, and outgoing card actions in `/Users/akin/Codes/lovie-p2p-request/tests/e2e/request-dashboard-polish.spec.ts`
+- [x] T014 [P] [US1] Add Vitest coverage for paginated dashboard use cases and request-card presentation shaping in `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/use-cases/requests/dashboard.test.ts` and `/Users/akin/Codes/lovie-p2p-request/tests/unit/lib/request-flow/pagination.test.ts`
 
 ### Implementation for User Story 1
 
-- [X] T015 [US1] Implement incremental outgoing and incoming pagination endpoints in `/Users/akin/Codes/lovie-p2p-request/app/api/requests/outgoing/route.ts` and `/Users/akin/Codes/lovie-p2p-request/app/api/requests/incoming/route.ts`
-- [X] T016 [US1] Build the debounced dashboard query controller and clear-action behavior in `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-filters.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
-- [X] T017 [US1] Implement append-only infinite scroll and stale-query reset behavior in `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`
-- [X] T018 [US1] Move outgoing actions and share-link copy/manual-fallback UI into the request cards in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`
-- [X] T019 [US1] Remove non-essential explanatory banners and simplify dashboard plus new-request page composition in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/new/page.tsx`
-- [X] T020 [US1] Render backend-driven currency consistently across dashboard cards and share-preview surfaces in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
+- [x] T015 [US1] Implement incremental outgoing and incoming pagination endpoints in `/Users/akin/Codes/lovie-p2p-request/app/api/requests/outgoing/route.ts` and `/Users/akin/Codes/lovie-p2p-request/app/api/requests/incoming/route.ts`
+- [x] T016 [US1] Build the debounced dashboard query controller and clear-action behavior in `/Users/akin/Codes/lovie-p2p-request/components/dashboard/dashboard-filters.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
+- [x] T017 [US1] Implement append-only infinite scroll and stale-query reset behavior in `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/lib/request-flow/pagination.ts`
+- [x] T018 [US1] Move outgoing actions and share-link copy/manual-fallback UI into the request cards in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`
+- [x] T019 [US1] Remove non-essential explanatory banners and simplify dashboard plus new-request page composition in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/page.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/new/page.tsx`
+- [x] T020 [US1] Render backend-driven currency consistently across dashboard cards and share-preview surfaces in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-card.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/dashboard/outgoing-list.tsx`, and `/Users/akin/Codes/lovie-p2p-request/components/dashboard/incoming-list.tsx`
 
 **Checkpoint**: The dashboards are card-first, use debounced URL-driven query state, append results through infinite scroll, and expose outgoing request actions without extra banners or redirect-only share flows.
 
@@ -100,10 +100,10 @@ description: "Task list for implementing the request flow polish feature"
 
 ### Implementation for User Story 2
 
-- [ ] T023 [US2] Implement the post-create success dialog and dialog-driving URL cleanup in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-created-dialog.tsx`
-- [ ] T024 [US2] Implement shared request-form loading, validation, and spinner-button behavior in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/create-request-action-state.ts`, `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, and `/Users/akin/Codes/lovie-p2p-request/components/ui/button.tsx`
-- [ ] T025 [US2] Implement pay confirmation dialog and non-payable invalidation handling in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-actions.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`
-- [ ] T026 [US2] Standardize copy-link fallback and backend-currency display across post-create and detail flows in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-created-dialog.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`, and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
+- [x] T023 [US2] Implement the post-create success dialog and dialog-driving URL cleanup in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/page.tsx` and `/Users/akin/Codes/lovie-p2p-request/components/requests/request-created-dialog.tsx`
+- [x] T024 [US2] Implement shared request-form loading, validation, and spinner-button behavior in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-form.tsx`, `/Users/akin/Codes/lovie-p2p-request/lib/requests/create-request-action-state.ts`, `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`, and `/Users/akin/Codes/lovie-p2p-request/components/ui/button.tsx`
+- [x] T025 [US2] Implement pay confirmation dialog and non-payable invalidation handling in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-actions.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/actions/requests.ts`
+- [x] T026 [US2] Standardize copy-link fallback and backend-currency display across post-create and detail flows in `/Users/akin/Codes/lovie-p2p-request/components/requests/request-created-dialog.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-detail.tsx`, `/Users/akin/Codes/lovie-p2p-request/components/requests/request-share-summary.tsx`, and `/Users/akin/Codes/lovie-p2p-request/lib/money/format-amount.ts`
 
 **Checkpoint**: Request creation and payment now use one consistent async feedback pattern, explicit confirmation, max-amount protection, and a dialog-first share flow that stays stable across refresh and back navigation.
 

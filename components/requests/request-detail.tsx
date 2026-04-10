@@ -1,9 +1,14 @@
 import { ExpirationCountdown } from "@/components/requests/expiration-countdown";
 import { RequestActions } from "@/components/requests/request-actions";
+import { ShareLinkActions } from "@/components/requests/share-link-actions";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
-import { formatAmountFromCents } from "@/lib/money/format-amount";
+import { getEnv } from "@/lib/env";
+import {
+  formatAmountFromCents,
+  formatCurrencyCodeLabel,
+} from "@/lib/money/format-amount";
 import type { PaymentRequestRecord } from "@/lib/requests/queries";
 
 interface RequestDetailProps {
@@ -46,6 +51,10 @@ export function RequestDetail({
   request,
   viewerRole,
 }: RequestDetailProps) {
+  const sharePath = `/r/${request.id}`;
+  const shareUrl = new URL(sharePath, getEnv().NEXT_PUBLIC_APP_URL).toString();
+  const currencyLabel = formatCurrencyCodeLabel(request.currencyCode);
+
   return (
     <div className="grid gap-6 lg:grid-cols-[1.25fr_0.85fr]">
       <Card className="border-white/70 bg-card/95 shadow-[0_18px_50px_rgba(83,59,30,0.1)]">
@@ -56,8 +65,11 @@ export function RequestDetail({
                 {getViewerRoleLabel(viewerRole)}
               </p>
               <CardTitle className="text-3xl tracking-[-0.05em]">
-                {formatAmountFromCents(request.amountCents)}
+                {formatAmountFromCents(request.amountCents, request.currencyCode)}
               </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Currency {currencyLabel}
+              </p>
             </div>
             <StatusBadge status={request.status} />
           </div>
@@ -128,11 +140,16 @@ export function RequestDetail({
         <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
           <p>{getActionPanelCopy(viewerRole)}</p>
           <RequestActions
+            amountCents={request.amountCents}
+            currencyCode={request.currencyCode}
             requestId={request.id}
             returnTo={`/requests/${request.id}`}
             status={request.status}
             viewerRole={viewerRole}
           />
+          {viewerRole === "sender" ? (
+            <ShareLinkActions previewHref={sharePath} shareUrl={shareUrl} />
+          ) : null}
         </CardContent>
       </Card>
     </div>

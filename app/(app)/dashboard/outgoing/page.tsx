@@ -2,18 +2,18 @@ import Link from "next/link";
 
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { OutgoingList } from "@/components/dashboard/outgoing-list";
+import { RequestCreatedDialog } from "@/components/requests/request-created-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
+import { parseDashboardQueryState } from "@/lib/request-flow/query-state";
+import { getRequestForUser } from "@/lib/requests/queries";
 import {
   getOutgoingDashboardRequestPage,
   serializeDashboardRequestPage,
 } from "@/lib/use-cases/requests/dashboard";
-import { parseDashboardQueryState } from "@/lib/request-flow/query-state";
-import {
-  type DashboardFilterInput,
-} from "@/lib/validation/requests";
+import { type DashboardFilterInput } from "@/lib/validation/requests";
 
 function readStringParam(
   value: string | string[] | undefined,
@@ -29,10 +29,7 @@ function readStatusMessage(status?: string) {
   return `Request updated to ${status}.`;
 }
 
-function buildCurrentPath(
-  basePath: string,
-  filters: DashboardFilterInput,
-) {
+function buildCurrentPath(basePath: string, filters: DashboardFilterInput) {
   const url = new URL(basePath, "http://localhost");
 
   if (filters.q) {
@@ -58,7 +55,9 @@ export default async function OutgoingDashboardPage({
     await getOutgoingDashboardRequestPage(currentUser.id, filters),
   );
   const createdRequestId = readStringParam(resolvedSearchParams.created);
-  const createdRequest = initialPage.items.find((request) => request.id === createdRequestId);
+  const createdRequest = createdRequestId
+    ? await getRequestForUser(createdRequestId, currentUser)
+    : null;
   const statusMessage = readStatusMessage(
     readStringParam(resolvedSearchParams.updatedStatus),
   );
@@ -68,6 +67,19 @@ export default async function OutgoingDashboardPage({
 
   return (
     <div className="space-y-6">
+      {createdRequest ? (
+        <RequestCreatedDialog
+          amountCents={createdRequest.amountCents}
+          currencyCode={createdRequest.currencyCode}
+          currentPath={currentPath}
+          note={createdRequest.note}
+          recipientLabel={createdRequest.recipientContactValue}
+          requestId={createdRequest.id}
+          shareBaseUrl={shareBaseUrl}
+          sharePath={`/r/${createdRequest.id}`}
+        />
+      ) : null}
+
       <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
         <CardHeader className="gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-3">
@@ -79,7 +91,7 @@ export default async function OutgoingDashboardPage({
             </CardTitle>
           </div>
           <Button asChild className="rounded-full">
-            <Link href="/requests/new">Create another request</Link>
+            <Link href="/requests/new">Create request</Link>
           </Button>
         </CardHeader>
       </Card>
@@ -89,30 +101,6 @@ export default async function OutgoingDashboardPage({
         filters={filters}
         queryLabel="Search outgoing requests"
       />
-
-      {createdRequest ? (
-        <Card className="border-primary/25 bg-primary/5 shadow-none">
-          <CardContent className="flex flex-col gap-4 pt-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-1">
-              <p className="font-medium text-foreground">
-                Request created and ready to share.
-              </p>
-              <p className="text-sm leading-6 text-muted-foreground">
-                Share link:{" "}
-                <Link
-                  href={`${shareBaseUrl}${createdRequest.shareUrl}`}
-                  className="font-medium text-primary underline-offset-4 hover:underline"
-                >
-                  {`${shareBaseUrl}${createdRequest.shareUrl}`}
-                </Link>
-              </p>
-            </div>
-            <Button asChild variant="outline" className="rounded-full">
-              <Link href={createdRequest.shareUrl ?? `/r/${createdRequest.id}`}>Preview share page</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
 
       {requestError ? (
         <Card className="border-destructive/30 bg-destructive/10 shadow-none">

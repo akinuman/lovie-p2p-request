@@ -2,8 +2,8 @@ import Link from "next/link";
 
 import { logoutAction } from "@/app/actions/auth";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
-import { requireCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AppLayout({
   children,
@@ -14,7 +14,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div className="space-y-1">
             <Link

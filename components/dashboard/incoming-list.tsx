@@ -137,6 +137,8 @@ export function IncomingList({
                     <Link href={`/requests/${request.id}`}>View details</Link>
                   </Button>
                   <RequestActions
+                    amountCents={request.amountCents}
+                    currencyCode={request.currencyCode}
                     requestId={request.id}
                     returnTo={currentPath}
                     status={request.status}
