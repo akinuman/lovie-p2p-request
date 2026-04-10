@@ -144,10 +144,10 @@ description: "Task list for implementing the P2P payment request flow"
 
 **Purpose**: Finalize reliability, reviewer clarity, and public deployment readiness.
 
-- [ ] T039 [P] Add loading, error, and not-found states for key routes in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/error.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/not-found.tsx`
-- [ ] T040 [P] Document local setup, demo accounts, and developer workflow in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/.env.example`
-- [ ] T041 [P] Document Vercel deployment, Neon environment wiring, and public URL verification in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
-- [ ] T042 Verify quickstart scenarios, Playwright video artifacts, and final reviewer notes in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
+- [X] T039 [P] Add loading, error, and not-found states for key routes in `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/outgoing/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/dashboard/incoming/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/loading.tsx`, `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/error.tsx`, and `/Users/akin/Codes/lovie-p2p-request/app/(app)/requests/[requestId]/not-found.tsx`
+- [X] T040 [P] Document local setup, demo accounts, and developer workflow in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/.env.example`
+- [X] T041 [P] Document Vercel deployment, Neon environment wiring, and public URL verification in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
+- [X] T042 Verify quickstart scenarios, Playwright video artifacts, and final reviewer notes in `/Users/akin/Codes/lovie-p2p-request/README.md` and `/Users/akin/Codes/lovie-p2p-request/specs/001-p2p-payment-request-flow/quickstart.md`
 
 ---
 
