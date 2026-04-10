@@ -45,17 +45,15 @@ test("sender can cancel a pending request and filter outgoing requests", async (
   await expect(outgoingCard(page, "Cancel me").getByText("Cancelled")).toBeVisible();
 
   await page.getByLabel("Search outgoing requests").fill("Keep me");
-  await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page).toHaveURL(/q=Keep\+me/);
+  await expect(page).toHaveURL(/q=Keep(\+|%20)me/);
   await expect(page.getByText("Keep me visible")).toBeVisible();
   await expect(page.getByText("Cancel me")).toHaveCount(0);
 
   await page.getByLabel("Status").selectOption("Cancelled");
-  await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page).toHaveURL(/status=Cancelled/);
   await expect(page.getByText("No outgoing requests match these filters")).toBeVisible();
 
-  await page.getByRole("link", { name: "Clear" }).click();
+  await page.getByRole("button", { name: "Clear" }).click();
   await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
   await expect(page.getByText("Cancel me")).toBeVisible();
 });
@@ -83,7 +81,6 @@ test("recipient sees expired requests as non-payable and can filter incoming req
   await page.getByRole("link", { name: "Incoming" }).click();
   await page.getByLabel("Search incoming requests").fill("Expired seeded");
   await page.getByLabel("Status").selectOption("Expired");
-  await page.getByRole("button", { name: "Apply filters" }).click();
 
   await expect(page).toHaveURL(/status=Expired/);
   await expect(page.getByText(EXPIRED_SEEDED_NOTE)).toBeVisible();

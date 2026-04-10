@@ -2,9 +2,12 @@ import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { IncomingList } from "@/components/dashboard/incoming-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import { getIncomingRequestsForUser } from "@/lib/requests/queries";
 import {
-  dashboardFilterSchema,
+  getIncomingDashboardRequestPage,
+  serializeDashboardRequestPage,
+} from "@/lib/use-cases/requests/dashboard";
+import { parseDashboardQueryState } from "@/lib/request-flow/query-state";
+import {
   type DashboardFilterInput,
 } from "@/lib/validation/requests";
 
@@ -20,21 +23,6 @@ function readStatusMessage(status?: string) {
   }
 
   return `Request updated to ${status}.`;
-}
-
-function readDashboardFilters(
-  searchParams: Record<string, string | string[] | undefined>,
-): DashboardFilterInput {
-  const parsed = dashboardFilterSchema.safeParse({
-    q: readStringParam(searchParams.q),
-    status: readStringParam(searchParams.status),
-  });
-
-  if (!parsed.success) {
-    return {};
-  }
-
-  return parsed.data;
 }
 
 function buildCurrentPath(
@@ -61,8 +49,10 @@ export default async function IncomingDashboardPage({
 }) {
   const currentUser = await requireCurrentUser();
   const resolvedSearchParams = await searchParams;
-  const filters = readDashboardFilters(resolvedSearchParams);
-  const requests = await getIncomingRequestsForUser(currentUser, filters);
+  const filters = parseDashboardQueryState(resolvedSearchParams);
+  const initialPage = serializeDashboardRequestPage(
+    await getIncomingDashboardRequestPage(currentUser, filters),
+  );
   const updatedRequestId = readStringParam(resolvedSearchParams.updated);
   const requestError = readStringParam(resolvedSearchParams.requestError);
   const statusMessage = readStatusMessage(
@@ -72,42 +62,16 @@ export default async function IncomingDashboardPage({
 
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
-          <CardHeader className="space-y-3">
-            <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
-              Incoming dashboard
-            </p>
-            <CardTitle className="text-4xl tracking-[-0.05em]">
-              Review and resolve every request sent your way.
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 text-base leading-7 text-muted-foreground">
-            <p>
-              Requests addressed to your email or saved phone number appear
-              here with their latest lifecycle state, note, and actions.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-white/70 bg-gradient-to-br from-accent/70 via-card to-card shadow-[0_18px_60px_rgba(20,83,45,0.08)]">
-          <CardHeader>
-            <CardTitle className="text-xl tracking-[-0.04em]">
-              Recipient protections
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
-            <p>
-              Email and phone recipients are matched against your signed-in
-              account before any action is allowed.
-            </p>
-            <p>
-              Open the detail page to inspect the live expiration countdown
-              before you pay or decline.
-            </p>
-          </CardContent>
-        </Card>
-      </section>
+      <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
+        <CardHeader>
+          <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
+            Incoming dashboard
+          </p>
+          <CardTitle className="text-4xl tracking-[-0.05em]">
+            Review and resolve every request sent your way.
+          </CardTitle>
+        </CardHeader>
+      </Card>
 
       <DashboardFilters
         basePath="/dashboard/incoming"
@@ -133,8 +97,9 @@ export default async function IncomingDashboardPage({
 
       <IncomingList
         currentPath={currentPath}
+        filters={filters}
         hasActiveFilters={Boolean(filters.q || filters.status)}
-        requests={requests}
+        initialPage={initialPage}
         updatedRequestId={updatedRequestId}
       />
     </div>

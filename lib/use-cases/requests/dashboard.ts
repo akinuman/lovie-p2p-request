@@ -27,6 +27,15 @@ export interface DashboardRequestCard {
   status: PaymentRequestRecord["status"];
 }
 
+export interface DashboardRequestCardPayload
+  extends Omit<DashboardRequestCard, "createdAt" | "expiresAt"> {
+  createdAt: string;
+  expiresAt: string;
+}
+
+export type DashboardRequestPagePayload =
+  RequestPageResult<DashboardRequestCardPayload>;
+
 async function syncExpiredRecord(request: PaymentRequestRecord) {
   const syncedRequest = await syncExpiredRequest(request);
 
@@ -55,6 +64,25 @@ function buildDashboardRequestCard(
     shareUrl: `/r/${request.id}`,
     status: request.status,
   });
+}
+
+export function serializeDashboardRequestCard(
+  request: DashboardRequestCard,
+): DashboardRequestCardPayload {
+  return {
+    ...request,
+    createdAt: request.createdAt.toISOString(),
+    expiresAt: request.expiresAt.toISOString(),
+  };
+}
+
+export function serializeDashboardRequestPage(
+  page: RequestPageResult<DashboardRequestCard>,
+): DashboardRequestPagePayload {
+  return {
+    ...page,
+    items: page.items.map(serializeDashboardRequestCard),
+  };
 }
 
 export async function getOutgoingDashboardRequestPage(
