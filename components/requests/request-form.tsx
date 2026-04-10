@@ -164,7 +164,7 @@ export function RequestForm() {
   const safeState = normalizeCreateRequestActionState(state);
 
   return (
-    <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
+    <Card className="mx-auto w-full border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
       <CardHeader className="space-y-3">
         <div className="inline-flex w-fit rounded-full bg-accent px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground">
           Sender flow

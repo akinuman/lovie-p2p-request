@@ -4,34 +4,53 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
-    href: "/dashboard/outgoing",
+    href: AUTHENTICATED_HOME_PATH,
     label: "Outgoing",
+    matchMode: "prefix",
   },
   {
     href: "/dashboard/incoming",
     label: "Incoming",
+    matchMode: "prefix",
   },
   {
     href: "/requests/new",
     label: "New request",
+    matchMode: "exact",
   },
 ] as const;
+
+function isActiveNavItem(
+  pathname: string,
+  item: (typeof NAV_ITEMS)[number],
+) {
+  if (item.matchMode === "exact") {
+    return pathname === item.href;
+  }
+
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
 
 export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-wrap items-center justify-end gap-2">
+    <nav
+      aria-label="Authenticated navigation"
+      className="flex flex-wrap items-center justify-end gap-2"
+    >
       {NAV_ITEMS.map((item) => {
-        const isActive = pathname === item.href;
+        const isActive = isActiveNavItem(pathname, item);
 
         return (
           <Link
             key={item.href}
+            aria-current={isActive ? "page" : undefined}
             href={item.href}
             className={cn(
               buttonVariants({

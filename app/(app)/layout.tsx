@@ -3,6 +3,7 @@ import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { Button } from "@/components/ui/button";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AppLayout({
@@ -18,7 +19,7 @@ export default async function AppLayout({
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div className="space-y-1">
             <Link
-              href="/dashboard/outgoing"
+              href={AUTHENTICATED_HOME_PATH}
               className="font-mono text-xs uppercase tracking-[0.2em] text-primary"
             >
               Lovie P2P

@@ -48,30 +48,29 @@ export function DashboardFilters({
     Boolean(searchValue.trim()) ||
     statusValue !== "all";
 
+  const commitFilters = useCallback(
+    (nextFilters: DashboardFilterInput) => {
+      const url = new URL(basePath, "http://localhost");
+
+      if (nextFilters.q) {
+        url.searchParams.set("q", nextFilters.q);
+      }
+
+      if (nextFilters.status) {
+        url.searchParams.set("status", nextFilters.status);
+      }
+
+      startTransition(() => {
+        router.replace(`${url.pathname}${url.search}`, { scroll: false });
+      });
+    },
+    [basePath, router],
+  );
+
   useEffect(() => {
     setSearchValue(filters.q ?? "");
     setStatusValue(filters.status ?? "all");
   }, [filters.q, filters.status]);
-
-  const buildDashboardUrl = useCallback((nextFilters: DashboardFilterInput) => {
-    const url = new URL(basePath, "http://localhost");
-
-    if (nextFilters.q) {
-      url.searchParams.set("q", nextFilters.q);
-    }
-
-    if (nextFilters.status) {
-      url.searchParams.set("status", nextFilters.status);
-    }
-
-    return `${url.pathname}${url.search}`;
-  }, [basePath]);
-
-  const commitFilters = useCallback((nextFilters: DashboardFilterInput) => {
-    startTransition(() => {
-      router.replace(buildDashboardUrl(nextFilters), { scroll: false });
-    });
-  }, [buildDashboardUrl, router]);
 
   function handleClear() {
     setSearchValue("");
@@ -112,7 +111,7 @@ export function DashboardFilters({
     }, 350);
 
     return () => window.clearTimeout(timeoutId);
-  }, [commitFilters, searchValue, statusValue, filters.q]);
+  }, [commitFilters, filters.q, searchValue, statusValue]);
 
   return (
     <Card className="border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.06)]">

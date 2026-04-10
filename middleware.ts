@@ -1,11 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
-import { getOptimisticAuthRedirectPath } from "@/lib/auth/route-guard";
+import {
+  getOptimisticAuthRedirectPath,
+  hasOptimisticSessionCookie,
+} from "@/lib/auth/route-guard";
 
 export function middleware(request: NextRequest) {
   const redirectPath = getOptimisticAuthRedirectPath({
-    hasSession: Boolean(request.cookies.get(SESSION_COOKIE_NAME)?.value),
+    hasSession: hasOptimisticSessionCookie(
+      request.cookies.get(SESSION_COOKIE_NAME)?.value,
+    ),
     pathname: request.nextUrl.pathname,
     search: request.nextUrl.search,
   });

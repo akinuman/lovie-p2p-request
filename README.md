@@ -8,9 +8,11 @@ incoming and outgoing dashboards.
 ## Project Overview
 
 - Request creation with recipient email or phone, amount, and optional note
-- Outgoing and incoming dashboards with search and status filters
+- Outgoing and incoming dashboards with debounced search, instant status
+  filters, and append-only infinite scroll
+- Post-create success dialog with `Preview` and `Copy link`
 - Request detail view with live expiration countdown
-- Simulated payment processing with synchronized `Paid`, `Declined`,
+- Explicit pay confirmation with synchronized `Paid`, `Declined`,
   `Cancelled`, and `Expired` states
 - Share links with limited public summary access for non-recipients
 - Mock email auth, integer-cent money handling, and Playwright video evidence
@@ -24,13 +26,13 @@ incoming and outgoing dashboards.
 ## Spec-Kit Artifacts
 
 - Feature spec:
-  [`specs/001-p2p-payment-request-flow/spec.md`](specs/001-p2p-payment-request-flow/spec.md)
+  [`specs/002-request-flow-polish/spec.md`](specs/002-request-flow-polish/spec.md)
 - Implementation plan:
-  [`specs/001-p2p-payment-request-flow/plan.md`](specs/001-p2p-payment-request-flow/plan.md)
+  [`specs/002-request-flow-polish/plan.md`](specs/002-request-flow-polish/plan.md)
 - Task breakdown:
-  [`specs/001-p2p-payment-request-flow/tasks.md`](specs/001-p2p-payment-request-flow/tasks.md)
+  [`specs/002-request-flow-polish/tasks.md`](specs/002-request-flow-polish/tasks.md)
 - Quickstart and reviewer validation:
-  [`specs/001-p2p-payment-request-flow/quickstart.md`](specs/001-p2p-payment-request-flow/quickstart.md)
+  [`specs/002-request-flow-polish/quickstart.md`](specs/002-request-flow-polish/quickstart.md)
 
 ## Tech Stack
 
@@ -93,11 +95,23 @@ requests in the incoming dashboard.
 The suite covers:
 
 - sender creates and shares a request
-- recipient opens details and pays
+- recipient opens details and confirms pay
 - recipient matched by phone declines
 - sender cancels a request
 - expired requests remain non-payable
-- dashboard search and filter flows
+- dashboard search, filter, and infinite-scroll flows
+- auth guard redirects for protected request routes
+
+## Validation Status
+
+Validation run in this workspace on April 11, 2026:
+
+- `bun run lint` passed
+- `bun run build` passed
+- `bun run test:unit` passed
+- `bun run test:e2e` could not complete in this environment because the
+  sandbox blocked Next.js from binding to local port `3000`, and the follow-up
+  approval request to run Playwright outside the sandbox was rejected
 
 ## Deployment Notes
 
@@ -135,3 +149,6 @@ After production deploy:
   focused
 - Terminal request states remain visible to both participants
 - Playwright videos are part of the deliverable, not optional polish
+- The polished flow now includes post-create dialog sharing, explicit pay
+  confirmation, middleware-backed optimistic route guards, and request reads
+  routed through `lib/data-access/*` plus `lib/use-cases/requests/*`

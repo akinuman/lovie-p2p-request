@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import {
-  getIncomingDashboardRequestPage,
-  serializeDashboardRequestPage,
-} from "@/lib/use-cases/requests/dashboard";
-import { parseDashboardQueryState } from "@/lib/request-flow/query-state";
+import { getDashboardPagePayloadForUser } from "@/lib/use-cases/requests/read";
 
 export async function GET(request: Request) {
   const currentUser = await getCurrentUser();
@@ -15,9 +11,11 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const page = await getIncomingDashboardRequestPage(currentUser, {
-    ...parseDashboardQueryState(Object.fromEntries(searchParams.entries())),
+  const page = await getDashboardPagePayloadForUser({
+    searchParams: Object.fromEntries(searchParams.entries()),
+    user: currentUser,
+    variant: "incoming",
   });
 
-  return NextResponse.json(serializeDashboardRequestPage(page));
+  return NextResponse.json(page);
 }

@@ -5,43 +5,13 @@ import { OutgoingList } from "@/components/dashboard/outgoing-list";
 import { RequestCreatedDialog } from "@/components/requests/request-created-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
-import { parseDashboardQueryState } from "@/lib/request-flow/query-state";
-import { getRequestForUser } from "@/lib/requests/queries";
 import {
-  getOutgoingDashboardRequestPage,
-  serializeDashboardRequestPage,
-} from "@/lib/use-cases/requests/dashboard";
-import { type DashboardFilterInput } from "@/lib/validation/requests";
-
-function readStringParam(
-  value: string | string[] | undefined,
-): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function readStatusMessage(status?: string) {
-  if (!status) {
-    return null;
-  }
-
-  return `Request updated to ${status}.`;
-}
-
-function buildCurrentPath(basePath: string, filters: DashboardFilterInput) {
-  const url = new URL(basePath, "http://localhost");
-
-  if (filters.q) {
-    url.searchParams.set("q", filters.q);
-  }
-
-  if (filters.status) {
-    url.searchParams.set("status", filters.status);
-  }
-
-  return `${url.pathname}${url.search}`;
-}
+  getCreatedRequestForUser,
+  getDashboardPageReadResult,
+} from "@/lib/use-cases/requests/read";
 
 export default async function OutgoingDashboardPage({
   searchParams,
@@ -50,19 +20,15 @@ export default async function OutgoingDashboardPage({
 }) {
   const currentUser = await requireCurrentUser();
   const resolvedSearchParams = await searchParams;
-  const filters = parseDashboardQueryState(resolvedSearchParams);
-  const initialPage = serializeDashboardRequestPage(
-    await getOutgoingDashboardRequestPage(currentUser.id, filters),
+  const pageState = await getDashboardPageReadResult({
+    searchParams: resolvedSearchParams,
+    user: currentUser,
+    variant: "outgoing",
+  });
+  const createdRequest = await getCreatedRequestForUser(
+    pageState.createdRequestId,
+    currentUser,
   );
-  const createdRequestId = readStringParam(resolvedSearchParams.created);
-  const createdRequest = createdRequestId
-    ? await getRequestForUser(createdRequestId, currentUser)
-    : null;
-  const statusMessage = readStatusMessage(
-    readStringParam(resolvedSearchParams.updatedStatus),
-  );
-  const requestError = readStringParam(resolvedSearchParams.requestError);
-  const currentPath = buildCurrentPath("/dashboard/outgoing", filters);
   const shareBaseUrl = getEnv().NEXT_PUBLIC_APP_URL;
 
   return (
@@ -71,7 +37,7 @@ export default async function OutgoingDashboardPage({
         <RequestCreatedDialog
           amountCents={createdRequest.amountCents}
           currencyCode={createdRequest.currencyCode}
-          currentPath={currentPath}
+          currentPath={pageState.currentPath}
           note={createdRequest.note}
           recipientLabel={createdRequest.recipientContactValue}
           requestId={createdRequest.id}
@@ -86,7 +52,7 @@ export default async function OutgoingDashboardPage({
             <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
               Outgoing dashboard
             </p>
-            <CardTitle className="text-4xl tracking-[-0.05em]">
+            <CardTitle className="text-3xl tracking-[-0.05em] sm:text-4xl">
               Every request you&apos;ve sent, all in one place.
             </CardTitle>
           </div>
@@ -97,33 +63,33 @@ export default async function OutgoingDashboardPage({
       </Card>
 
       <DashboardFilters
-        basePath="/dashboard/outgoing"
-        filters={filters}
+        basePath={AUTHENTICATED_HOME_PATH}
+        filters={pageState.filters}
         queryLabel="Search outgoing requests"
       />
 
-      {requestError ? (
+      {pageState.requestError ? (
         <Card className="border-destructive/30 bg-destructive/10 shadow-none">
           <CardContent className="pt-6 text-sm leading-6 text-destructive">
-            {requestError}
+            {pageState.requestError}
           </CardContent>
         </Card>
       ) : null}
 
-      {statusMessage ? (
+      {pageState.statusMessage ? (
         <Card className="border-primary/25 bg-primary/5 shadow-none">
           <CardContent className="pt-6 text-sm leading-6 text-foreground">
-            {statusMessage}
+            {pageState.statusMessage}
           </CardContent>
         </Card>
       ) : null}
 
       <OutgoingList
-        createdRequestId={createdRequestId}
-        currentPath={currentPath}
-        filters={filters}
-        hasActiveFilters={Boolean(filters.q || filters.status)}
-        initialPage={initialPage}
+        createdRequestId={pageState.createdRequestId}
+        currentPath={pageState.currentPath}
+        filters={pageState.filters}
+        hasActiveFilters={Boolean(pageState.filters.q || pageState.filters.status)}
+        initialPage={pageState.initialPage}
         shareBaseUrl={shareBaseUrl}
       />
     </div>

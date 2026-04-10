@@ -162,15 +162,19 @@ function paginateRequestRecords<TRecord extends PaymentRequestRecord>(
 async function listScopedPaymentRequests(
   predicate: (request: PaymentRequestRecord) => boolean,
 ) {
-  const requests = await db.query.paymentRequests.findMany({
+  const requests = await listPaymentRequestRecords();
+
+  return requests.filter(predicate).sort(compareRequestsByRecency);
+}
+
+export async function listPaymentRequestRecords() {
+  return db.query.paymentRequests.findMany({
     orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
     with: {
       recipientMatchedUser: true,
       sender: true,
     },
   });
-
-  return requests.filter(predicate).sort(compareRequestsByRecency);
 }
 
 export async function listOutgoingPaymentRequests(userId: string) {
@@ -225,6 +229,16 @@ export async function findPaymentRequestById(requestId: string) {
   });
 
   return request ?? null;
+}
+
+export async function findPaymentRequestByIdOrThrow(requestId: string) {
+  const request = await findPaymentRequestById(requestId);
+
+  if (!request) {
+    throw new Error("Request not found.");
+  }
+
+  return request;
 }
 
 export async function listOutgoingPaymentRequestsPage(

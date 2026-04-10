@@ -4,7 +4,7 @@ import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
 import {
   createPaymentRequestRecord,
   findMatchedRecipientUser,
-  findPaymentRequestById,
+  findPaymentRequestByIdOrThrow,
   mutatePaymentRequest,
 } from "@/lib/data-access/payment-requests";
 import { findUser } from "@/lib/data-access/users";
@@ -27,6 +27,14 @@ export interface RequestMutationInput {
   type: "cancel" | "create" | "decline" | "pay";
 }
 
+export interface RequestMutationRedirectResult {
+  redirectPath: string;
+  revalidationPaths: string[];
+}
+
+type RedirectSearchParams = Record<string, string | undefined>;
+type RequestResolutionType = Exclude<RequestMutationInput["type"], "create">;
+
 export function getRequestRevalidationPaths(requestId: string) {
   return [
     "/dashboard/incoming",
@@ -36,14 +44,23 @@ export function getRequestRevalidationPaths(requestId: string) {
   ];
 }
 
-async function getFreshRequestOrThrow(requestId: string) {
-  const request = await findPaymentRequestById(requestId);
+function buildRedirectUrl(
+  pathname: string,
+  searchParams: RedirectSearchParams,
+) {
+  const url = new URL(pathname, "http://localhost");
 
-  if (!request) {
-    throw new Error("Request not found.");
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
   }
 
-  return request;
+  return `${url.pathname}${url.search}`;
+}
+
+async function getFreshRequestOrThrow(requestId: string) {
+  return findPaymentRequestByIdOrThrow(requestId);
 }
 
 async function getAuthorizedActorAndRequest(
@@ -181,6 +198,42 @@ export async function payRequestMutation(
   });
 
   return getFreshRequestOrThrow(requestId);
+}
+
+export async function runRequestMutationWithRedirect(input: {
+  actorUserId: string;
+  requestId: string;
+  returnTo: string;
+  type: RequestResolutionType;
+}): Promise<RequestMutationRedirectResult> {
+  try {
+    const request =
+      input.type === "cancel"
+        ? await cancelRequestMutation(input.requestId, input.actorUserId)
+        : input.type === "decline"
+          ? await declineRequestMutation(input.requestId, input.actorUserId)
+          : await payRequestMutation(input.requestId, input.actorUserId);
+
+    return {
+      redirectPath: buildRedirectUrl(input.returnTo, {
+        updated: request.id,
+        updatedStatus: request.status,
+      }),
+      revalidationPaths: getRequestRevalidationPaths(request.id),
+    };
+  } catch (error) {
+    return {
+      redirectPath: buildRedirectUrl(input.returnTo, {
+        requestError:
+          error instanceof Error
+            ? error.message
+            : input.type === "pay"
+              ? "We couldn’t process that payment. Please try again."
+              : `We couldn’t ${input.type} that request. Please try again.`,
+      }),
+      revalidationPaths: [],
+    };
+  }
 }
 
 export async function runRequestMutation(

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import {
@@ -10,12 +9,14 @@ import {
 } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import {
+  DialogClose,
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import type { RequestStatus } from "@/drizzle/schema";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
@@ -117,23 +118,16 @@ function PayConfirmationDialog({
   requestId,
   returnTo,
 }: PayConfirmationDialogProps) {
-  const [open, setOpen] = useState(false);
   const formattedAmount = formatAmountFromCents(amountCents, currencyCode);
   const currencyLabel = formatCurrencyCodeLabel(currencyCode);
 
-  function handleOpen() {
-    setOpen(true);
-  }
-
-  function handleClose() {
-    setOpen(false);
-  }
-
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <Button type="button" className="w-full rounded-full sm:w-auto" onClick={handleOpen}>
-        Pay request
-      </Button>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button type="button" className="w-full rounded-full sm:w-auto">
+          Pay request
+        </Button>
+      </DialogTrigger>
       <DialogContent className="border-white/70 bg-card/95 shadow-[0_24px_80px_rgba(83,59,30,0.16)]">
         <DialogHeader className="space-y-3 text-left">
           <DialogTitle className="text-2xl tracking-[-0.04em]">
@@ -157,14 +151,15 @@ function PayConfirmationDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full rounded-full sm:w-auto"
-            onClick={handleClose}
-          >
-            Not now
-          </Button>
+          <DialogClose asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-full sm:w-auto"
+            >
+              Not now
+            </Button>
+          </DialogClose>
           <form action={payRequestAction} className="w-full sm:w-auto">
             <input type="hidden" name="confirmed" value="true" />
             <input type="hidden" name="requestId" value={requestId} />

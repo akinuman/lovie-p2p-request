@@ -14,6 +14,16 @@
 5. Seed demo data with `bun run db:seed`.
 6. Start the app with `bun run dev`.
 
+## Validation Snapshot
+
+Latest local validation attempt on April 11, 2026:
+
+- `bun run lint`: passed
+- `bun run build`: passed
+- `bun run test:unit`: passed
+- `bun run test:e2e`: blocked in this sandbox because Next.js could not bind
+  to local port `3000` (`EPERM`), and elevated execution approval was rejected
+
 ## Demo Accounts
 
 - Sender: `sender@example.com`
@@ -35,6 +45,8 @@
    reopen automatically.
 8. Confirm the outgoing request card exposes `View details`, `Preview`,
    `Copy link`, and `Cancel` when pending.
+9. Confirm the page remains comfortable on narrow screens and the header,
+   filter controls, and dialog actions do not force horizontal scrolling.
 
 ## Search, Filter, and Infinite Scroll Validation
 
@@ -66,6 +78,8 @@
    cards, detail screens, share preview, and post-create dialog.
 8. Force or simulate clipboard copy failure and confirm inline error feedback
    appears while the share URL remains manually copyable.
+9. Confirm the confirmation dialog and detail action panel stack cleanly on
+   mobile widths while preserving spinner feedback.
 
 ## Auth Guard and Refactor Validation
 
@@ -80,12 +94,16 @@
    - `lib/data-access/*` owns raw persistence operations
    - `lib/use-cases/requests/*` owns request orchestration
    - page files are thinner and focused on route composition
+   - authenticated navigation consistently routes users back to
+     `/dashboard/outgoing`
 
 ## Playwright Evidence
 
 - Run `bun run test:e2e`.
 - Open the HTML report with `bun run playwright:report`.
 - Retain video artifacts from `test-results/`.
+- In this workspace, the Playwright run is still pending because local port
+  binding approval was not granted.
 - Add or update E2E coverage for:
   - debounced search without Apply button
   - stale pagination response discard behavior
@@ -109,3 +127,5 @@
    Validation against the public URL.
 5. Re-run `bun run test:e2e` with `PLAYWRIGHT_BASE_URL` pointed at the public
    deployment so reviewer evidence matches the hosted build.
+6. Record whether the hosted run also covers the auth-guard regression and keep
+   the resulting videos with the reviewer artifacts.

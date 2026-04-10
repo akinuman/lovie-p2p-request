@@ -4,10 +4,13 @@ import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
 import { ShareLinkActions } from "@/components/requests/share-link-actions";
+import { Button } from "@/components/ui/button";
 import {
+  DialogClose,
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -116,6 +119,14 @@ export function RequestCreatedDialog({
           ) : null}
 
           <ShareLinkActions previewHref={sharePath} shareUrl={shareUrl} />
+
+          <DialogFooter className="border-t border-border/70 pt-2">
+            <DialogClose asChild>
+              <Button type="button" variant="secondary" className="rounded-full">
+                Continue browsing
+              </Button>
+            </DialogClose>
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>
