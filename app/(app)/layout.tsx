@@ -29,7 +29,12 @@ export default async function AppLayout({
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardNav />
             <form action={logoutAction}>
-              <Button type="submit" variant="outline" size="sm" className="rounded-full">
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+              >
                 Log out
               </Button>
             </form>

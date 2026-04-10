@@ -1,17 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    query: {
-      paymentRequests: {
-        findFirst: vi.fn(),
-        findMany: vi.fn(),
-      },
-      users: {
-        findFirst: vi.fn(),
-      },
-    },
-  },
+vi.mock("@/lib/data-access/payment-requests", () => ({
+  findMatchedRecipientUser: vi.fn(),
+  findPaymentRequestById: vi.fn(),
+  listIncomingPaymentRequests: vi.fn(),
+  listOutgoingPaymentRequests: vi.fn(),
 }));
 
 vi.mock("@/lib/requests/expiry", () => ({

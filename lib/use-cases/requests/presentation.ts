@@ -1,12 +1,35 @@
+import type { RequestStatus } from "@/drizzle/schema";
+
+import { formatAmountFromCents } from "@/lib/money/format-amount";
+
 export interface RequestPresentationInput {
   amountCents: number;
   currencyCode: string;
+  expiresAt?: Date;
   id: string;
+  note?: string | null;
+  recipientLabel?: string;
+  senderLabel?: string;
+  shareUrl?: string;
+  status?: RequestStatus;
 }
 
-// Phase 1 scaffold: Phase 2 will normalize dialog and card presentation here.
+export interface RequestPresentationOutput extends RequestPresentationInput {
+  formattedAmount: string;
+  notePreview: string | null;
+}
+
 export function buildRequestPresentation<TInput extends RequestPresentationInput>(
   input: TInput,
-): TInput {
-  return input;
+): TInput & RequestPresentationOutput {
+  const trimmedNote = input.note?.trim();
+
+  return {
+    ...input,
+    formattedAmount: formatAmountFromCents(
+      input.amountCents,
+      input.currencyCode,
+    ),
+    notePreview: trimmedNote ? trimmedNote.slice(0, 140) : null,
+  };
 }

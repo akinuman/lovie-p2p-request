@@ -3,8 +3,14 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { type PaymentRequest, type User } from "@/drizzle/schema";
 
-import { getSessionCookie } from "@/lib/auth/session";
-import { db } from "@/lib/db";
+export {
+  getOptimisticAuthRedirectPath,
+  hasOptimisticSessionCookie,
+  isProtectedRequestRoute,
+  isPublicAuthOnlyRoute,
+  PROTECTED_REQUEST_ROUTE_PREFIXES,
+  PUBLIC_AUTH_ONLY_ROUTE_PREFIXES,
+} from "@/lib/auth/route-guard";
 import { normalizeEmail, normalizePhone } from "@/lib/validation/requests";
 
 export type RequestViewerRole = "none" | "recipient" | "sender";
@@ -16,22 +22,26 @@ type RequestRecipientMatch = Pick<
 type UserIdentity = Pick<User, "email" | "id" | "phone">;
 
 export const getCurrentUser = cache(async (): Promise<User | null> => {
+  const { getSessionCookie } = await import("@/lib/auth/session");
   const session = await getSessionCookie();
 
   if (!session) {
     return null;
   }
 
-  const user = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, session.userId),
+  const { findUser } = await import("@/lib/data-access/users");
+  const user = await findUser({
+    id: session.userId,
   });
 
   return user ?? null;
 });
 
 export async function getUserById(userId: string) {
-  return db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
+  const { findUser } = await import("@/lib/data-access/users");
+
+  return findUser({
+    id: userId,
   });
 }
 

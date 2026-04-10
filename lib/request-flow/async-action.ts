@@ -20,3 +20,19 @@ export function createPendingAsyncActionFeedbackState(): AsyncActionFeedbackStat
     showSpinner: true,
   };
 }
+
+export function createAsyncActionFeedbackState(input?: {
+  errorMessage?: string | null;
+  pending?: boolean;
+}): AsyncActionFeedbackState {
+  if (input?.pending) {
+    return createPendingAsyncActionFeedbackState();
+  }
+
+  return {
+    disabled: false,
+    errorMessage: input?.errorMessage ?? null,
+    pending: false,
+    showSpinner: false,
+  };
+}

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseAmountToCents } from "@/lib/money/parse-amount";
+import { resolveDashboardPageSize } from "@/lib/request-flow/pagination";
 
 const REQUEST_STATUSES = [
   "Pending",
@@ -142,6 +143,13 @@ export const requestCreateSchema = z
   });
 
 export const dashboardFilterSchema = z.object({
+  cursor: z.string().trim().optional().transform((value) => value || undefined),
+  limit: z
+    .coerce.number()
+    .int()
+    .positive()
+    .optional()
+    .transform((value) => (value ? resolveDashboardPageSize(value) : undefined)),
   q: z.string().trim().optional().transform((value) => value || undefined),
   status: z
     .enum(REQUEST_STATUSES)

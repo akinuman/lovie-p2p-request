@@ -9,12 +9,12 @@ import {
   type RequestFormField,
 } from "@/lib/requests/create-request-action-state";
 import {
-  cancelPaymentRequest,
-  createPaymentRequest,
-  declinePaymentRequest,
+  cancelRequestMutation,
+  createRequestMutation,
+  declineRequestMutation,
   getRequestRevalidationPaths,
-  payPaymentRequest,
-} from "@/lib/requests/mutations";
+  payRequestMutation,
+} from "@/lib/use-cases/requests/mutations";
 import {
   isSelfRequestRecipient,
   requestCreateSchema,
@@ -110,7 +110,7 @@ export async function createRequestAction(
   let requestId: string;
 
   try {
-    const request = await createPaymentRequest({
+    const request = await createRequestMutation({
       amountCents: parsed.data.amountCents,
       note: parsed.data.note,
       recipientContactType: parsed.data.recipientContactType,
@@ -143,7 +143,7 @@ export async function declineRequestAction(formData: FormData) {
   let redirectPath: string;
 
   try {
-    const request = await declinePaymentRequest(requestId, currentUser.id);
+    const request = await declineRequestMutation(requestId, currentUser.id);
     revalidateRequestPaths(request.id);
     redirectPath = buildRedirectUrl(returnTo, {
       updatedStatus: request.status,
@@ -167,7 +167,7 @@ export async function payRequestAction(formData: FormData) {
   let redirectPath: string;
 
   try {
-    const request = await payPaymentRequest(requestId, currentUser.id);
+    const request = await payRequestMutation(requestId, currentUser.id);
     revalidateRequestPaths(request.id);
     redirectPath = buildRedirectUrl(returnTo, {
       updatedStatus: request.status,
@@ -196,7 +196,7 @@ export async function cancelRequestAction(formData: FormData) {
   }
 
   try {
-    const request = await cancelPaymentRequest(requestId, currentUser.id);
+    const request = await cancelRequestMutation(requestId, currentUser.id);
     revalidateRequestPaths(request.id);
     redirectPath = buildRedirectUrl(returnTo, {
       updatedStatus: request.status,

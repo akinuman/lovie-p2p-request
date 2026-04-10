@@ -1,18 +1,21 @@
 import {
-  type PaymentRequest,
   type RequestStatus,
   type User,
 } from "@/drizzle/schema";
 
 import { getRequestViewerRole } from "@/lib/auth/current-user";
-import { db } from "@/lib/db";
+import {
+  findMatchedRecipientUser,
+  findPaymentRequestById,
+  listIncomingPaymentRequests,
+  listOutgoingPaymentRequests,
+  type PaymentRequestRecord,
+} from "@/lib/data-access/payment-requests";
 import { syncExpiredRequest } from "@/lib/requests/expiry";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
 
-export type PaymentRequestRecord = PaymentRequest & {
-  recipientMatchedUser: User | null;
-  sender: User;
-};
+export type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+
 type UserIdentity = Pick<User, "email" | "id" | "phone">;
 
 function buildStatusFilter(status?: DashboardFilterInput["status"]) {
@@ -80,30 +83,14 @@ async function syncExpiryForRecords(requests: PaymentRequestRecord[]) {
 }
 
 async function getRequestRecordByIdRaw(requestId: string) {
-  const request = await db.query.paymentRequests.findFirst({
-    where: (table, { eq }) => eq(table.id, requestId),
-    with: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
-
-  return request ?? null;
+  return findPaymentRequestById(requestId);
 }
 
 export async function findUserByNormalizedContact(
   contactType: "email" | "phone",
   contactValue: string,
 ) {
-  if (contactType === "email") {
-    return db.query.users.findFirst({
-      where: (table, { eq }) => eq(table.email, contactValue),
-    });
-  }
-
-  return db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.phone, contactValue),
-  });
+  return findMatchedRecipientUser(contactType, contactValue);
 }
 
 function matchesIncomingRecipient(
@@ -147,15 +134,7 @@ export async function getOutgoingRequestsForUser(
   userId: string,
   filters: DashboardFilterInput = {},
 ) {
-  const requests = await db.query.paymentRequests.findMany({
-    orderBy: (table, { desc }) => [desc(table.createdAt)],
-    where: (table, { eq }) => eq(table.senderUserId, userId),
-    with: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
-
+  const requests = await listOutgoingPaymentRequests(userId);
   const syncedRequests = await syncExpiryForRecords(requests);
 
   return filterOutgoingRequests(syncedRequests, filters);
@@ -165,14 +144,7 @@ export async function getIncomingRequestsForUser(
   user: UserIdentity,
   filters: DashboardFilterInput = {},
 ) {
-  const requests = await db.query.paymentRequests.findMany({
-    orderBy: (table, { desc }) => [desc(table.createdAt)],
-    with: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
-
+  const requests = await listIncomingPaymentRequests(user);
   const syncedRequests = await syncExpiryForRecords(requests);
 
   return filterIncomingRequests(syncedRequests, user, filters);

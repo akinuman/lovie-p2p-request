@@ -59,6 +59,7 @@ export const paymentRequests = pgTable(
       },
     ),
     amountCents: integer("amount_cents").notNull(),
+    currencyCode: text("currency_code").notNull().default("USD"),
     note: text("note"),
     status: requestStatusEnum("status").notNull().default("Pending"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),

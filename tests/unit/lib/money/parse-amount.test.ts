@@ -20,4 +20,10 @@ describe("parseAmountToCents", () => {
       "Enter a valid amount with up to 2 decimal places.",
     );
   });
+
+  it("rejects amounts above the 50,000 maximum", () => {
+    expect(() => parseAmountToCents("50000.01")).toThrow(
+      "Amount must be 50,000 or less.",
+    );
+  });
 });

@@ -32,6 +32,7 @@ function SubmitButton() {
     <Button
       type="submit"
       className="w-full rounded-full sm:w-auto"
+      loading={pending}
       disabled={pending}
     >
       {pending ? "Creating request..." : "Create request"}
@@ -145,7 +146,7 @@ export function RequestForm() {
           </div>
 
           {safeState.errors.form ? (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
+            <div className="request-flow-feedback-error rounded-2xl">
               {safeState.errors.form}
             </div>
           ) : null}

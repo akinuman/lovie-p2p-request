@@ -39,6 +39,19 @@ describe("requestCreateSchema", () => {
       "Enter a valid recipient email or phone number.",
     );
   });
+
+  it("rejects amounts above the 50,000 maximum", () => {
+    const result = requestCreateSchema.safeParse({
+      amount: "50000.01",
+      note: "",
+      recipientContact: "recipient@example.com",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.flatten().fieldErrors.amount?.[0]).toBe(
+      "Amount must be 50,000 or less.",
+    );
+  });
 });
 
 describe("isSelfRequestRecipient", () => {

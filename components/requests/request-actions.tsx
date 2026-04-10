@@ -37,6 +37,7 @@ function ActionButton({
       type="submit"
       variant={variant}
       className="w-full rounded-full sm:w-auto"
+      loading={pending}
       disabled={pending}
     >
       {pending ? pendingLabel : idleLabel}
