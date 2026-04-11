@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   formatAmountFromCents,
 } from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
+import { useCurrencyInput } from "@/lib/money/use-currency-input";
 import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
 import { cn } from "@/lib/utils";
 import {
@@ -49,11 +50,20 @@ const AMOUNT_PRESETS = [5, 10, 50] as const;
 
 function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   const { pending } = useFormStatus();
-  const [amount, setAmount] = useState(state.values.amount);
+  const {
+    displayValue,
+    rawValue,
+    cents,
+    inputRef,
+    handleKeyDown,
+    handleChange,
+    setFromPreset,
+    reset,
+  } = useCurrencyInput(state.values.amount);
 
   useEffect(() => {
-    setAmount(state.values.amount);
-  }, [state.values.amount]);
+    reset(state.values.amount);
+  }, [state.values.amount, reset]);
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", {
@@ -72,26 +82,30 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
         >
           Amount
         </Label>
-        <div
-          className={cn(
-            "flex w-fit max-w-full items-baseline justify-center gap-1 font-light tracking-tighter transition-colors",
-            state.errors.amount ? "text-destructive" : "text-foreground",
-          )}
-        >
-          <span className="shrink-0 text-4xl md:text-5xl text-muted-foreground/60">
+        <div className="flex w-fit max-w-full items-baseline justify-center gap-1 font-light tracking-tighter">
+          <span
+            className={cn(
+              "shrink-0 text-4xl md:text-5xl transition-colors",
+              cents > 0 ? "text-foreground/60" : "text-muted-foreground/60",
+            )}
+          >
             {currencySymbol}
           </span>
+          {/* Hidden input carries the raw parseable value for form submission */}
+          <input type="hidden" name="amount" value={rawValue} />
           <input
+            ref={inputRef}
             id="amount"
-            name="amount"
-            inputMode="decimal"
-            placeholder="0.00"
+            inputMode="numeric"
             autoComplete="off"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            value={displayValue}
+            onKeyDown={handleKeyDown}
+            onChange={handleChange}
             autoFocus
-            className="min-w-[3ch] w-64 bg-transparent text-5xl sm:text-6xl md:text-7xl outline-none placeholder:text-muted-foreground/20 border-none ring-0 p-0 [field-sizing:content]"
-            required
+            className={cn(
+              "min-w-[4ch] max-w-full bg-transparent text-5xl sm:text-6xl md:text-7xl outline-none border-none ring-0 p-0 [field-sizing:content]",
+              cents === 0 && "text-muted-foreground/20",
+            )}
           />
         </div>
         <div className="flex flex-wrap justify-center gap-2 pt-1">
@@ -102,7 +116,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
               variant="outline"
               size="sm"
               className="rounded-full"
-              onClick={() => setAmount(preset.toString())}
+              onClick={() => setFromPreset(preset)}
             >
               ${preset}
             </Button>
@@ -129,6 +143,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
           <Input
             id="recipientContact"
             name="recipientContact"
+            autoComplete="off"
             placeholder="recipient@example.com or +1 555 222 3000"
             defaultValue={state.values.recipientContact}
             aria-invalid={Boolean(state.errors.recipientContact)}

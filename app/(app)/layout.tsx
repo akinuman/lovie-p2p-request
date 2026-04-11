@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-import { logoutAction } from "@/use-cases/auth-actions";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { Button } from "@/components/ui/button";
-import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import { requireCurrentUser } from "@/lib/auth/current-user";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
+import { logoutAction } from "@/use-cases/auth-actions";
 
 export default async function AppLayout({
   children,
@@ -15,7 +15,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="sticky top-0 border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 border-b z-50 bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div className="space-y-1">
             <Link
