@@ -6,7 +6,7 @@ import { requireCurrentUser } from "@/lib/auth/current-user";
 import {
   getRequestDetailReadResult,
   getRequestPageAlerts,
-} from "@/lib/use-cases/requests/read";
+} from "@/lib/use-cases/requests/read-request";
 
 export default async function RequestDetailPage({
   params,

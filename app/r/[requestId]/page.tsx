@@ -6,7 +6,7 @@ import {
   getRequestViewerRole,
 } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
-import { getShareSummaryRequest } from "@/lib/requests/queries";
+import { getShareSummaryRequest } from "@/lib/use-cases/requests/read-request";
 
 export default async function ShareSummaryPage({
   params,

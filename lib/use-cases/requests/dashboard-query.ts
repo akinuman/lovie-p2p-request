@@ -3,7 +3,7 @@ import type { RequestStatus } from "@/drizzle/schema";
 import {
   DEFAULT_DASHBOARD_PAGE_SIZE,
   resolveDashboardPageSize,
-} from "@/lib/request-flow/pagination";
+} from "@/lib/use-cases/requests/dashboard-pagination";
 import { dashboardFilterSchema } from "@/lib/validation/requests";
 
 export interface DashboardQueryState {
@@ -64,4 +64,27 @@ export function parseDashboardQueryState(
   }
 
   return normalizeDashboardQueryState(parsed.data);
+}
+
+function getDashboardBasePath(variant: "incoming" | "outgoing") {
+  return variant === "incoming"
+    ? "/dashboard/incoming"
+    : "/dashboard/outgoing";
+}
+
+export function buildDashboardCurrentPath(
+  variant: "incoming" | "outgoing",
+  filters: DashboardQueryState,
+) {
+  const url = new URL(getDashboardBasePath(variant), "http://localhost");
+
+  if (filters.q) {
+    url.searchParams.set("q", filters.q);
+  }
+
+  if (filters.status) {
+    url.searchParams.set("status", filters.status);
+  }
+
+  return `${url.pathname}${url.search}`;
 }

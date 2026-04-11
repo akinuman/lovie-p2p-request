@@ -2,29 +2,17 @@ import type { PaymentRequest } from "@/drizzle/schema";
 import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
 
 import {
-  createPaymentRequestRecord,
-  findMatchedRecipientUser,
-  findPaymentRequestByIdOrThrow,
-  mutatePaymentRequest,
+  findPaymentRequestById,
+  updatePaymentRequestRecord,
 } from "@/lib/data-access/payment-requests";
 import { findUser } from "@/lib/data-access/users";
 import { getRequestViewerRole } from "@/lib/auth/current-user";
-import { computeExpiresAt } from "@/lib/requests/expiry";
-import { getRequestActionGuardMessage } from "@/lib/requests/status";
-import { getRequestCurrencyCode } from "@/lib/request-flow/currency";
-
-export interface CreateRequestMutationInput {
-  amountCents: number;
-  note?: string;
-  recipientContactType: "email" | "phone";
-  recipientContactValue: string;
-  senderUserId: string;
-}
+import { getRequestActionGuardMessage } from "@/lib/use-cases/requests/request-status";
 
 export interface RequestMutationInput {
   actorUserId: string;
   requestId: string;
-  type: "cancel" | "create" | "decline" | "pay";
+  type: "cancel" | "decline" | "pay";
 }
 
 export interface RequestMutationRedirectResult {
@@ -33,8 +21,6 @@ export interface RequestMutationRedirectResult {
 }
 
 type RedirectSearchParams = Record<string, string | undefined>;
-type RequestResolutionType = Exclude<RequestMutationInput["type"], "create">;
-
 export function getRequestRevalidationPaths(requestId: string) {
   return [
     "/dashboard/incoming",
@@ -60,7 +46,13 @@ function buildRedirectUrl(
 }
 
 async function getFreshRequestOrThrow(requestId: string) {
-  return findPaymentRequestByIdOrThrow(requestId);
+  const request = await findPaymentRequestById(requestId);
+
+  if (!request) {
+    throw new Error("Request not found.");
+  }
+
+  return request;
 }
 
 async function getAuthorizedActorAndRequest(
@@ -104,30 +96,36 @@ function guardRequestMutation(
   }
 }
 
-export async function createRequestMutation(
-  input: CreateRequestMutationInput,
-) {
-  const recipientMatchedUser = await findMatchedRecipientUser(
-    input.recipientContactType,
-    input.recipientContactValue,
-  );
-
+async function applyRequestStatusMutation(input: {
+  actorUserId?: string;
+  requestId: string;
+  status: "Cancelled" | "Declined" | "Paid";
+}) {
   const now = new Date();
-  const createdRequest = await createPaymentRequestRecord({
-    amountCents: input.amountCents,
-    createdAt: now,
-    currencyCode: getRequestCurrencyCode(),
-    expiresAt: computeExpiresAt(now),
+  const statusSpecificValues =
+    input.status === "Cancelled"
+      ? {
+          cancelledAt: now,
+        }
+      : input.status === "Declined"
+        ? {
+            declinedAt: now,
+          }
+        : {
+            paidAt: now,
+          };
+
+  await updatePaymentRequestRecord(input.requestId, {
+    ...statusSpecificValues,
     lastStatusChangedAt: now,
-    note: input.note,
-    recipientContactType: input.recipientContactType,
-    recipientContactValue: input.recipientContactValue,
-    recipientMatchedUserId: recipientMatchedUser?.id,
-    senderUserId: input.senderUserId,
+    recipientMatchedUserId:
+      input.actorUserId &&
+      (input.status === "Declined" || input.status === "Paid")
+        ? input.actorUserId
+        : undefined,
+    status: input.status,
     updatedAt: now,
   });
-
-  return getFreshRequestOrThrow(createdRequest.id);
 }
 
 export async function cancelRequestMutation(
@@ -140,7 +138,7 @@ export async function cancelRequestMutation(
   );
 
   guardRequestMutation("cancel", request, actorUser);
-  await mutatePaymentRequest({
+  await applyRequestStatusMutation({
     requestId,
     status: "Cancelled",
   });
@@ -158,7 +156,7 @@ export async function declineRequestMutation(
   );
 
   guardRequestMutation("decline", request, actorUser);
-  await mutatePaymentRequest({
+  await applyRequestStatusMutation({
     actorUserId,
     requestId,
     status: "Declined",
@@ -191,7 +189,7 @@ export async function payRequestMutation(
     throw error;
   }
 
-  await mutatePaymentRequest({
+  await applyRequestStatusMutation({
     actorUserId,
     requestId,
     status: "Paid",
@@ -204,7 +202,7 @@ export async function runRequestMutationWithRedirect(input: {
   actorUserId: string;
   requestId: string;
   returnTo: string;
-  type: RequestResolutionType;
+  type: RequestMutationInput["type"];
 }): Promise<RequestMutationRedirectResult> {
   try {
     const request =

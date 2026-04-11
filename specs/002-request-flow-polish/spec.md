@@ -35,6 +35,7 @@
 - Q: Are rate limiting, fraud controls, and abuse prevention part of this polish pass? → A: Only duplicate in-flight submission prevention is in scope for this take-home. Broader rate limiting, fraud review, audit controls, and abuse monitoring are acknowledged as production requirements but explicitly out of scope here.
 - Q: What accessibility baseline applies to the polished request flow? → A: The critical request flows must be keyboard accessible, preserve visible focus, use semantic controls and dialog focus management, expose validation and action feedback to assistive technology, and remain usable on mobile and desktop.
 - Q: Does the simulated pay flow require production-grade transactional guarantees? → A: The demo must re-check that a request is still payable immediately before marking it paid, but full real-money protections such as row locking, idempotency keys, ledgering, and settlement-grade transaction handling are acknowledged as production requirements and are out of scope for this take-home simulation.
+- Q: How broad is phone-number normalization in this take-home? → A: Phone validation is intentionally pragmatic for mock-auth demo data. US numbers may be entered in common local or `+1...` forms, while broader international support is only accepted when already provided in a plausible E.164-style `+<countrycode><number>` format. Full international parsing and localization are out of scope.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -405,6 +406,8 @@ handling as a first-class design concern.
 - Preventing duplicate in-flight actions is part of the feature, but broader
   rate limiting, abuse prevention, fraud controls, and compliance workflows are
   intentionally outside the scope of this take-home implementation.
+- Phone-recipient matching is designed for mock-auth demo flows and pragmatic
+  validation rather than exhaustive international phone-number support.
 - The payment experience in this assignment simulates fulfillment and status
   changes for demo purposes; production-grade transactional guarantees,
   idempotency, and settlement safety are acknowledged requirements for a real

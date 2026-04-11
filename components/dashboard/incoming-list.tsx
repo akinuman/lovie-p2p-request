@@ -7,9 +7,9 @@ import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
-import type { DashboardFilterInput } from "@/lib/validation/requests";
-import type { DashboardRequestPagePayload } from "@/lib/use-cases/requests/dashboard";
 import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
+import type { DashboardFilterInput } from "@/lib/validation/requests";
+import type { DashboardRequestPagePayload } from "@/lib/use-cases/requests/read-dashboard";
 
 interface IncomingListProps {
   currentPath: string;

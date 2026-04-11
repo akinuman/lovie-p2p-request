@@ -1,4 +1,14 @@
-import { getRequestCurrencyCode } from "@/lib/request-flow/currency";
+export const DEFAULT_CURRENCY_CODE = "USD";
+
+export function normalizeCurrencyCode(currencyCode?: string): string {
+  const normalized = currencyCode?.trim().toUpperCase();
+
+  if (!normalized) {
+    return DEFAULT_CURRENCY_CODE;
+  }
+
+  return normalized;
+}
 
 export function formatAmountFromCents(
   amountCents: number,
@@ -10,11 +20,11 @@ export function formatAmountFromCents(
   }
 
   return new Intl.NumberFormat(locale, {
-    currency: getRequestCurrencyCode(currencyCode),
+    currency: normalizeCurrencyCode(currencyCode),
     style: "currency",
   }).format(amountCents / 100);
 }
 
 export function formatCurrencyCodeLabel(currencyCode?: string): string {
-  return getRequestCurrencyCode(currencyCode);
+  return normalizeCurrencyCode(currencyCode);
 }

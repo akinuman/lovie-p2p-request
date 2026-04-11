@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { parseAmountToCents } from "@/lib/money/parse-amount";
-import { resolveDashboardPageSize } from "@/lib/request-flow/pagination";
+import { resolveDashboardPageSize } from "@/lib/use-cases/requests/dashboard-pagination";
 
 const REQUEST_STATUSES = [
   "Pending",
@@ -21,6 +21,11 @@ export function normalizeEmail(value: string): string {
 }
 
 export function normalizePhone(value: string): string | null {
+  // This take-home uses pragmatic normalization for mock-auth demo data:
+  // US numbers may be entered as 10 digits or +1/E.164-style values, while
+  // other international numbers are accepted only when already provided in a
+  // plausible +<countrycode><number> form. Full libphonenumber-style parsing
+  // is intentionally out of scope for this assignment.
   const trimmed = value.trim();
   if (!trimmed) {
     return null;

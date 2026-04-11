@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { getNextDashboardCursor } from "@/lib/use-cases/requests/dashboard-pagination";
+
 vi.mock("@/lib/data-access/payment-requests", () => ({
   listIncomingPaymentRequestsPage: vi.fn(),
   listOutgoingPaymentRequestsPage: vi.fn(),
 }));
 
-vi.mock("@/lib/requests/expiry", () => ({
+vi.mock("@/lib/use-cases/requests/request-expiry", () => ({
   syncExpiredRequest: vi.fn(async (request: unknown) => request),
 }));
 
@@ -13,7 +15,7 @@ const {
   getIncomingDashboardRequestPage,
   getOutgoingDashboardRequestPage,
   serializeDashboardRequestPage,
-} = await import("@/lib/use-cases/requests/dashboard");
+} = await import("@/lib/use-cases/requests/read-dashboard");
 const dataAccess = await import("@/lib/data-access/payment-requests");
 
 function makeRequest(overrides: Record<string, unknown> = {}) {
@@ -101,7 +103,7 @@ describe("dashboard request use cases", () => {
     });
     expect(serialized).toMatchObject({
       hasMore: true,
-      nextCursor: "cursor-456",
+      nextCursor: getNextDashboardCursor(page.items),
     });
     expect(serialized.items[0]?.createdAt).toBe("2026-04-10T10:00:00.000Z");
   });

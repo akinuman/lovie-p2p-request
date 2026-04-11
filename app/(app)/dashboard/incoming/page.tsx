@@ -2,7 +2,7 @@ import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { IncomingList } from "@/components/dashboard/incoming-list";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import { getDashboardPageReadResult } from "@/lib/use-cases/requests/read";
+import { getDashboardPageReadResult } from "@/lib/use-cases/requests/read-dashboard";
 
 export default async function IncomingDashboardPage({
   searchParams,

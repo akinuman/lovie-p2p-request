@@ -15,7 +15,7 @@ import {
   createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
-} from "@/lib/requests/create-request-action-state";
+} from "@/lib/use-cases/requests/create-request-form-state";
 import { MAX_REQUEST_AMOUNT_LABEL } from "@/lib/money/parse-amount";
 import { cn } from "@/lib/utils";
 

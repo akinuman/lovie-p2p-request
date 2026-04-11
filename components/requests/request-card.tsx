@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import type { PaymentRequestRecord } from "@/lib/requests/queries";
-import type { DashboardRequestCardPayload } from "@/lib/use-cases/requests/dashboard";
-import { createAsyncActionFeedbackState, createPendingAsyncActionFeedbackState, initialAsyncActionFeedbackState } from "@/lib/request-flow/async-action";
+import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import type { DashboardRequestCardPayload } from "@/lib/use-cases/requests/read-dashboard";
+import { createAsyncActionFeedbackState, createPendingAsyncActionFeedbackState, initialAsyncActionFeedbackState } from "@/lib/use-cases/requests/async-action-feedback";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { RequestActions } from "@/components/requests/request-actions";

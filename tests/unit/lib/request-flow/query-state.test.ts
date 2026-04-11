@@ -4,7 +4,7 @@ import {
   hasActiveDashboardQueryState,
   normalizeDashboardQueryState,
   parseDashboardQueryState,
-} from "@/lib/request-flow/query-state";
+} from "@/lib/use-cases/requests/dashboard-query";
 
 describe("normalizeDashboardQueryState", () => {
   it("trims search text and applies the default page size", () => {

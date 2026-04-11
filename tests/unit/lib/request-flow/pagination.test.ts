@@ -5,7 +5,7 @@ import {
   encodeDashboardCursor,
   getNextDashboardCursor,
   resolveDashboardPageSize,
-} from "@/lib/request-flow/pagination";
+} from "@/lib/use-cases/requests/dashboard-pagination";
 
 describe("dashboard pagination helpers", () => {
   it("round-trips dashboard cursors", () => {

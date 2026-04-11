@@ -24,7 +24,7 @@ import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
-import { getRequestActionAvailabilityMessage } from "@/lib/requests/status";
+import { getRequestActionAvailabilityMessage } from "@/lib/use-cases/requests/request-status";
 
 interface RequestActionsProps {
   amountCents?: number;

@@ -10,20 +10,16 @@ import { alias } from "drizzle-orm/pg-core";
 
 import { paymentRequests, users } from "@/drizzle/schema";
 import { db } from "@/lib/db";
-import {
-  decodeDashboardCursor,
-  getNextDashboardCursor,
-  resolveDashboardPageSize,
-} from "@/lib/request-flow/pagination";
-import {
-  normalizeDashboardQueryState,
-  type DashboardQueryState,
-} from "@/lib/request-flow/query-state";
 import { normalizeEmail, normalizePhone } from "@/lib/validation/requests";
 
-export interface PaginatedRequestQuery extends DashboardQueryState {
-  cursor?: string;
-  limit?: number;
+export interface PaymentRequestPageQuery {
+  after?: {
+    createdAt: Date;
+    id: string;
+  };
+  limit: number;
+  q?: string;
+  status?: RequestStatus;
 }
 
 export interface RequestPageResult<TItem> {
@@ -37,7 +33,7 @@ export type PaymentRequestRecord = PaymentRequest & {
   sender: User;
 };
 
-interface IncomingRequestScope {
+export interface IncomingRequestScope {
   email: string;
   id: string;
   phone?: string | null;
@@ -60,24 +56,16 @@ function mapPaymentRequestRecord(row: {
   };
 }
 
-function buildCursorWhereClause(cursor?: string) {
-  if (!cursor) {
+function buildCursorWhereClause(after?: { createdAt: Date; id: string }) {
+  if (!after) {
     return undefined;
   }
-
-  const decodedCursor = decodeDashboardCursor(cursor);
-
-  if (!decodedCursor) {
-    return undefined;
-  }
-
-  const cursorCreatedAt = new Date(decodedCursor.createdAt);
 
   return or(
-    lt(paymentRequests.createdAt, cursorCreatedAt),
+    lt(paymentRequests.createdAt, after.createdAt),
     and(
-      eq(paymentRequests.createdAt, cursorCreatedAt),
-      lt(paymentRequests.id, decodedCursor.id),
+      eq(paymentRequests.createdAt, after.createdAt),
+      lt(paymentRequests.id, after.id),
     ),
   );
 }
@@ -133,6 +121,24 @@ function buildIncomingScopeWhereClause(user: IncomingRequestScope) {
   return or(...scopeClauses);
 }
 
+function buildRequestPageResult(
+  rows: Array<{
+    paymentRequest: PaymentRequest;
+    recipientMatchedUser: User | null;
+    sender: User;
+  }>,
+  limit: number,
+): RequestPageResult<PaymentRequestRecord> {
+  const pageSize = Math.max(1, Math.trunc(limit));
+  const records = rows.map(mapPaymentRequestRecord);
+
+  return {
+    hasMore: records.length > pageSize,
+    items: records.slice(0, pageSize),
+    nextCursor: null,
+  };
+}
+
 export async function listOutgoingPaymentRequests(userId: string) {
   const rows = await db
     .select({
@@ -171,31 +177,6 @@ export async function listIncomingPaymentRequests(user: IncomingRequestScope) {
   return rows.map(mapPaymentRequestRecord);
 }
 
-export async function findMatchedRecipientUser(
-  contactType: "email" | "phone",
-  contactValue: string,
-) {
-  if (contactType === "email") {
-    const user = await db.query.users.findFirst({
-      where: (table, { eq }) => eq(table.email, normalizeEmail(contactValue)),
-    });
-
-    return user ?? null;
-  }
-
-  const normalizedPhone = normalizePhone(contactValue);
-
-  if (!normalizedPhone) {
-    return null;
-  }
-
-  const user = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.phone, normalizedPhone),
-  });
-
-  return user ?? null;
-}
-
 export async function findPaymentRequestById(requestId: string) {
   const request = await db.query.paymentRequests.findFirst({
     where: (table, { eq }) => eq(table.id, requestId),
@@ -208,22 +189,10 @@ export async function findPaymentRequestById(requestId: string) {
   return request ?? null;
 }
 
-export async function findPaymentRequestByIdOrThrow(requestId: string) {
-  const request = await findPaymentRequestById(requestId);
-
-  if (!request) {
-    throw new Error("Request not found.");
-  }
-
-  return request;
-}
-
 export async function listOutgoingPaymentRequestsPage(
   userId: string,
-  query: PaginatedRequestQuery = {},
+  query: PaymentRequestPageQuery,
 ) {
-  const normalizedQuery = normalizeDashboardQueryState(query);
-  const pageSize = resolveDashboardPageSize(normalizedQuery.limit);
   const rows = await db
     .select({
       paymentRequest: paymentRequests,
@@ -239,31 +208,23 @@ export async function listOutgoingPaymentRequestsPage(
     .where(
       and(
         eq(paymentRequests.senderUserId, userId),
-        normalizedQuery.status
-          ? eq(paymentRequests.status, normalizedQuery.status)
+        query.status
+          ? eq(paymentRequests.status, query.status)
           : undefined,
-        buildOutgoingSearchWhereClause(normalizedQuery.q),
-        buildCursorWhereClause(normalizedQuery.cursor),
+        buildOutgoingSearchWhereClause(query.q),
+        buildCursorWhereClause(query.after),
       ),
     )
     .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id))
-    .limit(pageSize + 1);
-  const records = rows.map(mapPaymentRequestRecord);
-  const items = records.slice(0, pageSize);
+    .limit(Math.max(1, Math.trunc(query.limit)) + 1);
 
-  return {
-    hasMore: records.length > pageSize,
-    items,
-    nextCursor: records.length > pageSize ? getNextDashboardCursor(items) : null,
-  };
+  return buildRequestPageResult(rows, query.limit);
 }
 
 export async function listIncomingPaymentRequestsPage(
   user: IncomingRequestScope,
-  query: PaginatedRequestQuery = {},
+  query: PaymentRequestPageQuery,
 ) {
-  const normalizedQuery = normalizeDashboardQueryState(query);
-  const pageSize = resolveDashboardPageSize(normalizedQuery.limit);
   const rows = await db
     .select({
       paymentRequest: paymentRequests,
@@ -279,23 +240,17 @@ export async function listIncomingPaymentRequestsPage(
     .where(
       and(
         buildIncomingScopeWhereClause(user),
-        normalizedQuery.status
-          ? eq(paymentRequests.status, normalizedQuery.status)
+        query.status
+          ? eq(paymentRequests.status, query.status)
           : undefined,
-        buildIncomingSearchWhereClause(normalizedQuery.q),
-        buildCursorWhereClause(normalizedQuery.cursor),
+        buildIncomingSearchWhereClause(query.q),
+        buildCursorWhereClause(query.after),
       ),
     )
     .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id))
-    .limit(pageSize + 1);
-  const records = rows.map(mapPaymentRequestRecord);
-  const items = records.slice(0, pageSize);
+    .limit(Math.max(1, Math.trunc(query.limit)) + 1);
 
-  return {
-    hasMore: records.length > pageSize,
-    items,
-    nextCursor: records.length > pageSize ? getNextDashboardCursor(items) : null,
-  };
+  return buildRequestPageResult(rows, query.limit);
 }
 
 export async function createPaymentRequestRecord(
@@ -328,46 +283,7 @@ export async function updatePaymentRequestRecord(
     .update(paymentRequests)
     .set(values)
     .where(eq(paymentRequests.id, requestId))
-    .returning({
-      id: paymentRequests.id,
-    });
+    .returning();
 
   return updatedRequest ?? null;
-}
-
-export async function mutatePaymentRequest(input: {
-  requestId: string;
-  status: RequestStatus;
-  actorUserId?: string;
-}) {
-  const now = new Date();
-  const statusSpecificValues =
-    input.status === "Cancelled"
-      ? {
-          cancelledAt: now,
-        }
-      : input.status === "Declined"
-        ? {
-            declinedAt: now,
-          }
-        : input.status === "Paid"
-          ? {
-              paidAt: now,
-            }
-          : {};
-  const recipientMatchUpdate =
-    input.actorUserId &&
-    (input.status === "Declined" || input.status === "Paid")
-      ? {
-          recipientMatchedUserId: input.actorUserId,
-        }
-      : {};
-
-  return updatePaymentRequestRecord(input.requestId, {
-    ...statusSpecificValues,
-    lastStatusChangedAt: now,
-    ...recipientMatchUpdate,
-    status: input.status,
-    updatedAt: now,
-  });
 }
