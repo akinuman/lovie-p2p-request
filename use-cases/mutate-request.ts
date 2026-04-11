@@ -1,5 +1,5 @@
-import type { PaymentRequest } from "@/drizzle/schema";
 import type { PaymentRequestRecord } from "@/data-access/payment-requests";
+import type { PaymentRequest } from "@/drizzle/schema";
 
 import {
   findPaymentRequestById,
@@ -77,6 +77,7 @@ function guardRequestMutation(
 
 async function applyRequestStatusMutation(input: {
   actorUserId?: string;
+  currentRecipientMatchedUserId?: string | null;
   requestId: string;
   status: "Cancelled" | "Declined" | "Paid";
 }) {
@@ -94,14 +95,18 @@ async function applyRequestStatusMutation(input: {
             paidAt: now,
           };
 
+  // Only lazy-match the recipient when no match exists yet.
+  // If recipientMatchedUserId is already set, the guard has already
+  // verified the actor owns it — no need to overwrite.
+  const shouldLazyMatch =
+    input.actorUserId &&
+    (input.status === "Declined" || input.status === "Paid") &&
+    !input.currentRecipientMatchedUserId;
+
   await updatePaymentRequestRecord(input.requestId, {
     ...statusSpecificValues,
     lastStatusChangedAt: now,
-    recipientMatchedUserId:
-      input.actorUserId &&
-      (input.status === "Declined" || input.status === "Paid")
-        ? input.actorUserId
-        : undefined,
+    recipientMatchedUserId: shouldLazyMatch ? input.actorUserId : undefined,
     status: input.status,
     updatedAt: now,
   });
@@ -137,6 +142,7 @@ export async function declineRequestMutation(
   guardRequestMutation("decline", request, actorUser);
   await applyRequestStatusMutation({
     actorUserId,
+    currentRecipientMatchedUserId: request.recipientMatchedUserId,
     requestId,
     status: "Declined",
   });
@@ -170,6 +176,7 @@ export async function payRequestMutation(
 
   await applyRequestStatusMutation({
     actorUserId,
+    currentRecipientMatchedUserId: freshRequest.recipientMatchedUserId,
     requestId,
     status: "Paid",
   });
@@ -192,5 +199,7 @@ export async function runRequestMutation(
     return payRequestMutation(input.requestId, input.actorUserId);
   }
 
-  throw new Error("Create mutations require the dedicated createRequestMutation helper.");
+  throw new Error(
+    "Create mutations require the dedicated createRequestMutation helper.",
+  );
 }

@@ -1,8 +1,8 @@
 "use client";
 
+import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +37,8 @@ export function ShareLinkActions({
     } catch {
       setCopyFeedback(
         createAsyncActionFeedbackState({
-          errorMessage: "We couldn’t copy the share link. Copy it manually below.",
+          errorMessage:
+            "We couldn’t copy the share link. Copy it manually below.",
         }),
       );
     }
@@ -59,13 +60,19 @@ export function ShareLinkActions({
             {shareUrl}
           </p>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background">
-            {copyMessage ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4 opacity-70" />}
+            {copyMessage ? (
+              <Check className="h-4 w-4 text-primary" />
+            ) : (
+              <Copy className="h-4 w-4 opacity-70" />
+            )}
           </div>
         </button>
       </div>
 
       {copyFeedback.errorMessage ? (
-        <p className="text-sm text-destructive pl-1">{copyFeedback.errorMessage}</p>
+        <p className="text-sm text-destructive pl-1">
+          {copyFeedback.errorMessage}
+        </p>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">

@@ -37,5 +37,9 @@ export function getOptimisticAuthRedirectPath(input: {
     return AUTHENTICATED_HOME_PATH;
   }
 
+  if (!input.hasSession && isPublicAuthOnlyRoute(input.pathname) && input.pathname === "/") {
+    return "/sign-in";
+  }
+
   return null;
 }

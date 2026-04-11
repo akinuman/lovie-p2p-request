@@ -1,14 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default async function SignInPage({
   searchParams,
@@ -18,7 +12,7 @@ export default async function SignInPage({
   const user = await getCurrentUser();
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  
+
   const from =
     typeof resolvedSearchParams?.from === "string"
       ? resolvedSearchParams.from
@@ -40,13 +34,10 @@ export default async function SignInPage({
               <CardTitle className="text-3xl tracking-[-0.04em] md:text-4xl">
                 Sign in with email
               </CardTitle>
-              <CardDescription className="text-base leading-7">
-                This take-home uses simple email-based mock auth. We create or
-                reuse a demo user and store a signed HTTP-only session cookie.
-              </CardDescription>
               {from ? (
                 <p className="request-flow-feedback rounded-2xl border border-border/70 bg-background/70">
-                  Sign in to continue to <span className="font-medium">{from}</span>.
+                  Sign in to continue to{" "}
+                  <span className="font-medium">{from}</span>.
                 </p>
               ) : null}
             </div>

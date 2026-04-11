@@ -11,22 +11,26 @@ export default async function ShareSummaryPage({
   params: Promise<{ requestId: string }>;
 }) {
   const { requestId } = await params;
-  const request = await getShareSummaryRequest(requestId);
+  const result = await getShareSummaryRequest(requestId);
 
-  if (!request) {
+  if (!result) {
     notFound();
   }
 
   const currentUser = await getCurrentUser();
 
+  // Use the recipient-matching fields server-side only — they never leave the RSC boundary.
   if (
     currentUser &&
-    getRequestViewerRole(currentUser, request) === "recipient"
+    getRequestViewerRole(currentUser, result._recipientMatch) === "recipient"
   ) {
-    redirect(`/requests/${request.id}`);
+    redirect(`/requests/${result.id}`);
   }
 
-  const shareUrl = `${getEnv().NEXT_PUBLIC_APP_URL}/r/${request.id}`;
+  const shareUrl = `${getEnv().NEXT_PUBLIC_APP_URL}/r/${result.id}`;
+
+  // Destructure out the internal fields so only the safe DTO goes to the client.
+  const { _recipientMatch: _, ...shareSummary } = result;
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(217,119,6,0.16),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(20,83,45,0.12),transparent_28%),linear-gradient(180deg,#f6ede0_0%,#f8f4ec_54%,#fffaf3_100%)] px-4 py-10 md:px-8">
@@ -40,7 +44,7 @@ export default async function ShareSummaryPage({
           </h1>
         </div>
 
-        <RequestShareSummary request={request} shareUrl={shareUrl} />
+        <RequestShareSummary summary={shareSummary} shareUrl={shareUrl} />
       </div>
     </main>
   );

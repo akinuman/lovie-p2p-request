@@ -12,11 +12,6 @@ export default function RequestDetailLayout({
         <h1 className="text-3xl tracking-[-0.05em] text-foreground sm:text-4xl">
           Inspect the request before you decide what happens next.
         </h1>
-        <p className="text-base leading-7 text-muted-foreground">
-          This detail view keeps the timeline, participant information, and
-          expiration countdown in one place so both sender and recipient can
-          trust the current state.
-        </p>
       </div>
 
       {children}

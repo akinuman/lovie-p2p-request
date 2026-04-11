@@ -1,6 +1,7 @@
 import Link from "next/link";
 
-import type { PaymentRequestRecord } from "@/data-access/payment-requests";
+import type { RequestStatus } from "@/drizzle/schema";
+
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,24 +10,36 @@ import {
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
 
+/** The client-safe subset of ShareSummaryDTO (without _recipientMatch). */
+export interface PublicShareSummary {
+  id: string;
+  amountCents: number;
+  currencyCode: string;
+  note: string | null;
+  status: RequestStatus;
+  expiresAt: Date;
+  createdAt: Date;
+  senderLabel: string;
+}
+
 interface RequestShareSummaryProps {
-  request: PaymentRequestRecord;
+  summary: PublicShareSummary;
   shareUrl: string;
 }
 
 export function RequestShareSummary({
-  request,
+  summary,
   shareUrl,
 }: RequestShareSummaryProps) {
   const formattedAmount = formatAmountFromCents(
-    request.amountCents,
-    request.currencyCode,
+    summary.amountCents,
+    summary.currencyCode,
   );
-  const currencyLabel = formatCurrencyCodeLabel(request.currencyCode);
+  const currencyLabel = formatCurrencyCodeLabel(summary.currencyCode);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.35fr_0.8fr]">
-      <RequestCard request={request} shareUrl={shareUrl} variant="share" />
+      <RequestCard summary={summary} shareUrl={shareUrl} variant="share" />
 
       <Card className="border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.08)]">
         <CardHeader>

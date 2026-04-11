@@ -3,13 +3,13 @@ import { RequestActions } from "@/components/requests/request-actions";
 import { ShareLinkActions } from "@/components/requests/share-link-actions";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
 import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
-import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 
 interface RequestDetailProps {
   request: PaymentRequestRecord;
@@ -47,10 +47,7 @@ function getActionPanelCopy(viewerRole: RequestViewerRole) {
   return "Intended recipients can pay or decline while the request is still pending. Sender access stays read-only so both sides share the same canonical status.";
 }
 
-export function RequestDetail({
-  request,
-  viewerRole,
-}: RequestDetailProps) {
+export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
   const sharePath = `/r/${request.id}`;
   const shareUrl = new URL(sharePath, getEnv().NEXT_PUBLIC_APP_URL).toString();
   const currencyLabel = formatCurrencyCodeLabel(request.currencyCode);
@@ -65,7 +62,10 @@ export function RequestDetail({
                 {getViewerRoleLabel(viewerRole)}
               </p>
               <CardTitle className="text-3xl tracking-[-0.05em]">
-                {formatAmountFromCents(request.amountCents, request.currencyCode)}
+                {formatAmountFromCents(
+                  request.amountCents,
+                  request.currencyCode,
+                )}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Currency {currencyLabel}
@@ -92,19 +92,25 @@ export function RequestDetail({
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Recipient
               </dt>
-              <dd className="text-foreground">{request.recipientContactValue}</dd>
+              <dd className="text-foreground">
+                {request.recipientContactValue}
+              </dd>
             </div>
             <div className="space-y-1">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Created
               </dt>
-              <dd className="text-foreground">{formatDateTime(request.createdAt)}</dd>
+              <dd className="text-foreground">
+                {formatDateTime(request.createdAt)}
+              </dd>
             </div>
             <div className="space-y-1">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Expires
               </dt>
-              <dd className="text-foreground">{formatDateTime(request.expiresAt)}</dd>
+              <dd className="text-foreground">
+                {formatDateTime(request.expiresAt)}
+              </dd>
             </div>
             <div className="space-y-1">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
@@ -121,7 +127,9 @@ export function RequestDetail({
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Note
               </p>
-              <p className="mt-2 text-sm leading-6 text-foreground">{request.note}</p>
+              <p className="mt-2 text-sm leading-6 text-foreground">
+                {request.note}
+              </p>
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-border/80 bg-background/40 p-4 text-sm text-muted-foreground">

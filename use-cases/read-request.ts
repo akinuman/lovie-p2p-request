@@ -1,4 +1,4 @@
-import type { User } from "@/drizzle/schema";
+import type { RecipientContactType, RequestStatus, User } from "@/drizzle/schema";
 
 import {
   getRequestViewerRole,
@@ -65,6 +65,51 @@ export async function getRequestDetailReadResult(
   };
 }
 
-export async function getShareSummaryRequest(requestId: string) {
-  return getRequestById(requestId);
+/**
+ * Narrow DTO for the public share page.
+ * Only fields safe for unauthenticated viewers — no PII, no internal IDs.
+ */
+export interface ShareSummaryDTO {
+  id: string;
+  amountCents: number;
+  currencyCode: string;
+  note: string | null;
+  status: RequestStatus;
+  expiresAt: Date;
+  createdAt: Date;
+  senderLabel: string;
+  /**
+   * Minimal fields to evaluate recipient-redirect on the server.
+   * These are NOT serialized to the client — they stay in the RSC boundary.
+   */
+  _recipientMatch: {
+    recipientContactType: RecipientContactType;
+    recipientContactValue: string;
+    recipientMatchedUserId: string | null;
+    senderUserId: string;
+  };
+}
+
+export async function getShareSummaryRequest(
+  requestId: string,
+): Promise<ShareSummaryDTO | null> {
+  const request = await getRequestById(requestId);
+  if (!request) return null;
+
+  return {
+    id: request.id,
+    amountCents: request.amountCents,
+    currencyCode: request.currencyCode,
+    note: request.note,
+    status: request.status,
+    expiresAt: request.expiresAt,
+    createdAt: request.createdAt,
+    senderLabel: request.sender.email,
+    _recipientMatch: {
+      recipientContactType: request.recipientContactType,
+      recipientContactValue: request.recipientContactValue,
+      recipientMatchedUserId: request.recipientMatchedUserId,
+      senderUserId: request.senderUserId,
+    },
+  };
 }
