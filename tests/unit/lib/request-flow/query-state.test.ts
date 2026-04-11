@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildDashboardFilterHref,
   hasActiveDashboardQueryState,
   normalizeDashboardQueryState,
   parseDashboardQueryState,
@@ -67,5 +68,22 @@ describe("parseDashboardQueryState", () => {
     ).toEqual({
       limit: 10,
     });
+  });
+});
+
+describe("buildDashboardFilterHref", () => {
+  it("builds a path with only active filter params", () => {
+    expect(
+      buildDashboardFilterHref("/dashboard/outgoing", {
+        q: "rent",
+        status: "Pending",
+      }),
+    ).toBe("/dashboard/outgoing?q=rent&status=Pending");
+  });
+
+  it("omits empty filter params", () => {
+    expect(buildDashboardFilterHref("/dashboard/incoming", {})).toBe(
+      "/dashboard/incoming",
+    );
   });
 });

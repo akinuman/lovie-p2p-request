@@ -18,6 +18,15 @@ async function createRequest(
   await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
 }
 
+async function chooseStatus(
+  page: Parameters<typeof test>[0],
+  label: string,
+  value: string,
+) {
+  await page.getByLabel(label).click();
+  await page.getByRole("option", { name: value }).click();
+}
+
 test("outgoing dashboard debounces search, resets stale pagination, and keeps actions in-card", async ({
   page,
   signInAs,
@@ -46,6 +55,21 @@ test("outgoing dashboard debounces search, resets stale pagination, and keeps ac
   });
 
   await page.goto("/dashboard/outgoing");
+  let delayedFilterTransitionSeen = false;
+  await page.route("**/dashboard/outgoing?**", async (route) => {
+    const url = route.request().url();
+
+    if (
+      !delayedFilterTransitionSeen &&
+      (url.includes("q=") || url.includes("status="))
+    ) {
+      delayedFilterTransitionSeen = true;
+      await page.waitForTimeout(600);
+    }
+
+    await route.continue();
+  });
+
   await expect(page.getByRole("button", { name: "Apply filters" })).toHaveCount(0);
   await expect(page.getByText("Dashboard polish 12")).toBeVisible();
   await expect(page.getByText("Dashboard polish 01")).toHaveCount(0);
@@ -53,6 +77,9 @@ test("outgoing dashboard debounces search, resets stale pagination, and keeps ac
   await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
   await page.getByLabel("Search outgoing requests").fill("Dashboard polish 11");
 
+  await expect(page.getByText("Updating results...")).toBeVisible();
+  await expect(page.getByTestId("dashboard-results-loading")).toBeVisible();
+  await expect(page.getByLabel("Search outgoing requests")).toBeDisabled();
   await expect(page).toHaveURL(/q=Dashboard(\+|%20)polish(\+|%20)11/);
   await expect(page.getByText("Dashboard polish 11")).toBeVisible();
   await expect(page.getByText("Dashboard polish 01")).toHaveCount(0);
@@ -63,7 +90,9 @@ test("outgoing dashboard debounces search, resets stale pagination, and keeps ac
     .click();
 
   await expect(page.getByText("Request cancelled.")).toBeVisible();
-  await page.getByLabel("Status").selectOption("Cancelled");
+  await chooseStatus(page, "Status", "Cancelled");
+  await expect(page.getByText("Updating results...")).toBeVisible();
+  await expect(page.getByTestId("dashboard-results-loading")).toBeVisible();
   await expect(page).toHaveURL(/status=Cancelled/);
   await expect(
     page.getByTestId("outgoing-request-card").filter({ hasText: "Dashboard polish 11" }),
@@ -101,6 +130,20 @@ test("incoming dashboard appends more rows and filters without an apply step", a
   await page.getByRole("button", { name: "Log out" }).click();
   await signInAs(demoUsers.recipient);
   await page.getByRole("link", { name: "Incoming" }).click();
+  let delayedIncomingFilterTransitionSeen = false;
+  await page.route("**/dashboard/incoming?**", async (route) => {
+    const url = route.request().url();
+
+    if (
+      !delayedIncomingFilterTransitionSeen &&
+      (url.includes("q=") || url.includes("status="))
+    ) {
+      delayedIncomingFilterTransitionSeen = true;
+      await page.waitForTimeout(600);
+    }
+
+    await route.continue();
+  });
 
   await expect(page.getByRole("button", { name: "Apply filters" })).toHaveCount(0);
   await expect(page.getByText("Incoming polish 12")).toBeVisible();
@@ -110,6 +153,9 @@ test("incoming dashboard appends more rows and filters without an apply step", a
   await expect(page.getByText("Incoming polish 01")).toBeVisible();
 
   await page.getByLabel("Search incoming requests").fill("Incoming polish 03");
+  await expect(page.getByText("Updating results...")).toBeVisible();
+  await expect(page.getByTestId("dashboard-results-loading")).toBeVisible();
+  await expect(page.getByLabel("Search incoming requests")).toBeDisabled();
   await expect(page).toHaveURL(/q=Incoming(\+|%20)polish(\+|%20)03/);
   await expect(page.getByText("Incoming polish 03")).toBeVisible();
   await expect(page.getByText("Incoming polish 12")).toHaveCount(0);

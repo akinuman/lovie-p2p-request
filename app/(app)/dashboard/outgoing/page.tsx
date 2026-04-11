@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { OutgoingList } from "@/components/dashboard/outgoing-list";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { RequestCreatedDialogHost } from "@/components/requests/request-created-dialog-host";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,17 +45,13 @@ export default async function OutgoingDashboardPage({
         </CardHeader>
       </Card>
 
-      <DashboardFilters
+      <DashboardShell
         basePath={AUTHENTICATED_HOME_PATH}
         filters={pageState.filters}
-        queryLabel="Search outgoing requests"
-      />
-
-      <OutgoingList
-        filters={pageState.filters}
-        hasActiveFilters={Boolean(pageState.filters.q || pageState.filters.status)}
         initialPage={pageState.initialPage}
+        queryLabel="Search outgoing requests"
         shareBaseUrl={shareBaseUrl}
+        variant="outgoing"
       />
     </div>
   );

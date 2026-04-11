@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
 import { createRequestAction } from "@/app/actions/requests";
@@ -10,15 +10,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
-import { DEFAULT_CURRENCY_CODE, formatAmountFromCents } from "@/lib/money/format-amount";
+import {
+  DEFAULT_CURRENCY_CODE,
+  formatAmountFromCents,
+} from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
+import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
+import { cn } from "@/lib/utils";
 import {
   createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
 } from "@/use-cases/create-request-form-state";
-import { cn } from "@/lib/utils";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) {
@@ -46,17 +49,21 @@ function SubmitButton() {
 function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   const { pending } = useFormStatus();
 
-  const currencySymbol = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: DEFAULT_CURRENCY_CODE,
-  })
-    .formatToParts(0)
-    .find((x) => x.type === "currency")?.value || "$";
+  const currencySymbol =
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: DEFAULT_CURRENCY_CODE,
+    })
+      .formatToParts(0)
+      .find((x) => x.type === "currency")?.value || "$";
 
   return (
     <fieldset className="space-y-8" disabled={pending}>
       <div className="flex flex-col items-center justify-center space-y-1 pt-2 pb-4 text-center">
-        <Label htmlFor="amount" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+        <Label
+          htmlFor="amount"
+          className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70"
+        >
           Amount
         </Label>
         <div
@@ -65,12 +72,15 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
             state.errors.amount ? "text-destructive" : "text-foreground",
           )}
         >
-          <span className="shrink-0 text-4xl md:text-5xl text-muted-foreground/60">{currencySymbol}</span>
+          <span className="shrink-0 text-4xl md:text-5xl text-muted-foreground/60">
+            {currencySymbol}
+          </span>
           <input
             id="amount"
             name="amount"
             inputMode="decimal"
             placeholder="0.00"
+            autoComplete="off"
             defaultValue={state.values.amount}
             autoFocus
             className="w-full min-w-0 bg-transparent text-center text-5xl sm:text-6xl md:text-7xl outline-none placeholder:text-muted-foreground/20 border-none ring-0 p-0 px-2"
@@ -78,14 +88,21 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
           />
         </div>
         <p className="text-sm text-muted-foreground">
-          Should be less than {formatAmountFromCents(MAX_REQUEST_AMOUNT_CENTS, DEFAULT_CURRENCY_CODE)}
+          Should be less than{" "}
+          {formatAmountFromCents(
+            MAX_REQUEST_AMOUNT_CENTS,
+            DEFAULT_CURRENCY_CODE,
+          )}
         </p>
         <FieldError message={state.errors.amount} />
       </div>
 
       <div className="space-y-5 rounded-3xl border border-border/40 bg-muted/30 p-5 shadow-sm">
         <div className="space-y-2">
-          <Label htmlFor="recipientContact" className="text-sm font-medium text-foreground">
+          <Label
+            htmlFor="recipientContact"
+            className="text-sm font-medium text-foreground"
+          >
             To
           </Label>
           <Input
@@ -96,7 +113,8 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
             aria-invalid={Boolean(state.errors.recipientContact)}
             className={cn(
               "rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm transition-colors focus-visible:bg-background h-12 text-base",
-              state.errors.recipientContact && "border-destructive focus-visible:ring-destructive",
+              state.errors.recipientContact &&
+                "border-destructive focus-visible:ring-destructive",
             )}
             required
           />
@@ -115,7 +133,8 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
             aria-invalid={Boolean(state.errors.note)}
             className={cn(
               "min-h-[80px] resize-none rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm transition-colors focus-visible:bg-background text-base",
-              state.errors.note && "border-destructive focus-visible:ring-destructive",
+              state.errors.note &&
+                "border-destructive focus-visible:ring-destructive",
             )}
           />
           <FieldError message={state.errors.note} />

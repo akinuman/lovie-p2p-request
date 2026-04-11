@@ -1,5 +1,4 @@
-import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
-import { IncomingList } from "@/components/dashboard/incoming-list";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getDashboardPageReadResult } from "@/use-cases/read-dashboard";
@@ -30,16 +29,12 @@ export default async function IncomingDashboardPage({
         </CardHeader>
       </Card>
 
-      <DashboardFilters
+      <DashboardShell
         basePath="/dashboard/incoming"
         filters={pageState.filters}
-        queryLabel="Search incoming requests"
-      />
-
-      <IncomingList
-        filters={pageState.filters}
-        hasActiveFilters={Boolean(pageState.filters.q || pageState.filters.status)}
         initialPage={pageState.initialPage}
+        queryLabel="Search incoming requests"
+        variant="incoming"
       />
     </div>
   );

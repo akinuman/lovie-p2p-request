@@ -5,6 +5,7 @@ import {
   resolveDashboardPageSize,
 } from "@/use-cases/dashboard-pagination";
 import { dashboardFilterSchema } from "@/lib/validation/requests";
+import type { DashboardFilterInput } from "@/lib/validation/requests";
 
 export interface DashboardQueryState {
   cursor?: string;
@@ -64,4 +65,21 @@ export function parseDashboardQueryState(
   }
 
   return normalizeDashboardQueryState(parsed.data);
+}
+
+export function buildDashboardFilterHref(
+  basePath: string,
+  filters: DashboardFilterInput,
+) {
+  const url = new URL(basePath, "http://localhost");
+
+  if (filters.q) {
+    url.searchParams.set("q", filters.q);
+  }
+
+  if (filters.status) {
+    url.searchParams.set("status", filters.status);
+  }
+
+  return `${url.pathname}${url.search}`;
 }
