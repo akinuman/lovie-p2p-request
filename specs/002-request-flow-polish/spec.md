@@ -28,6 +28,14 @@
 - Q: What should happen to the post-create dialog state after the user closes it? → A: Closing the dialog should clear the dialog-driving URL state so refresh or back does not reopen it.
 - Q: What should happen if copying a share link fails? → A: Show inline error feedback and keep the share URL visible so the user can copy it manually.
 
+### Session 2026-04-11
+
+- Q: What is the exact maximum request amount for this feature? → A: A new request may be at most `50,000.00` in the backend-configured major currency, which maps to `5,000,000` integer cents in storage; `50,000.00` is allowed and any higher value is rejected.
+- Q: Is this feature USD-only or multi-currency? → A: This polish pass is single-currency per environment. The backend provides one default currency for new requests, and the current demo configuration is USD unless backend configuration changes it. User-selected currencies, FX rates, and conversion logic are out of scope.
+- Q: Are rate limiting, fraud controls, and abuse prevention part of this polish pass? → A: Only duplicate in-flight submission prevention is in scope for this take-home. Broader rate limiting, fraud review, audit controls, and abuse monitoring are acknowledged as production requirements but explicitly out of scope here.
+- Q: What accessibility baseline applies to the polished request flow? → A: The critical request flows must be keyboard accessible, preserve visible focus, use semantic controls and dialog focus management, expose validation and action feedback to assistive technology, and remain usable on mobile and desktop.
+- Q: Does the simulated pay flow require production-grade transactional guarantees? → A: The demo must re-check that a request is still payable immediately before marking it paid, but full real-money protections such as row locking, idempotency keys, ledgering, and settlement-grade transaction handling are acknowledged as production requirements and are out of scope for this take-home simulation.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Dashboards Feel Fast and Actionable (Priority: P1)
@@ -114,11 +122,16 @@ flow Playwright coverage must record the run.
    confirmation dialog is open, **When** the recipient attempts to continue,
    **Then** the dialog closes or updates to the latest terminal state and no
    payment attempt starts.
-7. **Given** a user tries to copy a share link from a card or dialog,
+7. **Given** two pay attempts race against the same pending request, **When**
+   the later attempt reaches final confirmation after the request has already
+   transitioned away from `Pending`, **Then** the second attempt is rejected
+   and the UI reflects the latest request state rather than showing a second
+   success outcome.
+8. **Given** a user tries to copy a share link from a card or dialog,
    **When** clipboard access fails, **Then** the UI shows inline error feedback
    and keeps the share URL visible for manual copying without forcing
    navigation.
-8. **Given** a user submits or confirms any asynchronous request-flow action,
+9. **Given** a user submits or confirms any asynchronous request-flow action,
    **When** the action is pending, **Then** the relevant button shows a loading
    spinner, prevents duplicate submission, and uses the same loading and error
    handling pattern as the other request-flow forms and actions.
@@ -169,20 +182,47 @@ flows continue to pass browser and unit coverage.
   immediately on mobile.
 - The user closes the post-create dialog and then refreshes or navigates back
   to the outgoing dashboard.
-- A user attempts to submit `50000.01`, `0`, a negative amount, or an invalid
-  amount format on the new request form.
+- A user attempts to submit `50000.00`, `50000.01`, `0`, a negative amount, or
+  an invalid amount format on the new request form.
 - A user clicks the same async action multiple times while the button is still
   loading.
 - A recipient opens the pay confirmation dialog for a request that becomes
   expired before final confirmation.
 - A request is paid, declined, cancelled, or expired by another action while
   the pay confirmation dialog is still open.
+- Two recipients, browser tabs, or repeated network submissions attempt to pay
+  the same pending request at nearly the same time.
 - The backend sends a currency code for a request that the UI has not shown
   before.
+- A keyboard-only user needs to create a request, close the post-create dialog,
+  copy the share link, and confirm a payment without using a pointer.
+- A screen-reader user needs validation, loading, copy-error, and pay-confirm
+  feedback announced in a way that matches the visible UI state.
+- A user or automated script attempts repeated rapid submissions; duplicate
+  in-flight actions must be blocked, while broader server-side rate limiting is
+  acknowledged as out of scope for this take-home pass.
 - Middleware redirects an unauthenticated user who tries to access a protected
   dashboard or request detail route via a deep link.
 
 ## Requirements *(mandatory)*
+
+### Money Handling *(critical)*
+
+Money representation is a primary correctness constraint for this feature, not a
+minor implementation detail. Any implementation of this spec must treat money
+handling as a first-class design concern.
+
+- All monetary values MUST be stored, validated, transmitted through business
+  logic, and asserted in tests as integer cents rather than floating-point
+  values.
+- The maximum new-request amount for this assignment is `50,000.00` in the
+  backend-configured major currency, which maps to `5,000,000` integer cents.
+- Currency display is backend-driven. In this polish pass, the current demo
+  environment uses a single backend-configured default currency of USD unless
+  configuration changes it.
+- Human-readable currency formatting MUST happen only at the presentation
+  boundary. Parsing, validation, persistence, lifecycle rules, and comparisons
+  MUST use cents-based values.
 
 ### Functional Requirements
 
@@ -221,13 +261,23 @@ flows continue to pass browser and unit coverage.
 - **FR-010a**: If a request becomes non-payable before final confirmation is
   completed, the system MUST stop the pay flow, surface the latest request
   state, and MUST NOT start a payment attempt.
+- **FR-010b**: The simulated pay flow MUST re-read or conditionally validate
+  the latest request state immediately before applying a `Paid` transition so a
+  stale client cannot mark a request paid after it has already moved to a
+  non-payable state.
 - **FR-011**: The system MUST validate that a new request amount does not
-  exceed 50,000 major currency units before creation.
+  exceed `50,000.00` in the backend-configured major currency before creation.
+  This limit maps to `5,000,000` integer cents in storage, `50,000.00` is
+  allowed, and any value above that threshold MUST be rejected before the
+  request is created.
 - **FR-012**: The system MUST obtain currency information for requests from the
   backend data source and MUST render request amounts using that backend-driven
   currency in every list, detail, dialog, and share-related view. In this
   polish pass, new requests MUST use a single backend-configured default
-  currency rather than user-selected or UI-inferred currency.
+  currency rather than user-selected or UI-inferred currency. For the current
+  demo environment, that default currency is USD unless backend configuration
+  changes it; multi-currency selection, exchange rates, and conversion logic
+  are out of scope.
 - **FR-013**: The incoming, outgoing, and new request screens MUST remove
   non-essential explanatory banners and technical implementation copy that does
   not help the user complete the flow.
@@ -241,6 +291,14 @@ flows continue to pass browser and unit coverage.
   existing Radix-backed shadcn/ui components or direct Radix primitives rather
   than introducing duplicate custom primitive components for dialogs, buttons,
   form controls, or similar building blocks.
+- **FR-013d**: Critical request-flow interactions MUST meet an explicit
+  accessibility baseline: form fields require programmatically associated
+  labels, validation errors must be exposed with accessible semantics, dialogs
+  must manage focus correctly, and interactive controls must remain usable via
+  keyboard only.
+- **FR-013e**: Visible loading, success, and inline error states for create,
+  pay, decline, cancel, and copy-link actions MUST be understandable to both
+  sighted users and assistive-technology users.
 - **FR-014**: Protected request routes and dashboards MUST use centralized auth
   guarding before page-specific logic executes.
 - **FR-015**: The request-flow codebase MUST separate raw request persistence
@@ -250,7 +308,8 @@ flows continue to pass browser and unit coverage.
   rules for `Pending`, `Paid`, `Declined`, `Cancelled`, and `Expired` requests.
 - **FR-017**: Any monetary value in the feature MUST be represented and
   asserted as integer cents, with display formatting applied only at the
-  presentation boundary.
+  presentation boundary. This requirement is intentionally elevated in the
+  `Money Handling` section above because it is a core fintech correctness rule.
 - **FR-018**: Critical flows in this enhancement MUST work on both mobile and
   desktop layouts, including dashboards, create request, confirmation dialogs,
   and post-create dialog behavior.
@@ -258,6 +317,18 @@ flows continue to pass browser and unit coverage.
   take-home as long as the centralized guard behavior remains clear.
 - **FR-020**: Requirements for this enhancement MUST stay aligned to the P2P
   payment request assignment and MUST not introduce unrelated product scope.
+- **FR-020a**: This take-home polish pass MUST prevent accidental duplicate
+  client-side submissions for in-flight request actions, but comprehensive
+  fintech controls such as server-side rate limiting, fraud detection, abuse
+  monitoring, transaction velocity checks, and full audit workflows are
+  acknowledged as necessary production concerns and are explicitly out of scope
+  for this assignment.
+- **FR-020b**: This feature's `Pay` action is a payment-fulfillment simulation
+  for the assignment, not a real settlement system. Production-grade
+  transactional guarantees such as row-level locking, atomic compare-and-set
+  updates, idempotency enforcement, double-spend protection, and ledger-backed
+  reconciliation are acknowledged as required before any real-money launch, but
+  are outside the scope of this take-home implementation.
 
 ### Key Entities *(include if feature involves data)*
 
@@ -267,6 +338,9 @@ flows continue to pass browser and unit coverage.
 - **RequestSharePresentation**: Represents the backend-driven share link and
   currency-aware summary information surfaced on outgoing cards and in the
   post-create dialog.
+- **MonetaryRequestConstraint**: Represents the backend-driven currency and the
+  exact request amount boundary enforced for new requests, including integer-
+  cents storage and the `50,000.00` major-unit cap for this assignment.
 - **PaymentConfirmationState**: Represents the recipient confirmation step
   between choosing `Pay` and starting simulated payment processing.
 - **RequestFlowAccessBoundary**: Represents the separation between raw request
@@ -297,6 +371,21 @@ flows continue to pass browser and unit coverage.
 - **SC-007**: The request-flow refactor preserves lifecycle correctness while
   making data access, use-case orchestration, and auth guarding easier to trace
   in code review.
+- **SC-008**: Reviewers can verify from the spec and the product behavior that
+  `50,000.00` is the allowed maximum request amount, values above it are
+  rejected, and internal money handling remains cents-based.
+- **SC-009**: Reviewers can verify from the spec and the UI that the current
+  demo flow is backend-driven single-currency behavior, with USD as the default
+  environment currency unless configured otherwise.
+- **SC-010**: Reviewers can complete the critical create, copy-link, dialog,
+  and pay-confirm flows using keyboard navigation and can observe accessible
+  validation or action feedback.
+- **SC-011**: The spec clearly distinguishes between in-scope duplicate-submit
+  prevention and out-of-scope production controls such as rate limiting, fraud
+  detection, and abuse monitoring.
+- **SC-012**: The spec clearly distinguishes between the in-scope simulated
+  payment UX and the out-of-scope production requirements for atomic payment
+  state transitions and double-payment protection.
 
 ## Assumptions
 
@@ -306,8 +395,21 @@ flows continue to pass browser and unit coverage.
   user experience is append-only and responsive.
 - The backend will supply a currency code or equivalent currency identifier for
   every request shown in the UI, and no currency conversion feature is in
-  scope. New requests use a single backend-configured default currency.
-- The maximum amount rule of 50,000 refers to major currency units displayed to
-  the user, while internal storage remains integer cents.
+  scope. New requests use a single backend-configured default currency, which
+  is USD in the current demo configuration unless backend configuration
+  changes it.
+- The maximum amount rule refers to `50,000.00` major currency units displayed
+  to the user, which maps to `5,000,000` integer cents in storage.
 - Mock email authentication remains acceptable for the assignment, but auth
   enforcement should move into centralized middleware for protected routes.
+- Preventing duplicate in-flight actions is part of the feature, but broader
+  rate limiting, abuse prevention, fraud controls, and compliance workflows are
+  intentionally outside the scope of this take-home implementation.
+- The payment experience in this assignment simulates fulfillment and status
+  changes for demo purposes; production-grade transactional guarantees,
+  idempotency, and settlement safety are acknowledged requirements for a real
+  fintech launch but are not fully implemented in this take-home scope.
+- The accessibility target for this polish pass is a solid baseline for the
+  critical flows rather than a full formal certification effort, but keyboard
+  access, focus management, semantic feedback, and mobile usability are
+  mandatory.

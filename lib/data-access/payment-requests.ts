@@ -5,9 +5,10 @@ import type {
   User,
 } from "@/drizzle/schema";
 
-import { eq } from "drizzle-orm";
+import { and, desc, eq, ilike, lt, or } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
-import { paymentRequests } from "@/drizzle/schema";
+import { paymentRequests, users } from "@/drizzle/schema";
 import { db } from "@/lib/db";
 import {
   decodeDashboardCursor,
@@ -44,154 +45,130 @@ interface IncomingRequestScope {
 
 type CreatePaymentRequestRecordInput = Omit<NewPaymentRequest, "id">;
 
-function compareRequestsByRecency(
-  left: Pick<PaymentRequestRecord, "createdAt" | "id">,
-  right: Pick<PaymentRequestRecord, "createdAt" | "id">,
-) {
-  const createdAtDifference =
-    right.createdAt.getTime() - left.createdAt.getTime();
+const senderUsers = alias(users, "payment_request_sender");
+const recipientMatchedUsers = alias(users, "payment_request_recipient_match");
 
-  if (createdAtDifference !== 0) {
-    return createdAtDifference;
-  }
-
-  return right.id.localeCompare(left.id);
+function mapPaymentRequestRecord(row: {
+  paymentRequest: PaymentRequest;
+  recipientMatchedUser: User | null;
+  sender: User;
+}): PaymentRequestRecord {
+  return {
+    ...row.paymentRequest,
+    recipientMatchedUser: row.recipientMatchedUser,
+    sender: row.sender,
+  };
 }
 
-function matchesCursor(
-  request: Pick<PaymentRequestRecord, "createdAt" | "id">,
-  cursor?: string,
-) {
+function buildCursorWhereClause(cursor?: string) {
   if (!cursor) {
-    return true;
+    return undefined;
   }
 
   const decodedCursor = decodeDashboardCursor(cursor);
 
   if (!decodedCursor) {
-    return true;
+    return undefined;
   }
 
-  const cursorTime = new Date(decodedCursor.createdAt).getTime();
-  const requestTime = request.createdAt.getTime();
+  const cursorCreatedAt = new Date(decodedCursor.createdAt);
 
-  if (requestTime < cursorTime) {
-    return true;
-  }
-
-  if (requestTime > cursorTime) {
-    return false;
-  }
-
-  return request.id.localeCompare(decodedCursor.id) < 0;
+  return or(
+    lt(paymentRequests.createdAt, cursorCreatedAt),
+    and(
+      eq(paymentRequests.createdAt, cursorCreatedAt),
+      lt(paymentRequests.id, decodedCursor.id),
+    ),
+  );
 }
 
-function matchesOutgoingSearch(
-  request: PaymentRequestRecord,
-  search?: string,
-) {
+function buildOutgoingSearchWhereClause(search?: string) {
   if (!search) {
-    return true;
+    return undefined;
   }
 
-  return [
-    request.id,
-    request.note ?? "",
-    request.recipientContactValue,
-  ].some((value) => value.toLowerCase().includes(search));
+  const pattern = `%${search}%`;
+
+  return or(
+    ilike(paymentRequests.id, pattern),
+    ilike(paymentRequests.note, pattern),
+    ilike(paymentRequests.recipientContactValue, pattern),
+  );
 }
 
-function matchesIncomingSearch(
-  request: PaymentRequestRecord,
-  search?: string,
-) {
+function buildIncomingSearchWhereClause(search?: string) {
   if (!search) {
-    return true;
+    return undefined;
   }
 
-  return [
-    request.id,
-    request.note ?? "",
-    request.sender.email,
-  ].some((value) => value.toLowerCase().includes(search));
+  const pattern = `%${search}%`;
+
+  return or(
+    ilike(paymentRequests.id, pattern),
+    ilike(paymentRequests.note, pattern),
+    ilike(senderUsers.email, pattern),
+  );
 }
 
-function matchesIncomingScope(
-  request: PaymentRequestRecord,
-  user: IncomingRequestScope,
-) {
-  if (request.recipientMatchedUserId === user.id) {
-    return true;
-  }
-
-  if (
-    request.recipientContactType === "email" &&
-    request.recipientContactValue === normalizeEmail(user.email)
-  ) {
-    return true;
-  }
+function buildIncomingScopeWhereClause(user: IncomingRequestScope) {
+  const scopeClauses = [
+    eq(paymentRequests.recipientMatchedUserId, user.id),
+    and(
+      eq(paymentRequests.recipientContactType, "email"),
+      eq(paymentRequests.recipientContactValue, normalizeEmail(user.email)),
+    ),
+  ];
 
   const normalizedPhone = user.phone ? normalizePhone(user.phone) : null;
 
-  return (
-    request.recipientContactType === "phone" &&
-    Boolean(normalizedPhone) &&
-    request.recipientContactValue === normalizedPhone
-  );
-}
+  if (normalizedPhone) {
+    scopeClauses.push(
+      and(
+        eq(paymentRequests.recipientContactType, "phone"),
+        eq(paymentRequests.recipientContactValue, normalizedPhone),
+      ),
+    );
+  }
 
-function paginateRequestRecords<TRecord extends PaymentRequestRecord>(
-  requests: TRecord[],
-  query: PaginatedRequestQuery,
-): RequestPageResult<TRecord> {
-  const normalizedQuery = normalizeDashboardQueryState(query);
-  const pageSize = resolveDashboardPageSize(normalizedQuery.limit);
-  const pageItems = requests
-    .filter((request) => matchesCursor(request, normalizedQuery.cursor))
-    .slice(0, pageSize + 1);
-  const items = pageItems.slice(0, pageSize);
-
-  return {
-    hasMore: pageItems.length > pageSize,
-    items,
-    nextCursor:
-      pageItems.length > pageSize ? getNextDashboardCursor(items) : null,
-  };
-}
-
-async function listScopedPaymentRequests(
-  predicate: (request: PaymentRequestRecord) => boolean,
-) {
-  const requests = await listPaymentRequestRecords();
-
-  return requests.filter(predicate).sort(compareRequestsByRecency);
-}
-
-export async function listPaymentRequestRecords() {
-  return db.query.paymentRequests.findMany({
-    orderBy: (table, { desc }) => [desc(table.createdAt), desc(table.id)],
-    with: {
-      recipientMatchedUser: true,
-      sender: true,
-    },
-  });
+  return or(...scopeClauses);
 }
 
 export async function listOutgoingPaymentRequests(userId: string) {
-  return listScopedPaymentRequests((request) => request.senderUserId === userId);
+  const rows = await db
+    .select({
+      paymentRequest: paymentRequests,
+      recipientMatchedUser: recipientMatchedUsers,
+      sender: senderUsers,
+    })
+    .from(paymentRequests)
+    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
+    .leftJoin(
+      recipientMatchedUsers,
+      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
+    )
+    .where(eq(paymentRequests.senderUserId, userId))
+    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id));
+
+  return rows.map(mapPaymentRequestRecord);
 }
 
 export async function listIncomingPaymentRequests(user: IncomingRequestScope) {
-  return listScopedPaymentRequests((request) =>
-    matchesIncomingScope(request, user),
-  );
-}
+  const rows = await db
+    .select({
+      paymentRequest: paymentRequests,
+      recipientMatchedUser: recipientMatchedUsers,
+      sender: senderUsers,
+    })
+    .from(paymentRequests)
+    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
+    .leftJoin(
+      recipientMatchedUsers,
+      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
+    )
+    .where(buildIncomingScopeWhereClause(user))
+    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id));
 
-export async function listPaginatedPaymentRequests(
-  query: PaginatedRequestQuery,
-): Promise<RequestPageResult<PaymentRequestRecord>> {
-  const requests = await listScopedPaymentRequests(() => true);
-  return paginateRequestRecords(requests, query);
+  return rows.map(mapPaymentRequestRecord);
 }
 
 export async function findMatchedRecipientUser(
@@ -246,15 +223,39 @@ export async function listOutgoingPaymentRequestsPage(
   query: PaginatedRequestQuery = {},
 ) {
   const normalizedQuery = normalizeDashboardQueryState(query);
-  const search = normalizedQuery.q?.toLowerCase();
-  const requests = await listScopedPaymentRequests(
-    (request) =>
-      request.senderUserId === userId &&
-      (!normalizedQuery.status || request.status === normalizedQuery.status) &&
-      matchesOutgoingSearch(request, search),
-  );
+  const pageSize = resolveDashboardPageSize(normalizedQuery.limit);
+  const rows = await db
+    .select({
+      paymentRequest: paymentRequests,
+      recipientMatchedUser: recipientMatchedUsers,
+      sender: senderUsers,
+    })
+    .from(paymentRequests)
+    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
+    .leftJoin(
+      recipientMatchedUsers,
+      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
+    )
+    .where(
+      and(
+        eq(paymentRequests.senderUserId, userId),
+        normalizedQuery.status
+          ? eq(paymentRequests.status, normalizedQuery.status)
+          : undefined,
+        buildOutgoingSearchWhereClause(normalizedQuery.q),
+        buildCursorWhereClause(normalizedQuery.cursor),
+      ),
+    )
+    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id))
+    .limit(pageSize + 1);
+  const records = rows.map(mapPaymentRequestRecord);
+  const items = records.slice(0, pageSize);
 
-  return paginateRequestRecords(requests, normalizedQuery);
+  return {
+    hasMore: records.length > pageSize,
+    items,
+    nextCursor: records.length > pageSize ? getNextDashboardCursor(items) : null,
+  };
 }
 
 export async function listIncomingPaymentRequestsPage(
@@ -262,15 +263,39 @@ export async function listIncomingPaymentRequestsPage(
   query: PaginatedRequestQuery = {},
 ) {
   const normalizedQuery = normalizeDashboardQueryState(query);
-  const search = normalizedQuery.q?.toLowerCase();
-  const requests = await listScopedPaymentRequests(
-    (request) =>
-      matchesIncomingScope(request, user) &&
-      (!normalizedQuery.status || request.status === normalizedQuery.status) &&
-      matchesIncomingSearch(request, search),
-  );
+  const pageSize = resolveDashboardPageSize(normalizedQuery.limit);
+  const rows = await db
+    .select({
+      paymentRequest: paymentRequests,
+      recipientMatchedUser: recipientMatchedUsers,
+      sender: senderUsers,
+    })
+    .from(paymentRequests)
+    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
+    .leftJoin(
+      recipientMatchedUsers,
+      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
+    )
+    .where(
+      and(
+        buildIncomingScopeWhereClause(user),
+        normalizedQuery.status
+          ? eq(paymentRequests.status, normalizedQuery.status)
+          : undefined,
+        buildIncomingSearchWhereClause(normalizedQuery.q),
+        buildCursorWhereClause(normalizedQuery.cursor),
+      ),
+    )
+    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id))
+    .limit(pageSize + 1);
+  const records = rows.map(mapPaymentRequestRecord);
+  const items = records.slice(0, pageSize);
 
-  return paginateRequestRecords(requests, normalizedQuery);
+  return {
+    hasMore: records.length > pageSize,
+    items,
+    nextCursor: records.length > pageSize ? getNextDashboardCursor(items) : null,
+  };
 }
 
 export async function createPaymentRequestRecord(
@@ -330,11 +355,18 @@ export async function mutatePaymentRequest(input: {
               paidAt: now,
             }
           : {};
+  const recipientMatchUpdate =
+    input.actorUserId &&
+    (input.status === "Declined" || input.status === "Paid")
+      ? {
+          recipientMatchedUserId: input.actorUserId,
+        }
+      : {};
 
   return updatePaymentRequestRecord(input.requestId, {
     ...statusSpecificValues,
     lastStatusChangedAt: now,
-    recipientMatchedUserId: input.actorUserId,
+    ...recipientMatchUpdate,
     status: input.status,
     updatedAt: now,
   });

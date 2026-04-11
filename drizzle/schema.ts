@@ -30,8 +30,8 @@ export const users = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     email: text("email").notNull(),
     phone: text("phone"),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex("users_email_key").on(table.email),
