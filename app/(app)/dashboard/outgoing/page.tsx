@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
-import { getCreatedRequestForUser } from "@/lib/use-cases/requests/read-request";
+import { getCreatedRequestForUser } from "@/use-cases/read-request";
 import {
   getDashboardPageReadResult,
-} from "@/lib/use-cases/requests/read-dashboard";
+} from "@/use-cases/read-dashboard";
 
 export default async function OutgoingDashboardPage({
   searchParams,

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { RequestShareSummary } from "@/components/requests/request-share-summary";
 import { getCurrentUser, getRequestViewerRole } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
-import { getShareSummaryRequest } from "@/lib/use-cases/requests/read-request";
+import { getShareSummaryRequest } from "@/use-cases/read-request";
 
 export default async function ShareSummaryPage({
   params,

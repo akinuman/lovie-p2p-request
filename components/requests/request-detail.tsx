@@ -9,7 +9,7 @@ import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
-import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 
 interface RequestDetailProps {
   request: PaymentRequestRecord;

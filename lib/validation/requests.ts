@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { parseAmountToCents } from "@/lib/money/parse-amount";
-import { resolveDashboardPageSize } from "@/lib/use-cases/requests/dashboard-pagination";
+import { resolveDashboardPageSize } from "@/use-cases/dashboard-pagination";
 
 const REQUEST_STATUSES = [
   "Pending",

@@ -8,14 +8,14 @@ import { RequestActions } from "@/components/requests/request-actions";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
 import {
   createAsyncActionFeedbackState,
   createPendingAsyncActionFeedbackState,
   initialAsyncActionFeedbackState,
-} from "@/lib/use-cases/requests/async-action-feedback";
-import type { DashboardRequestCardPayload } from "@/lib/use-cases/requests/read-dashboard";
+} from "@/use-cases/async-action-feedback";
+import type { DashboardRequestCardPayload } from "@/use-cases/read-dashboard";
 
 interface RequestCardProps {
   currentPath?: string;

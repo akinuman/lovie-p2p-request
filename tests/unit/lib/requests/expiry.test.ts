@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const updatePaymentRequestRecord = vi.fn();
 
-vi.mock("@/lib/data-access/payment-requests", () => ({
+vi.mock("@/data-access/payment-requests", () => ({
   updatePaymentRequestRecord,
 }));
 
@@ -11,7 +11,7 @@ const {
   computeExpiresAt,
   shouldSyncExpiredRequest,
   syncExpiredRequest,
-} = await import("@/lib/use-cases/requests/request-expiry");
+} = await import("@/use-cases/request-expiry");
 
 describe("expiry helpers", () => {
   it("computes the expiry timestamp seven days from the source date", () => {

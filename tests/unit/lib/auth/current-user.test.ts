@@ -8,7 +8,7 @@ vi.mock("@/lib/auth/session", () => ({
   getSessionCookie: vi.fn(),
 }));
 
-vi.mock("@/lib/data-access/users", () => ({
+vi.mock("@/data-access/users", () => ({
   findUser: vi.fn(),
 }));
 

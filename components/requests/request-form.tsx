@@ -15,7 +15,7 @@ import {
   createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
-} from "@/lib/use-cases/requests/create-request-form-state";
+} from "@/use-cases/create-request-form-state";
 import { cn } from "@/lib/utils";
 
 function FieldError({ message }: { message?: string }) {

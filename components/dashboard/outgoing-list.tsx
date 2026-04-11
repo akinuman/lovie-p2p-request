@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import type { DashboardFilterInput } from "@/lib/validation/requests";
-import type { DashboardRequestPagePayload } from "@/lib/use-cases/requests/read-dashboard";
+import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

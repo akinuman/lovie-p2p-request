@@ -1,13 +1,13 @@
 import type { PaymentRequest } from "@/drizzle/schema";
-import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 
 import {
   findPaymentRequestById,
   updatePaymentRequestRecord,
-} from "@/lib/data-access/payment-requests";
-import { findUser } from "@/lib/data-access/users";
+} from "@/data-access/payment-requests";
+import { findUser } from "@/data-access/users";
 import { getRequestViewerRole } from "@/lib/auth/current-user";
-import { getRequestActionGuardMessage } from "@/lib/use-cases/requests/request-status";
+import { getRequestActionGuardMessage } from "@/use-cases/request-status";
 
 export interface RequestMutationInput {
   actorUserId: string;

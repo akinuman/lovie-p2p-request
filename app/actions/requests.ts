@@ -5,20 +5,20 @@ import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import {
+  isSelfRequestRecipient,
+  requestCreateSchema,
+} from "@/lib/validation/requests";
+import { createRequestMutation } from "@/use-cases/create-request";
+import {
   createCreateRequestActionState,
   createCreateRequestFormErrorState,
   type CreateRequestActionState,
   type RequestFormField,
-} from "@/lib/use-cases/requests/create-request-form-state";
-import { createRequestMutation } from "@/lib/use-cases/requests/create-request";
+} from "@/use-cases/create-request-form-state";
 import {
   getRequestRevalidationPaths,
-  runRequestMutationWithRedirect,
-} from "@/lib/use-cases/requests/mutate-request";
-import {
-  isSelfRequestRecipient,
-  requestCreateSchema,
-} from "@/lib/validation/requests";
+  runRequestMutation,
+} from "@/use-cases/mutate-request";
 
 function getStringValue(formData: FormData, key: RequestFormField) {
   const value = formData.get(key);
@@ -47,16 +47,19 @@ function buildRedirectUrl(
 
 function getRequestActionPayload(formData: FormData) {
   const requestId = getOptionalStringValue(formData, "requestId");
-  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/incoming";
 
   if (!requestId) {
     throw new Error("Request not found.");
   }
 
-  return {
-    requestId,
-    returnTo,
-  };
+  return { requestId };
+}
+
+function getRequestActionReturnTo(
+  formData: FormData,
+  fallbackPath: string,
+) {
+  return getOptionalStringValue(formData, "returnTo") ?? fallbackPath;
 }
 
 function isConfirmedRequestAction(formData: FormData) {
@@ -64,7 +67,10 @@ function isConfirmedRequestAction(formData: FormData) {
 }
 
 function revalidateRequestPaths(requestId: string) {
-  for (const path of [...getRequestRevalidationPaths(requestId), "/requests/new"]) {
+  for (const path of [
+    ...getRequestRevalidationPaths(requestId),
+    "/requests/new",
+  ]) {
     revalidatePath(path);
   }
 }
@@ -123,7 +129,6 @@ export async function createRequestAction(
     });
 
     requestId = request.id;
-
   } catch (error) {
     return createCreateRequestFormErrorState(
       values,
@@ -139,67 +144,114 @@ export async function createRequestAction(
 }
 
 export async function declineRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const { requestId, returnTo } = getRequestActionPayload(formData);
-  const result = await runRequestMutationWithRedirect({
-    actorUserId: currentUser.id,
-    requestId,
-    returnTo,
-    type: "decline",
-  });
+  const returnTo = getRequestActionReturnTo(formData, "/dashboard/incoming");
 
-  for (const path of result.revalidationPaths) {
-    revalidatePath(path);
-  }
+  try {
+    const currentUser = await requireCurrentUser();
+    const { requestId } = getRequestActionPayload(formData);
 
-  redirect(result.redirectPath);
-}
+    await runRequestMutation({
+      actorUserId: currentUser.id,
+      requestId,
+      type: "decline",
+    });
 
-export async function payRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const { requestId, returnTo } = getRequestActionPayload(formData);
+    for (const path of getRequestRevalidationPaths(requestId)) {
+      revalidatePath(path);
+    }
 
-  if (!isConfirmedRequestAction(formData)) {
     redirect(
       buildRedirectUrl(returnTo, {
-        requestError: "Confirm the payment before continuing.",
+        updated: requestId,
+        updatedStatus: "Declined",
+      }),
+    );
+  } catch (error) {
+    redirect(
+      buildRedirectUrl(returnTo, {
+        requestError:
+          error instanceof Error
+            ? error.message
+            : "We couldn’t decline that request.",
       }),
     );
   }
+}
 
-  const result = await runRequestMutationWithRedirect({
-    actorUserId: currentUser.id,
-    requestId,
-    returnTo,
-    type: "pay",
-  });
+export async function payRequestAction(formData: FormData) {
+  const returnTo = getRequestActionReturnTo(formData, "/dashboard/incoming");
 
-  for (const path of result.revalidationPaths) {
-    revalidatePath(path);
+  try {
+    const currentUser = await requireCurrentUser();
+    const { requestId } = getRequestActionPayload(formData);
+
+    if (!isConfirmedRequestAction(formData)) {
+      redirect(
+        buildRedirectUrl(returnTo, {
+          requestError: "Confirm the payment before continuing.",
+        }),
+      );
+    }
+
+    await runRequestMutation({
+      actorUserId: currentUser.id,
+      requestId,
+      type: "pay",
+    });
+
+    for (const path of getRequestRevalidationPaths(requestId)) {
+      revalidatePath(path);
+    }
+
+    redirect(
+      buildRedirectUrl(returnTo, {
+        updated: requestId,
+        updatedStatus: "Paid",
+      }),
+    );
+  } catch (error) {
+    redirect(
+      buildRedirectUrl(returnTo, {
+        requestError:
+          error instanceof Error
+            ? error.message
+            : "We couldn’t process that payment.",
+      }),
+    );
   }
-
-  redirect(result.redirectPath);
 }
 
 export async function cancelRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const requestId = getOptionalStringValue(formData, "requestId");
-  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/outgoing";
+  const returnTo = getRequestActionReturnTo(formData, "/dashboard/outgoing");
 
-  if (!requestId) {
-    throw new Error("Request not found.");
+  try {
+    const currentUser = await requireCurrentUser();
+    const { requestId } = getRequestActionPayload(formData);
+
+    await runRequestMutation({
+      actorUserId: currentUser.id,
+      requestId,
+      type: "cancel",
+    });
+
+    for (const path of getRequestRevalidationPaths(requestId)) {
+      revalidatePath(path);
+    }
+
+    redirect(
+      buildRedirectUrl(returnTo, {
+        updated: requestId,
+        updatedStatus: "Cancelled",
+      }),
+    );
+  } catch (error) {
+    redirect(
+      buildRedirectUrl(returnTo, {
+        requestError:
+          error instanceof Error
+            ? error.message
+            : "We couldn’t cancel that request.",
+      }),
+    );
   }
-
-  const result = await runRequestMutationWithRedirect({
-    actorUserId: currentUser.id,
-    requestId,
-    returnTo,
-    type: "cancel",
-  });
-
-  for (const path of result.revalidationPaths) {
-    revalidatePath(path);
-  }
-
-  redirect(result.redirectPath);
 }

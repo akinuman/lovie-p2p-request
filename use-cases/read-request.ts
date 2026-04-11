@@ -7,8 +7,8 @@ import {
 import {
   findPaymentRequestById,
   type PaymentRequestRecord,
-} from "@/lib/data-access/payment-requests";
-import { syncExpiredRequest } from "@/lib/use-cases/requests/request-expiry";
+} from "@/data-access/payment-requests";
+import { syncExpiredRequest } from "@/use-cases/request-expiry";
 
 type UserIdentity = Pick<User, "email" | "id" | "phone">;
 type RequestRouteSearchParams = Record<string, string | string[] | undefined>;

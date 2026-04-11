@@ -4,7 +4,7 @@ import {
   createAsyncActionFeedbackState,
   createPendingAsyncActionFeedbackState,
   initialAsyncActionFeedbackState,
-} from "@/lib/use-cases/requests/async-action-feedback";
+} from "@/use-cases/async-action-feedback";
 
 describe("async action feedback helpers", () => {
   it("exposes an idle default state", () => {

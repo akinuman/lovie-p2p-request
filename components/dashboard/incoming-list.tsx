@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
 import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
-import type { DashboardRequestPagePayload } from "@/lib/use-cases/requests/read-dashboard";
+import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 
 interface IncomingListProps {
   currentPath: string;

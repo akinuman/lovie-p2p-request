@@ -1,10 +1,10 @@
 import {
   createPaymentRequestRecord,
   findPaymentRequestById,
-} from "@/lib/data-access/payment-requests";
-import { findUserByRecipientContact } from "@/lib/data-access/users";
+} from "@/data-access/payment-requests";
+import { findUserByRecipientContact } from "@/data-access/users";
 import { DEFAULT_CURRENCY_CODE } from "@/lib/money/format-amount";
-import { computeExpiresAt } from "@/lib/use-cases/requests/request-expiry";
+import { computeExpiresAt } from "@/use-cases/request-expiry";
 
 export interface CreateRequestMutationInput {
   amountCents: number;

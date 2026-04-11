@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { getDashboardPagePayloadForUser } from "@/lib/use-cases/requests/read-dashboard";
+import { getDashboardPagePayloadForUser } from "@/use-cases/read-dashboard";
 
 export async function GET(request: Request) {
   const currentUser = await getCurrentUser();

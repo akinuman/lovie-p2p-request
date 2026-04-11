@@ -3,7 +3,7 @@ import type { RequestStatus } from "@/drizzle/schema";
 import {
   DEFAULT_DASHBOARD_PAGE_SIZE,
   resolveDashboardPageSize,
-} from "@/lib/use-cases/requests/dashboard-pagination";
+} from "@/use-cases/dashboard-pagination";
 import { dashboardFilterSchema } from "@/lib/validation/requests";
 
 export interface DashboardQueryState {

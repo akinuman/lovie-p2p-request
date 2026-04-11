@@ -1,5 +1,5 @@
 import { type PaymentRequest } from "@/drizzle/schema";
-import { updatePaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import { updatePaymentRequestRecord } from "@/data-access/payment-requests";
 
 export const REQUEST_EXPIRY_DAYS = 7;
 export const REQUEST_EXPIRY_MS = REQUEST_EXPIRY_DAYS * 24 * 60 * 60 * 1000;

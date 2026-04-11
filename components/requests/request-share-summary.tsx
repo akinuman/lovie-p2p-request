@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

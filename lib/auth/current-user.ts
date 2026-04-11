@@ -29,7 +29,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
     return null;
   }
 
-  const { findUser } = await import("@/lib/data-access/users");
+  const { findUser } = await import("@/data-access/users");
   const user = await findUser({
     id: session.userId,
   });
@@ -38,7 +38,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
 });
 
 export async function getUserById(userId: string) {
-  const { findUser } = await import("@/lib/data-access/users");
+  const { findUser } = await import("@/data-access/users");
 
   return findUser({
     id: userId,

@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 
 import type { DashboardFilterInput } from "@/lib/validation/requests";
-import { hasActiveDashboardQueryState } from "@/lib/use-cases/requests/dashboard-query";
+import { hasActiveDashboardQueryState } from "@/use-cases/dashboard-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

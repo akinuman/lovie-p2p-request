@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { getNextDashboardCursor } from "@/lib/use-cases/requests/dashboard-pagination";
+import { getNextDashboardCursor } from "@/use-cases/dashboard-pagination";
 
-vi.mock("@/lib/data-access/payment-requests", () => ({
+vi.mock("@/data-access/payment-requests", () => ({
   listIncomingPaymentRequestsPage: vi.fn(),
   listOutgoingPaymentRequestsPage: vi.fn(),
 }));
 
-vi.mock("@/lib/use-cases/requests/request-expiry", () => ({
+vi.mock("@/use-cases/request-expiry", () => ({
   syncExpiredRequest: vi.fn(async (request: unknown) => request),
 }));
 
@@ -15,8 +15,8 @@ const {
   getIncomingDashboardRequestPage,
   getOutgoingDashboardRequestPage,
   serializeDashboardRequestPage,
-} = await import("@/lib/use-cases/requests/read-dashboard");
-const dataAccess = await import("@/lib/data-access/payment-requests");
+} = await import("@/use-cases/read-dashboard");
+const dataAccess = await import("@/data-access/payment-requests");
 
 function makeRequest(overrides: Record<string, unknown> = {}) {
   return {

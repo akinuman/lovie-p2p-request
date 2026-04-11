@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   DashboardRequestPagePayload,
-} from "@/lib/use-cases/requests/read-dashboard";
+} from "@/use-cases/read-dashboard";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
 
 function buildDashboardApiUrl(

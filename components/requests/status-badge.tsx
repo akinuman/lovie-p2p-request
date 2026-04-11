@@ -1,7 +1,7 @@
 import type { RequestStatus } from "@/drizzle/schema";
 
 import { Badge } from "@/components/ui/badge";
-import { getStatusLabel } from "@/lib/use-cases/requests/request-status";
+import { getStatusLabel } from "@/use-cases/request-status";
 
 const STATUS_VARIANTS: Record<
   RequestStatus,

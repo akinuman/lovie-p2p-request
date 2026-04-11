@@ -3,23 +3,23 @@ import type {
   PaymentRequestPageQuery,
   PaymentRequestRecord,
   RequestPageResult,
-} from "@/lib/data-access/payment-requests";
+} from "@/data-access/payment-requests";
 
 import {
   listIncomingPaymentRequestsPage,
   listOutgoingPaymentRequestsPage,
-} from "@/lib/data-access/payment-requests";
+} from "@/data-access/payment-requests";
 import {
   decodeDashboardCursor,
   getNextDashboardCursor,
-} from "@/lib/use-cases/requests/dashboard-pagination";
+} from "@/use-cases/dashboard-pagination";
 import {
   buildDashboardCurrentPath,
   parseDashboardQueryState,
   type DashboardQueryState,
-} from "@/lib/use-cases/requests/dashboard-query";
-import { buildRequestPresentation } from "@/lib/use-cases/requests/present-request";
-import { syncExpiredRequest } from "@/lib/use-cases/requests/request-expiry";
+} from "@/use-cases/dashboard-query";
+import { buildRequestPresentation } from "@/use-cases/present-request";
+import { syncExpiredRequest } from "@/use-cases/request-expiry";
 
 export interface DashboardRequestCard {
   amountCents: number;
