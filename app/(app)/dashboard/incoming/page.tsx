@@ -1,5 +1,4 @@
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getDashboardPageReadResult } from "@/use-cases/read-dashboard";
 
@@ -17,25 +16,12 @@ export default async function IncomingDashboardPage({
   });
 
   return (
-    <div className="space-y-6">
-      <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
-        <CardHeader>
-          <p className="font-mono text-xs uppercase tracking-[0.24em] text-primary">
-            Incoming dashboard
-          </p>
-          <CardTitle className="text-3xl tracking-[-0.05em] sm:text-4xl">
-            Review and resolve every request sent your way.
-          </CardTitle>
-        </CardHeader>
-      </Card>
-
-      <DashboardShell
-        basePath="/dashboard/incoming"
-        filters={pageState.filters}
-        initialPage={pageState.initialPage}
-        queryLabel="Search incoming requests"
-        variant="incoming"
-      />
-    </div>
+    <DashboardShell
+      basePath="/dashboard/incoming"
+      filters={pageState.filters}
+      initialPage={pageState.initialPage}
+      queryLabel="Search incoming requests"
+      variant="incoming"
+    />
   );
 }
