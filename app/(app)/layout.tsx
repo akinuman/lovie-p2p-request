@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { logoutAction } from "@/app/actions/auth";
+import { logoutAction } from "@/use-cases/auth-actions";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
 import { Button } from "@/components/ui/button";
 import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";

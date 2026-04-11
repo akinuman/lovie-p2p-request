@@ -1,7 +1,29 @@
-import type { User } from "@/drizzle/schema";
+import { users, type User } from "@/drizzle/schema";
 
 import { db } from "@/lib/db";
 import { normalizeEmail, normalizePhone } from "@/lib/validation/requests";
+
+export async function upsertUserByEmail(email: string): Promise<User> {
+  const now = new Date();
+
+  const [user] = await db
+    .insert(users)
+    .values({
+      createdAt: now,
+      email,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      set: {
+        email,
+        updatedAt: now,
+      },
+      target: users.email,
+    })
+    .returning();
+
+  return user;
+}
 
 export interface UserLookupInput {
   email?: string;

@@ -1,33 +1,17 @@
 "use server";
 
-import { users } from "@/drizzle/schema";
 import { redirect } from "next/navigation";
 
+import { upsertUserByEmail } from "@/data-access/users";
 import { setSessionCookie, clearSessionCookie } from "@/lib/auth/session";
-import { db } from "@/lib/db";
 import { signInSchema } from "@/lib/validation/auth";
 
 export async function signInAction(formData: FormData) {
   const parsed = signInSchema.parse({
     email: formData.get("email"),
   });
-  const now = new Date();
 
-  const [user] = await db
-    .insert(users)
-    .values({
-      createdAt: now,
-      email: parsed.email,
-      updatedAt: now,
-    })
-    .onConflictDoUpdate({
-      set: {
-        email: parsed.email,
-        updatedAt: now,
-      },
-      target: users.email,
-    })
-    .returning();
+  const user = await upsertUserByEmail(parsed.email);
 
   await setSessionCookie({
     email: user.email,

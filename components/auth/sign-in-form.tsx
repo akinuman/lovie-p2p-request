@@ -1,4 +1,4 @@
-import { signInAction } from "@/app/actions/auth";
+import { signInAction } from "@/use-cases/auth-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

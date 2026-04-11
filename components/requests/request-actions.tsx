@@ -8,7 +8,7 @@ import {
   cancelRequestAction,
   declineRequestAction,
   payRequestAction,
-} from "@/app/actions/requests";
+} from "@/use-cases/request-actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
