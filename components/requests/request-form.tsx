@@ -1,10 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 
-import { createRequestAction } from "@/use-cases/request-actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,6 +20,7 @@ import {
   initialCreateRequestActionState,
   type CreateRequestActionState,
 } from "@/use-cases/create-request-form-state";
+import { createRequestAction } from "@/use-cases/request-actions";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) {
@@ -45,8 +45,15 @@ function SubmitButton() {
   );
 }
 
+const AMOUNT_PRESETS = [5, 10, 50] as const;
+
 function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   const { pending } = useFormStatus();
+  const [amount, setAmount] = useState(state.values.amount);
+
+  useEffect(() => {
+    setAmount(state.values.amount);
+  }, [state.values.amount]);
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", {
@@ -58,7 +65,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
 
   return (
     <fieldset className="space-y-8" disabled={pending}>
-      <div className="flex flex-col items-center justify-center space-y-1 pt-2 pb-4 text-center">
+      <div className="flex flex-col items-center justify-center space-y-3 pt-2 pb-4 text-center">
         <Label
           htmlFor="amount"
           className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70"
@@ -67,7 +74,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
         </Label>
         <div
           className={cn(
-            "relative flex w-full max-w-[90%] items-center justify-center font-light tracking-tighter transition-colors",
+            "flex w-fit max-w-full items-baseline justify-center gap-1 font-light tracking-tighter transition-colors",
             state.errors.amount ? "text-destructive" : "text-foreground",
           )}
         >
@@ -80,11 +87,26 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
             inputMode="decimal"
             placeholder="0.00"
             autoComplete="off"
-            defaultValue={state.values.amount}
+            value={amount}
+            onChange={(event) => setAmount(event.target.value)}
             autoFocus
-            className="w-full min-w-0 bg-transparent text-center text-5xl sm:text-6xl md:text-7xl outline-none placeholder:text-muted-foreground/20 border-none ring-0 p-0 px-2"
+            className="min-w-[3ch] w-64 bg-transparent text-5xl sm:text-6xl md:text-7xl outline-none placeholder:text-muted-foreground/20 border-none ring-0 p-0 [field-sizing:content]"
             required
           />
+        </div>
+        <div className="flex flex-wrap justify-center gap-2 pt-1">
+          {AMOUNT_PRESETS.map((preset) => (
+            <Button
+              key={preset}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => setAmount(preset.toString())}
+            >
+              ${preset}
+            </Button>
+          ))}
         </div>
         <p className="text-sm text-muted-foreground">
           Should be less than{" "}

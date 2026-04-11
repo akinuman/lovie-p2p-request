@@ -1,6 +1,10 @@
+import { Suspense } from "react";
+
+import { DashboardResults } from "@/components/dashboard/dashboard-results";
+import { DashboardResultsLoading } from "@/components/dashboard/dashboard-results-loading";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import { getDashboardPageReadResult } from "@/use-cases/read-dashboard";
+import { parseDashboardQueryState } from "@/use-cases/dashboard-query";
 
 export default async function IncomingDashboardPage({
   searchParams,
@@ -9,19 +13,21 @@ export default async function IncomingDashboardPage({
 }) {
   const currentUser = await requireCurrentUser();
   const resolvedSearchParams = await searchParams;
-  const pageState = await getDashboardPageReadResult({
-    searchParams: resolvedSearchParams,
-    user: currentUser,
-    variant: "incoming",
-  });
+  const filters = parseDashboardQueryState(resolvedSearchParams);
 
   return (
     <DashboardShell
       basePath="/dashboard/incoming"
-      filters={pageState.filters}
-      initialPage={pageState.initialPage}
+      filters={filters}
       queryLabel="Search incoming requests"
-      variant="incoming"
-    />
+    >
+      <Suspense fallback={<DashboardResultsLoading />}>
+        <DashboardResults
+          filters={filters}
+          user={currentUser}
+          variant="incoming"
+        />
+      </Suspense>
+    </DashboardShell>
   );
 }

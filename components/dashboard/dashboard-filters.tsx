@@ -74,7 +74,6 @@ export function DashboardFilters({
                 value={searchValue}
                 placeholder="Search by request id, contact, or note"
                 className="pl-9 rounded-2xl"
-                disabled={isPending}
                 onChange={(event) => onSearchChange(event.target.value)}
               />
             </div>

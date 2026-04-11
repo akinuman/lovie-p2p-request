@@ -1,23 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { DashboardFilters, type DashboardStatusValue } from "@/components/dashboard/dashboard-filters";
-import { IncomingList } from "@/components/dashboard/incoming-list";
-import { OutgoingList } from "@/components/dashboard/outgoing-list";
 import { DashboardResultsLoading } from "@/components/dashboard/dashboard-results-loading";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
-import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 import { buildDashboardFilterHref } from "@/use-cases/dashboard-query";
 
 interface DashboardShellProps {
   basePath: string;
+  children: ReactNode;
   filters: DashboardFilterInput;
-  initialPage: DashboardRequestPagePayload;
   queryLabel: string;
-  shareBaseUrl?: string;
-  variant: "incoming" | "outgoing";
 }
 
 function normalizeStatusValue(
@@ -38,11 +33,9 @@ function getFilterSubmissionKey(
 
 export function DashboardShell({
   basePath,
+  children,
   filters,
-  initialPage,
   queryLabel,
-  shareBaseUrl,
-  variant,
 }: DashboardShellProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -53,7 +46,6 @@ export function DashboardShell({
   const lastSubmittedFilterKeyRef = useRef(
     getFilterSubmissionKey(filters.q ?? "", normalizeStatusValue(filters.status)),
   );
-  const hasActiveFilters = Boolean(filters.q || filters.status);
   const appliedSearchValue = filters.q ?? "";
   const appliedStatusValue = normalizeStatusValue(filters.status);
   const appliedFilterKey = useMemo(
@@ -139,22 +131,7 @@ export function DashboardShell({
         statusValue={statusValue}
       />
 
-      {isPending ? (
-        <DashboardResultsLoading />
-      ) : variant === "incoming" ? (
-        <IncomingList
-          filters={filters}
-          hasActiveFilters={hasActiveFilters}
-          initialPage={initialPage}
-        />
-      ) : (
-        <OutgoingList
-          filters={filters}
-          hasActiveFilters={hasActiveFilters}
-          initialPage={initialPage}
-          shareBaseUrl={shareBaseUrl ?? ""}
-        />
-      )}
+      {isPending ? <DashboardResultsLoading /> : children}
     </div>
   );
 }
