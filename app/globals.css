@@ -48,3 +48,28 @@
     text-decoration: none;
   }
 }
+
+@layer components {
+  .ui-spinner {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 9999px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: request-flow-spin 0.8s linear infinite;
+  }
+
+  .request-flow-feedback {
+    @apply p-4 text-sm leading-6;
+  }
+
+  .request-flow-feedback-error {
+    @apply request-flow-feedback border border-destructive/30 bg-destructive/10 text-destructive;
+  }
+}
+
+@keyframes request-flow-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,5 +1,8 @@
 const TWO_DECIMAL_AMOUNT_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
 
+export const MAX_REQUEST_AMOUNT_CENTS = 5_000_000;
+export const MAX_REQUEST_AMOUNT_LABEL = "50,000";
+
 export function parseAmountToCents(rawAmount: string): number {
   const normalized = rawAmount.trim();
 
@@ -14,6 +17,10 @@ export function parseAmountToCents(rawAmount: string): number {
 
   if (!Number.isInteger(amountCents) || amountCents <= 0) {
     throw new Error("Amount must be greater than zero.");
+  }
+
+  if (amountCents > MAX_REQUEST_AMOUNT_CENTS) {
+    throw new Error(`Amount must be ${MAX_REQUEST_AMOUNT_LABEL} or less.`);
   }
 
   return amountCents;

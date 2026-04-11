@@ -1,14 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-const returning = vi.fn();
-const where = vi.fn(() => ({ returning }));
-const set = vi.fn(() => ({ where }));
-const update = vi.fn(() => ({ set }));
+const updatePaymentRequestRecord = vi.fn();
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    update,
-  },
+vi.mock("@/data-access/payment-requests", () => ({
+  updatePaymentRequestRecord,
 }));
 
 const {
@@ -16,7 +11,7 @@ const {
   computeExpiresAt,
   shouldSyncExpiredRequest,
   syncExpiredRequest,
-} = await import("@/lib/requests/expiry");
+} = await import("@/use-cases/request-expiry");
 
 describe("expiry helpers", () => {
   it("computes the expiry timestamp seven days from the source date", () => {
@@ -61,16 +56,16 @@ describe("expiry helpers", () => {
       updatedAt: new Date("2026-04-01T12:00:00.000Z"),
     };
 
-    returning.mockResolvedValueOnce([
+    updatePaymentRequestRecord.mockResolvedValueOnce(
       {
         ...expiredRequest,
         status: "Expired" as const,
       },
-    ]);
+    );
 
     const result = await syncExpiredRequest(expiredRequest);
 
-    expect(update).toHaveBeenCalled();
+    expect(updatePaymentRequestRecord).toHaveBeenCalled();
     expect(result.status).toBe("Expired");
   });
 });

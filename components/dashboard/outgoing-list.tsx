@@ -1,27 +1,35 @@
+"use client";
+
 import Link from "next/link";
 
-import type { PaymentRequestRecord } from "@/lib/requests/queries";
-import { RequestActions } from "@/components/requests/request-actions";
+import type { DashboardFilterInput } from "@/lib/validation/requests";
+import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
 
 interface OutgoingListProps {
-  createdRequestId?: string;
-  currentPath: string;
+  filters: DashboardFilterInput;
   hasActiveFilters?: boolean;
-  requests: PaymentRequestRecord[];
+  initialPage: DashboardRequestPagePayload;
   shareBaseUrl: string;
 }
 
 export function OutgoingList({
-  createdRequestId,
-  currentPath,
+  filters,
   hasActiveFilters = false,
-  requests,
+  initialPage,
   shareBaseUrl,
 }: OutgoingListProps) {
-  if (requests.length === 0) {
+  const { errorMessage, hasMore, isLoadingMore, items, loadMore, sentinelRef } =
+    useDashboardPagination({
+      apiPath: "/api/requests/outgoing",
+      filters,
+      initialPage,
+    });
+
+  if (items.length === 0) {
     return (
       <Card className="border-dashed border-border/80 bg-card/80">
         <CardHeader>
@@ -49,40 +57,42 @@ export function OutgoingList({
 
   return (
     <div className="space-y-4">
-      {requests.map((request) => (
-        <div
-          key={request.id}
-          data-testid="outgoing-request-card"
-          className={
-            request.id === createdRequestId
-              ? "rounded-[1.5rem] ring-2 ring-primary/30 ring-offset-4 ring-offset-background"
-              : undefined
-          }
-        >
-          <div className="space-y-3">
-            <RequestCard
-              request={request}
-              shareUrl={`${shareBaseUrl}/r/${request.id}`}
-            />
-            <div className="flex flex-col gap-3 rounded-[1.5rem] border border-border/70 bg-card/80 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild variant="outline" className="rounded-full">
-                  <Link href={`/requests/${request.id}`}>View details</Link>
-                </Button>
-                <Button asChild variant="outline" className="rounded-full">
-                  <Link href={`/r/${request.id}`}>Preview share page</Link>
-                </Button>
-              </div>
-              <RequestActions
-                requestId={request.id}
-                returnTo={currentPath}
-                status={request.status}
-                viewerRole="sender"
-              />
-            </div>
-          </div>
+      {items.map((request) => (
+        <div key={request.id} data-testid="outgoing-request-card">
+          <RequestCard
+            request={request}
+            shareUrl={`${shareBaseUrl}${request.shareUrl ?? `/r/${request.id}`}`}
+          />
         </div>
       ))}
+
+      {errorMessage ? (
+        <Card className="border-destructive/30 bg-destructive/10 shadow-none">
+          <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm leading-6 text-destructive">{errorMessage}</p>
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => void loadMore()}>
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
+
+      {isLoadingMore ? (
+        <Card className="border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.06)]">
+          <CardContent className="flex items-center justify-center gap-3 pt-6 text-sm text-muted-foreground">
+            <span className="ui-spinner" aria-hidden="true" />
+            Loading more requests...
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!hasMore && items.length > 0 ? (
+        <p className="text-center text-sm text-muted-foreground">
+          You&apos;ve reached the end of your outgoing requests.
+        </p>
+      ) : null}
     </div>
   );
 }

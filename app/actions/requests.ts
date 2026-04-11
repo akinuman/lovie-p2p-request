@@ -1,24 +1,30 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import {
-  type CreateRequestActionState,
-  type RequestFormField,
-} from "@/lib/requests/create-request-action-state";
-import {
-  cancelPaymentRequest,
-  createPaymentRequest,
-  declinePaymentRequest,
-  getRequestRevalidationPaths,
-  payPaymentRequest,
-} from "@/lib/requests/mutations";
 import {
   isSelfRequestRecipient,
   requestCreateSchema,
 } from "@/lib/validation/requests";
+import { createRequestMutation } from "@/use-cases/create-request";
+import {
+  createCreateRequestActionState,
+  createCreateRequestFormErrorState,
+  createCreateRequestSuccessState,
+  type CreateRequestActionState,
+  type RequestFormField,
+} from "@/use-cases/create-request-form-state";
+import {
+  createRequestMutationErrorState,
+  createRequestMutationSuccessState,
+  initialRequestMutationActionState,
+  type RequestMutationActionState,
+} from "@/use-cases/request-action-state";
+import {
+  getRequestRevalidationPaths,
+  runRequestMutation,
+} from "@/use-cases/mutate-request";
 
 function getStringValue(formData: FormData, key: RequestFormField) {
   const value = formData.get(key);
@@ -30,37 +36,25 @@ function getOptionalStringValue(formData: FormData, key: string) {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-function buildRedirectUrl(
-  pathname: string,
-  searchParams: Record<string, string | undefined>,
-) {
-  const url = new URL(pathname, "http://localhost");
-
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  return `${url.pathname}${url.search}`;
-}
-
 function getRequestActionPayload(formData: FormData) {
   const requestId = getOptionalStringValue(formData, "requestId");
-  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/incoming";
 
   if (!requestId) {
     throw new Error("Request not found.");
   }
 
-  return {
-    requestId,
-    returnTo,
-  };
+  return { requestId };
+}
+
+function isConfirmedRequestAction(formData: FormData) {
+  return getOptionalStringValue(formData, "confirmed") === "true";
 }
 
 function revalidateRequestPaths(requestId: string) {
-  for (const path of [...getRequestRevalidationPaths(requestId), "/requests/new"]) {
+  for (const path of [
+    ...getRequestRevalidationPaths(requestId),
+    "/requests/new",
+  ]) {
     revalidatePath(path);
   }
 }
@@ -81,14 +75,14 @@ export async function createRequestAction(
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors;
 
-    return {
+    return createCreateRequestActionState({
       errors: {
         amount: fieldErrors.amount?.[0],
         note: fieldErrors.note?.[0],
         recipientContact: fieldErrors.recipientContact?.[0],
       },
       values,
-    };
+    });
   }
 
   if (
@@ -99,117 +93,125 @@ export async function createRequestAction(
       recipientContactValue: parsed.data.recipientContactValue,
     })
   ) {
-    return {
+    return createCreateRequestActionState({
       errors: {
         recipientContact: "You can’t create a payment request for yourself.",
       },
       values,
-    };
+    });
   }
 
-  let requestId: string;
+  let request:
+    | Awaited<ReturnType<typeof createRequestMutation>>
+    | undefined;
 
   try {
-    const request = await createPaymentRequest({
+    request = await createRequestMutation({
       amountCents: parsed.data.amountCents,
       note: parsed.data.note,
       recipientContactType: parsed.data.recipientContactType,
       recipientContactValue: parsed.data.recipientContactValue,
       senderUserId: currentUser.id,
     });
-
-    requestId = request.id;
-
   } catch (error) {
-    return {
-      errors: {
-        form:
-          error instanceof Error
-            ? error.message
-            : "We couldn’t create that request. Please try again.",
-      },
+    return createCreateRequestFormErrorState(
       values,
-    };
+      error instanceof Error
+        ? error.message
+        : "We couldn’t create that request. Please try again.",
+    );
   }
 
-  revalidateRequestPaths(requestId);
+  if (!request) {
+    return createCreateRequestFormErrorState(
+      values,
+      "We couldn’t create that request. Please try again.",
+    );
+  }
 
-  redirect(`/dashboard/outgoing?created=${requestId}`);
+  revalidateRequestPaths(request.id);
+
+  return createCreateRequestSuccessState({
+    amountCents: request.amountCents,
+    currencyCode: request.currencyCode,
+    note: request.note,
+    recipientLabel: request.recipientContactValue,
+    requestId: request.id,
+  });
 }
 
-export async function declineRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const { requestId, returnTo } = getRequestActionPayload(formData);
-  let redirectPath: string;
-
+async function mutateRequestAction(
+  formData: FormData,
+  type: "cancel" | "decline" | "pay",
+  successMessage: string,
+  fallbackMessage: string,
+): Promise<RequestMutationActionState> {
   try {
-    const request = await declinePaymentRequest(requestId, currentUser.id);
-    revalidateRequestPaths(request.id);
-    redirectPath = buildRedirectUrl(returnTo, {
-      updatedStatus: request.status,
-      updated: request.id,
-    });
-  } catch (error) {
-    redirectPath = buildRedirectUrl(returnTo, {
-      requestError:
-        error instanceof Error
-          ? error.message
-          : "We couldn’t decline that request. Please try again.",
-    });
-  }
+    const currentUser = await requireCurrentUser();
+    const { requestId } = getRequestActionPayload(formData);
 
-  redirect(redirectPath);
+    if (type === "pay" && !isConfirmedRequestAction(formData)) {
+      return createRequestMutationErrorState(
+        "Confirm the payment before continuing.",
+      );
+    }
+
+    const request = await runRequestMutation({
+      actorUserId: currentUser.id,
+      requestId,
+      type,
+    });
+
+    for (const path of getRequestRevalidationPaths(request.id)) {
+      revalidatePath(path);
+    }
+
+    return createRequestMutationSuccessState(successMessage);
+  } catch (error) {
+    return createRequestMutationErrorState(
+      error instanceof Error ? error.message : fallbackMessage,
+    );
+  }
 }
 
-export async function payRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const { requestId, returnTo } = getRequestActionPayload(formData);
-  let redirectPath: string;
+export async function declineRequestAction(
+  previousState: RequestMutationActionState = initialRequestMutationActionState,
+  formData: FormData,
+) {
+  void previousState;
 
-  try {
-    const request = await payPaymentRequest(requestId, currentUser.id);
-    revalidateRequestPaths(request.id);
-    redirectPath = buildRedirectUrl(returnTo, {
-      updatedStatus: request.status,
-      updated: request.id,
-    });
-  } catch (error) {
-    redirectPath = buildRedirectUrl(returnTo, {
-      requestError:
-        error instanceof Error
-          ? error.message
-          : "We couldn’t process that payment. Please try again.",
-    });
-  }
-
-  redirect(redirectPath);
+  return mutateRequestAction(
+    formData,
+    "decline",
+    "Request declined.",
+    "We couldn’t decline that request.",
+  );
 }
 
-export async function cancelRequestAction(formData: FormData) {
-  const currentUser = await requireCurrentUser();
-  const requestId = getOptionalStringValue(formData, "requestId");
-  const returnTo = getOptionalStringValue(formData, "returnTo") ?? "/dashboard/outgoing";
-  let redirectPath: string;
+export async function payRequestAction(
+  previousState: RequestMutationActionState = initialRequestMutationActionState,
+  formData: FormData,
+) {
+  void previousState;
 
-  if (!requestId) {
-    throw new Error("Request not found.");
-  }
+  return mutateRequestAction(
+    formData,
+    "pay",
+    "Request marked as paid.",
+    "We couldn’t process that payment.",
+  );
+}
 
-  try {
-    const request = await cancelPaymentRequest(requestId, currentUser.id);
-    revalidateRequestPaths(request.id);
-    redirectPath = buildRedirectUrl(returnTo, {
-      updatedStatus: request.status,
-      updated: request.id,
-    });
-  } catch (error) {
-    redirectPath = buildRedirectUrl(returnTo, {
-      requestError:
-        error instanceof Error
-          ? error.message
-          : "We couldn’t cancel that request. Please try again.",
-    });
-  }
+export async function cancelRequestAction(
+  previousState: RequestMutationActionState = initialRequestMutationActionState,
+  formData: FormData,
+) {
+  void previousState;
 
-  redirect(redirectPath);
+  return mutateRequestAction(
+    formData,
+    "cancel",
+    "Request cancelled.",
+    "We couldn’t cancel that request.",
+  );
 }

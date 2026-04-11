@@ -8,19 +8,17 @@ vi.mock("@/lib/auth/session", () => ({
   getSessionCookie: vi.fn(),
 }));
 
-vi.mock("@/lib/db", () => ({
-  db: {
-    query: {
-      users: {
-        findFirst: vi.fn(),
-      },
-    },
-  },
+vi.mock("@/data-access/users", () => ({
+  findUser: vi.fn(),
 }));
 
 const {
   doesUserMatchRequestRecipient,
+  getOptimisticAuthRedirectPath,
   getRequestViewerRole,
+  hasOptimisticSessionCookie,
+  isProtectedRequestRoute,
+  isPublicAuthOnlyRoute,
 } = await import("@/lib/auth/current-user");
 
 describe("doesUserMatchRequestRecipient", () => {
@@ -114,5 +112,44 @@ describe("getRequestViewerRole", () => {
         },
       ),
     ).toBe("recipient");
+  });
+});
+
+describe("auth route helpers", () => {
+  it("detects protected request routes", () => {
+    expect(isProtectedRequestRoute("/dashboard/incoming")).toBe(true);
+    expect(isProtectedRequestRoute("/requests/request-123")).toBe(true);
+    expect(isProtectedRequestRoute("/r/request-123")).toBe(false);
+  });
+
+  it("detects public auth-only routes", () => {
+    expect(isPublicAuthOnlyRoute("/")).toBe(true);
+    expect(isPublicAuthOnlyRoute("/sign-in")).toBe(true);
+    expect(isPublicAuthOnlyRoute("/dashboard/outgoing")).toBe(false);
+  });
+
+  it("treats the presence of the signed cookie as an optimistic session", () => {
+    expect(hasOptimisticSessionCookie("signed-value")).toBe(true);
+    expect(hasOptimisticSessionCookie("")).toBe(false);
+    expect(hasOptimisticSessionCookie(null)).toBe(false);
+  });
+
+  it("redirects unauthenticated access to protected routes through sign-in", () => {
+    expect(
+      getOptimisticAuthRedirectPath({
+        hasSession: false,
+        pathname: "/dashboard/outgoing",
+        search: "?status=Pending",
+      }),
+    ).toBe("/sign-in?from=%2Fdashboard%2Foutgoing%3Fstatus%3DPending");
+  });
+
+  it("redirects signed-in users away from auth-only routes", () => {
+    expect(
+      getOptimisticAuthRedirectPath({
+        hasSession: true,
+        pathname: "/sign-in",
+      }),
+    ).toBe("/dashboard/outgoing");
   });
 });

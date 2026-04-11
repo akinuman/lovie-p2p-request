@@ -2,8 +2,9 @@ import Link from "next/link";
 
 import { logoutAction } from "@/app/actions/auth";
 import { DashboardNav } from "@/components/dashboard/dashboard-nav";
-import { requireCurrentUser } from "@/lib/auth/current-user";
 import { Button } from "@/components/ui/button";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AppLayout({
   children,
@@ -14,11 +15,11 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen bg-muted/40">
-      <header className="border-b bg-background/95 backdrop-blur">
+      <header className="sticky top-0 border-b bg-background/95 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div className="space-y-1">
             <Link
-              href="/dashboard/outgoing"
+              href={AUTHENTICATED_HOME_PATH}
               className="font-mono text-xs uppercase tracking-[0.2em] text-primary"
             >
               Lovie P2P
@@ -29,7 +30,12 @@ export default async function AppLayout({
           <div className="flex flex-wrap items-center justify-end gap-2">
             <DashboardNav />
             <form action={logoutAction}>
-              <Button type="submit" variant="outline" size="sm" className="rounded-full">
+              <Button
+                type="submit"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+              >
                 Log out
               </Button>
             </form>

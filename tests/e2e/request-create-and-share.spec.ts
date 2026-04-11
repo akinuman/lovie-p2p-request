@@ -14,9 +14,9 @@ test("sender can create a request and preview the share summary", async ({
   await page.getByLabel(/Note \(optional\)/).fill("Dinner split");
   await page.getByRole("button", { name: "Create request" }).click();
 
-  await expect(page).toHaveURL(/\/dashboard\/outgoing\?created=/);
+  await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
   await expect(page.getByText("NEXT_REDIRECT")).toHaveCount(0);
-  await expect(page.getByText("Request created and ready to share.")).toBeVisible();
+  await expect(page.getByText("Your request is ready to share.")).toBeVisible();
   await expect(page.getByText("Dinner split")).toBeVisible();
   await expect(page.getByText("Pending")).toBeVisible();
 
@@ -30,4 +30,8 @@ test("sender can create a request and preview the share summary", async ({
   await expect(
     page.getByText("Only the intended recipient can unlock full details"),
   ).toBeVisible();
+
+  await page.goBack();
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
 });

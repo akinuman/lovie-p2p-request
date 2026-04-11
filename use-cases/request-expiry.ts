@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
-
-import { paymentRequests, type PaymentRequest } from "@/drizzle/schema";
-import { db } from "@/lib/db";
+import { type PaymentRequest } from "@/drizzle/schema";
+import { updatePaymentRequestRecord } from "@/data-access/payment-requests";
 
 export const REQUEST_EXPIRY_DAYS = 7;
 export const REQUEST_EXPIRY_MS = REQUEST_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
@@ -27,18 +25,18 @@ export async function syncExpiredRequest(request: PaymentRequest) {
   }
 
   const now = new Date();
-  const [updatedRequest] = await db
-    .update(paymentRequests)
-    .set({
+  const updatedRequest = await updatePaymentRequestRecord(request.id, {
       cancelledAt: request.cancelledAt,
       declinedAt: request.declinedAt,
       paidAt: request.paidAt,
       status: "Expired",
       lastStatusChangedAt: now,
       updatedAt: now,
-    })
-    .where(eq(paymentRequests.id, request.id))
-    .returning();
+  });
+
+  if (!updatedRequest) {
+    throw new Error("Request not found.");
+  }
 
   return updatedRequest;
 }

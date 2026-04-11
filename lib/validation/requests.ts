@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { parseAmountToCents } from "@/lib/money/parse-amount";
+import { resolveDashboardPageSize } from "@/use-cases/dashboard-pagination";
 
 const REQUEST_STATUSES = [
   "Pending",
@@ -20,6 +21,11 @@ export function normalizeEmail(value: string): string {
 }
 
 export function normalizePhone(value: string): string | null {
+  // This take-home uses pragmatic normalization for mock-auth demo data:
+  // US numbers may be entered as 10 digits or +1/E.164-style values, while
+  // other international numbers are accepted only when already provided in a
+  // plausible +<countrycode><number> form. Full libphonenumber-style parsing
+  // is intentionally out of scope for this assignment.
   const trimmed = value.trim();
   if (!trimmed) {
     return null;
@@ -142,6 +148,13 @@ export const requestCreateSchema = z
   });
 
 export const dashboardFilterSchema = z.object({
+  cursor: z.string().trim().optional().transform((value) => value || undefined),
+  limit: z
+    .coerce.number()
+    .int()
+    .positive()
+    .optional()
+    .transform((value) => (value ? resolveDashboardPageSize(value) : undefined)),
   q: z.string().trim().optional().transform((value) => value || undefined),
   status: z
     .enum(REQUEST_STATUSES)

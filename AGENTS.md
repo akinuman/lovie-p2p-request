@@ -1,10 +1,12 @@
 # lovie-p2p-request Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-09
+Auto-generated from all feature plans. Last updated: 2026-04-10
 
 ## Active Technologies
 - TypeScript 5.x on Node.js LTS + Next.js App Router, React, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright (001-p2p-payment-request-flow)
 - Neon PostgreSQL accessed through Drizzle ORM with postgres-js (001-p2p-payment-request-flow)
+- TypeScript 5.x on Node.js LTS + Next.js App Router, React 19, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Radix Dialog, Playwrigh (002-request-flow-polish)
+- TypeScript 5.x on Node.js LTS + Next.js App Router, React 19, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui with Radix-backed primitives, direct Radix primitives where needed, Playwrigh (002-request-flow-polish)
 
 ## Project Structure
 
@@ -41,9 +43,9 @@ currency parsing and formatting boundaries, and inline Tailwind composition
 with shared shadcn/ui primitives for UI consistency.
 
 ## Recent Changes
+- 002-request-flow-polish: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React 19, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui with Radix-backed primitives, direct Radix primitives where needed, Playwrigh
+- 002-request-flow-polish: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React 19, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Radix Dialog, Playwrigh
 - 001-p2p-payment-request-flow: Adopted Drizzle ORM with postgres-js across implementation, setup scripts, and planning artifacts
-- 001-p2p-payment-request-flow: Added TypeScript 5.x on Node.js LTS + Next.js App Router, React, Drizzle ORM, postgres-js, Neon PostgreSQL, Zod, Tailwind CSS, shadcn/ui, Playwright
-- 001-p2p-payment-request-flow: Added a monolithic Next.js App Router plan with Neon, Drizzle, mock auth, Playwright video coverage, and Vercel deployment
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

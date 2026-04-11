@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/requests/expiry", () => ({
+vi.mock("@/use-cases/request-expiry", () => ({
   isRequestExpired: (expiresAt: Date, now = new Date()) =>
     now.getTime() >= expiresAt.getTime(),
 }));
 
-const { getRequestActionGuardMessage } = await import("@/lib/requests/status");
+const {
+  getRequestActionGuardMessage,
+} = await import("@/use-cases/request-status");
 
 describe("getRequestActionGuardMessage", () => {
   it("allows the matched recipient to resolve a pending request", () => {

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { paymentRequests, users } from "@/drizzle/schema";
+import { DEFAULT_CURRENCY_CODE } from "@/lib/money/format-amount";
 import { normalizeEmail, normalizePhone } from "@/lib/validation/requests";
 
 const demoUsers = [
@@ -67,6 +68,7 @@ async function main() {
   await db.insert(paymentRequests).values({
     amountCents: 4200,
     createdAt,
+    currencyCode: DEFAULT_CURRENCY_CODE,
     expiresAt,
     lastStatusChangedAt: createdAt,
     note: seededExpiredRequestNote,

@@ -1,21 +1,27 @@
 "use client";
 
-import { useActionState } from "react";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 
-import {
-  createRequestAction,
-} from "@/app/actions/requests";
+import { createRequestAction } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  DEFAULT_CURRENCY_CODE,
+  formatAmountFromCents,
+} from "@/lib/money/format-amount";
+import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
+import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
+import { cn } from "@/lib/utils";
+import {
+  createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
-} from "@/lib/requests/create-request-action-state";
-import { cn } from "@/lib/utils";
+} from "@/use-cases/create-request-form-state";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) {
@@ -32,10 +38,126 @@ function SubmitButton() {
     <Button
       type="submit"
       className="w-full rounded-full sm:w-auto"
+      loading={pending}
       disabled={pending}
     >
       {pending ? "Creating request..." : "Create request"}
     </Button>
+  );
+}
+
+function RequestFormFields({ state }: { state: CreateRequestActionState }) {
+  const { pending } = useFormStatus();
+
+  const currencySymbol =
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: DEFAULT_CURRENCY_CODE,
+    })
+      .formatToParts(0)
+      .find((x) => x.type === "currency")?.value || "$";
+
+  return (
+    <fieldset className="space-y-8" disabled={pending}>
+      <div className="flex flex-col items-center justify-center space-y-1 pt-2 pb-4 text-center">
+        <Label
+          htmlFor="amount"
+          className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/70"
+        >
+          Amount
+        </Label>
+        <div
+          className={cn(
+            "relative flex w-full max-w-[90%] items-center justify-center font-light tracking-tighter transition-colors",
+            state.errors.amount ? "text-destructive" : "text-foreground",
+          )}
+        >
+          <span className="shrink-0 text-4xl md:text-5xl text-muted-foreground/60">
+            {currencySymbol}
+          </span>
+          <input
+            id="amount"
+            name="amount"
+            inputMode="decimal"
+            placeholder="0.00"
+            autoComplete="off"
+            defaultValue={state.values.amount}
+            autoFocus
+            className="w-full min-w-0 bg-transparent text-center text-5xl sm:text-6xl md:text-7xl outline-none placeholder:text-muted-foreground/20 border-none ring-0 p-0 px-2"
+            required
+          />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Should be less than{" "}
+          {formatAmountFromCents(
+            MAX_REQUEST_AMOUNT_CENTS,
+            DEFAULT_CURRENCY_CODE,
+          )}
+        </p>
+        <FieldError message={state.errors.amount} />
+      </div>
+
+      <div className="space-y-5 rounded-3xl border border-border/40 bg-muted/30 p-5 shadow-sm">
+        <div className="space-y-2">
+          <Label
+            htmlFor="recipientContact"
+            className="text-sm font-medium text-foreground"
+          >
+            To
+          </Label>
+          <Input
+            id="recipientContact"
+            name="recipientContact"
+            placeholder="recipient@example.com or +1 555 222 3000"
+            defaultValue={state.values.recipientContact}
+            aria-invalid={Boolean(state.errors.recipientContact)}
+            className={cn(
+              "rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm transition-colors focus-visible:bg-background h-12 text-base",
+              state.errors.recipientContact &&
+                "border-destructive focus-visible:ring-destructive",
+            )}
+            required
+          />
+          <FieldError message={state.errors.recipientContact} />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="note" className="text-sm font-medium text-foreground">
+            For
+          </Label>
+          <Textarea
+            id="note"
+            name="note"
+            placeholder="Split dinner from Friday night..."
+            defaultValue={state.values.note}
+            aria-invalid={Boolean(state.errors.note)}
+            className={cn(
+              "min-h-[80px] resize-none rounded-xl border-border/60 bg-background/50 backdrop-blur-sm shadow-sm transition-colors focus-visible:bg-background text-base",
+              state.errors.note &&
+                "border-destructive focus-visible:ring-destructive",
+            )}
+          />
+          <FieldError message={state.errors.note} />
+        </div>
+      </div>
+
+      {state.errors.form ? (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="request-flow-feedback-error rounded-2xl"
+        >
+          {state.errors.form}
+        </div>
+      ) : null}
+
+      <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-muted-foreground">
+          Requests stay pending for 7 days unless resolved.
+        </p>
+        <SubmitButton />
+      </div>
+    </fieldset>
   );
 }
 
@@ -50,113 +172,56 @@ function normalizeCreateRequestActionState(
   const values =
     candidate.values && typeof candidate.values === "object"
       ? candidate.values
-      : {};
+      : undefined;
   const errors =
     candidate.errors && typeof candidate.errors === "object"
       ? candidate.errors
-      : {};
+      : undefined;
+  const createdRequest =
+    "createdRequest" in candidate && candidate.createdRequest
+      ? candidate.createdRequest
+      : undefined;
 
-  return {
-    errors: {
-      ...initialCreateRequestActionState.errors,
-      ...errors,
-    },
-    values: {
-      ...initialCreateRequestActionState.values,
-      ...values,
-    },
-  };
+  return createCreateRequestActionState({
+    createdRequest,
+    errors,
+    values,
+  });
 }
 
 export function RequestForm() {
+  const router = useRouter();
   const [state, formAction] = useActionState(
     createRequestAction,
     initialCreateRequestActionState,
   );
   const safeState = normalizeCreateRequestActionState(state);
+  const handledRequestIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!safeState.createdRequest) {
+      return;
+    }
+
+    if (handledRequestIdRef.current === safeState.createdRequest.requestId) {
+      return;
+    }
+
+    handledRequestIdRef.current = safeState.createdRequest.requestId;
+    storeCreatedRequestDialogState(safeState.createdRequest);
+    router.push("/dashboard/outgoing");
+  }, [router, safeState.createdRequest]);
 
   return (
-    <Card className="border-white/70 bg-card/90 shadow-[0_24px_80px_rgba(83,59,30,0.12)]">
-      <CardHeader className="space-y-3">
-        <div className="inline-flex w-fit rounded-full bg-accent px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-accent-foreground">
-          Sender flow
-        </div>
-        <CardTitle className="text-3xl tracking-[-0.04em]">
-          Create a payment request
+    <Card className="mx-auto w-full max-w-lg overflow-hidden border-white/20 bg-card/60 backdrop-blur-xl shadow-2xl shadow-primary/5 sm:rounded-[2rem]">
+      <CardHeader className="space-y-1 pb-4 pt-8 text-center">
+        <CardTitle className="text-2xl font-semibold tracking-tight text-foreground">
+          Request Money
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 px-6 pb-8 sm:px-8">
         <form action={formAction} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="recipientContact">Recipient email or phone</Label>
-            <Input
-              id="recipientContact"
-              name="recipientContact"
-              placeholder="recipient@example.com or +1 555 222 3000"
-              defaultValue={safeState.values.recipientContact}
-              aria-invalid={Boolean(safeState.errors.recipientContact)}
-              className={cn(
-                "rounded-2xl",
-                safeState.errors.recipientContact && "border-destructive",
-              )}
-              required
-            />
-            <p className="text-sm leading-6 text-muted-foreground">
-              We normalize email to lowercase and phone numbers to E.164-style
-              `+1...` values for matching.
-            </p>
-            <FieldError message={safeState.errors.recipientContact} />
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-[0.7fr_1fr]">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount</Label>
-              <Input
-                id="amount"
-                name="amount"
-                inputMode="decimal"
-                placeholder="24.50"
-                defaultValue={safeState.values.amount}
-                aria-invalid={Boolean(safeState.errors.amount)}
-                className={cn(
-                  "rounded-2xl",
-                  safeState.errors.amount && "border-destructive",
-                )}
-                required
-              />
-              <FieldError message={safeState.errors.amount} />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="note">Note (optional)</Label>
-              <Textarea
-                id="note"
-                name="note"
-                placeholder="Split dinner from Friday night"
-                defaultValue={safeState.values.note}
-                aria-invalid={Boolean(safeState.errors.note)}
-                className={cn(
-                  "min-h-[96px] rounded-2xl",
-                  safeState.errors.note && "border-destructive",
-                )}
-              />
-              <FieldError message={safeState.errors.note} />
-            </div>
-          </div>
-
-          {safeState.errors.form ? (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm leading-6 text-destructive">
-              {safeState.errors.form}
-            </div>
-          ) : null}
-
-          <div className="flex flex-col gap-3 border-t border-border/70 pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm leading-6 text-muted-foreground">
-              Requests stay pending for seven days unless they are resolved or
-              cancelled sooner.
-            </p>
-            <SubmitButton />
-          </div>
+          <RequestFormFields state={safeState} />
         </form>
       </CardContent>
     </Card>

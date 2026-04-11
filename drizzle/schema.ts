@@ -30,8 +30,8 @@ export const users = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     email: text("email").notNull(),
     phone: text("phone"),
-    createdAt: timestamp("createdAt", { mode: "date" }).notNull().defaultNow(),
-    updatedAt: timestamp("updatedAt", { mode: "date" }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).notNull().defaultNow(),
   },
   (table) => [
     uniqueIndex("users_email_key").on(table.email),
@@ -59,6 +59,7 @@ export const paymentRequests = pgTable(
       },
     ),
     amountCents: integer("amount_cents").notNull(),
+    currencyCode: text("currency_code").notNull().default("USD"),
     note: text("note"),
     status: requestStatusEnum("status").notNull().default("Pending"),
     createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),

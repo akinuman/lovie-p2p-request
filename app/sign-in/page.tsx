@@ -10,8 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const user = await getCurrentUser();
+
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  
+  const from =
+    typeof resolvedSearchParams?.from === "string"
+      ? resolvedSearchParams.from
+      : null;
 
   if (user) {
     redirect("/dashboard/outgoing");
@@ -33,6 +44,11 @@ export default async function SignInPage() {
                 This take-home uses simple email-based mock auth. We create or
                 reuse a demo user and store a signed HTTP-only session cookie.
               </CardDescription>
+              {from ? (
+                <p className="request-flow-feedback rounded-2xl border border-border/70 bg-background/70">
+                  Sign in to continue to <span className="font-medium">{from}</span>.
+                </p>
+              ) : null}
             </div>
           </CardHeader>
           <CardContent>

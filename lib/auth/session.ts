@@ -2,9 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { cookies } from "next/headers";
 
+import { SESSION_COOKIE_NAME } from "@/lib/auth/constants";
 import { getEnv } from "@/lib/env";
-
-const SESSION_COOKIE_NAME = "lovie-session";
 
 export interface SessionPayload {
   email: string;
