@@ -1,6 +1,6 @@
 import { DashboardFilters } from "@/components/dashboard/dashboard-filters";
 import { IncomingList } from "@/components/dashboard/incoming-list";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getDashboardPageReadResult } from "@/use-cases/read-dashboard";
 
@@ -36,28 +36,10 @@ export default async function IncomingDashboardPage({
         queryLabel="Search incoming requests"
       />
 
-      {pageState.requestError ? (
-        <Card className="border-destructive/30 bg-destructive/10 shadow-none">
-          <CardContent className="pt-6 text-sm leading-6 text-destructive">
-            {pageState.requestError}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {pageState.statusMessage ? (
-        <Card className="border-primary/25 bg-primary/5 shadow-none">
-          <CardContent className="pt-6 text-sm leading-6 text-foreground">
-            {pageState.statusMessage}
-          </CardContent>
-        </Card>
-      ) : null}
-
       <IncomingList
-        currentPath={pageState.currentPath}
         filters={pageState.filters}
         hasActiveFilters={Boolean(pageState.filters.q || pageState.filters.status)}
         initialPage={pageState.initialPage}
-        updatedRequestId={pageState.updatedRequestId}
       />
     </div>
   );

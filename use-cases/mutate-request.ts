@@ -15,12 +15,6 @@ export interface RequestMutationInput {
   type: "cancel" | "decline" | "pay";
 }
 
-export interface RequestMutationRedirectResult {
-  redirectPath: string;
-  revalidationPaths: string[];
-}
-
-type RedirectSearchParams = Record<string, string | undefined>;
 export function getRequestRevalidationPaths(requestId: string) {
   return [
     "/dashboard/incoming",
@@ -28,21 +22,6 @@ export function getRequestRevalidationPaths(requestId: string) {
     `/requests/${requestId}`,
     `/r/${requestId}`,
   ];
-}
-
-function buildRedirectUrl(
-  pathname: string,
-  searchParams: RedirectSearchParams,
-) {
-  const url = new URL(pathname, "http://localhost");
-
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  return `${url.pathname}${url.search}`;
 }
 
 async function getFreshRequestOrThrow(requestId: string) {
@@ -196,42 +175,6 @@ export async function payRequestMutation(
   });
 
   return getFreshRequestOrThrow(requestId);
-}
-
-export async function runRequestMutationWithRedirect(input: {
-  actorUserId: string;
-  requestId: string;
-  returnTo: string;
-  type: RequestMutationInput["type"];
-}): Promise<RequestMutationRedirectResult> {
-  try {
-    const request =
-      input.type === "cancel"
-        ? await cancelRequestMutation(input.requestId, input.actorUserId)
-        : input.type === "decline"
-          ? await declineRequestMutation(input.requestId, input.actorUserId)
-          : await payRequestMutation(input.requestId, input.actorUserId);
-
-    return {
-      redirectPath: buildRedirectUrl(input.returnTo, {
-        updated: request.id,
-        updatedStatus: request.status,
-      }),
-      revalidationPaths: getRequestRevalidationPaths(request.id),
-    };
-  } catch (error) {
-    return {
-      redirectPath: buildRedirectUrl(input.returnTo, {
-        requestError:
-          error instanceof Error
-            ? error.message
-            : input.type === "pay"
-              ? "We couldn’t process that payment. Please try again."
-              : `We couldn’t ${input.type} that request. Please try again.`,
-      }),
-      revalidationPaths: [],
-    };
-  }
 }
 
 export async function runRequestMutation(

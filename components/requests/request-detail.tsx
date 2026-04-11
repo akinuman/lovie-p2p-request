@@ -143,7 +143,6 @@ export function RequestDetail({
             amountCents={request.amountCents}
             currencyCode={request.currencyCode}
             requestId={request.id}
-            returnTo={`/requests/${request.id}`}
             status={request.status}
             viewerRole={viewerRole}
           />

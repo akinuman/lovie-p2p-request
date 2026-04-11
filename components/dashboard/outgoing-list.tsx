@@ -10,8 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
 
 interface OutgoingListProps {
-  createdRequestId?: string;
-  currentPath: string;
   filters: DashboardFilterInput;
   hasActiveFilters?: boolean;
   initialPage: DashboardRequestPagePayload;
@@ -19,8 +17,6 @@ interface OutgoingListProps {
 }
 
 export function OutgoingList({
-  createdRequestId,
-  currentPath,
   filters,
   hasActiveFilters = false,
   initialPage,
@@ -62,17 +58,8 @@ export function OutgoingList({
   return (
     <div className="space-y-4">
       {items.map((request) => (
-        <div
-          key={request.id}
-          data-testid="outgoing-request-card"
-          className={
-            request.id === createdRequestId
-              ? "rounded-[1.5rem] ring-2 ring-primary/30 ring-offset-4 ring-offset-background"
-              : undefined
-          }
-        >
+        <div key={request.id} data-testid="outgoing-request-card">
           <RequestCard
-            currentPath={currentPath}
             request={request}
             shareUrl={`${shareBaseUrl}${request.shareUrl ?? `/r/${request.id}`}`}
           />

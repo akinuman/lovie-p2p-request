@@ -18,7 +18,6 @@ import {
 import type { DashboardRequestCardPayload } from "@/use-cases/read-dashboard";
 
 interface RequestCardProps {
-  currentPath?: string;
   request: DashboardRequestCardPayload | PaymentRequestRecord;
   shareUrl: string;
   variant?: "outgoing" | "share";
@@ -78,7 +77,6 @@ function getNoteText(
 }
 
 export function RequestCard({
-  currentPath,
   request,
   shareUrl,
   variant = "outgoing",
@@ -205,7 +203,7 @@ export function RequestCard({
           </div>
         )}
 
-        {!isShareVariant && currentPath ? (
+        {!isShareVariant ? (
           <div className="flex flex-col gap-3 border-t border-border/70 pt-5">
             <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -218,7 +216,6 @@ export function RequestCard({
               </div>
               <RequestActions
                 requestId={request.id}
-                returnTo={currentPath}
                 status={request.status}
                 viewerRole="sender"
               />

@@ -12,7 +12,10 @@ async function createRequest(
   await page.getByLabel("Amount").fill("12.40");
   await page.getByLabel(/Note \(optional\)/).fill(note);
   await page.getByRole("button", { name: "Create request" }).click();
-  await expect(page).toHaveURL(/\/dashboard\/outgoing\?created=/);
+  await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
+  await expect(page.getByText("Your request is ready to share.")).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
 }
 
 test("outgoing dashboard debounces search, resets stale pagination, and keeps actions in-card", async ({
@@ -59,7 +62,7 @@ test("outgoing dashboard debounces search, resets stale pagination, and keeps ac
     .getByRole("button", { name: "Cancel request" })
     .click();
 
-  await expect(page.getByText("Request updated to Cancelled.")).toBeVisible();
+  await expect(page.getByText("Request cancelled.")).toBeVisible();
   await page.getByLabel("Status").selectOption("Cancelled");
   await expect(page).toHaveURL(/status=Cancelled/);
   await expect(

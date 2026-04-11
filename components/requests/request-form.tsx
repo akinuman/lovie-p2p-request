@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 
 import { createRequestAction } from "@/app/actions/requests";
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
 import { DEFAULT_CURRENCY_CODE, formatAmountFromCents } from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
 import {
@@ -156,19 +158,40 @@ function normalizeCreateRequestActionState(
     candidate.errors && typeof candidate.errors === "object"
       ? candidate.errors
       : undefined;
+  const createdRequest =
+    "createdRequest" in candidate && candidate.createdRequest
+      ? candidate.createdRequest
+      : undefined;
 
   return createCreateRequestActionState({
+    createdRequest,
     errors,
     values,
   });
 }
 
 export function RequestForm() {
+  const router = useRouter();
   const [state, formAction] = useActionState(
     createRequestAction,
     initialCreateRequestActionState,
   );
   const safeState = normalizeCreateRequestActionState(state);
+  const handledRequestIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!safeState.createdRequest) {
+      return;
+    }
+
+    if (handledRequestIdRef.current === safeState.createdRequest.requestId) {
+      return;
+    }
+
+    handledRequestIdRef.current = safeState.createdRequest.requestId;
+    storeCreatedRequestDialogState(safeState.createdRequest);
+    router.push("/dashboard/outgoing");
+  }, [router, safeState.createdRequest]);
 
   return (
     <Card className="mx-auto w-full max-w-lg overflow-hidden border-white/20 bg-card/60 backdrop-blur-xl shadow-2xl shadow-primary/5 sm:rounded-[2rem]">

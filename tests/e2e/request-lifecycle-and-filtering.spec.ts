@@ -6,6 +6,9 @@ async function createRequest(
   page: Parameters<typeof test>[0],
   recipientContact: string,
   note: string,
+  options?: {
+    keepDialogOpen?: boolean;
+  },
 ) {
   await page.getByRole("link", { name: "New request" }).click();
   await expect(page).toHaveURL(/\/requests\/new$/);
@@ -15,7 +18,13 @@ async function createRequest(
   await page.getByLabel(/Note \(optional\)/).fill(note);
   await page.getByRole("button", { name: "Create request" }).click();
 
-  await expect(page).toHaveURL(/\/dashboard\/outgoing\?created=/);
+  await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
+  await expect(page.getByText("Your request is ready to share.")).toBeVisible();
+
+  if (!options?.keepDialogOpen) {
+    await page.keyboard.press("Escape");
+    await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
+  }
 }
 
 function outgoingCard(page: Parameters<typeof test>[0], note: string) {
@@ -41,7 +50,7 @@ test("sender can cancel a pending request and filter outgoing requests", async (
     .getByRole("button", { name: "Cancel request" })
     .click();
 
-  await expect(page.getByText("Request updated to Cancelled.")).toBeVisible();
+  await expect(page.getByText("Request cancelled.")).toBeVisible();
   await expect(outgoingCard(page, "Cancel me").getByText("Cancelled")).toBeVisible();
 
   await page.getByLabel("Search outgoing requests").fill("Keep me");

@@ -1,19 +1,13 @@
 import { notFound } from "next/navigation";
 
 import { RequestDetail } from "@/components/requests/request-detail";
-import { Card, CardContent } from "@/components/ui/card";
 import { requireCurrentUser } from "@/lib/auth/current-user";
-import {
-  getRequestDetailReadResult,
-  getRequestPageAlerts,
-} from "@/use-cases/read-request";
+import { getRequestDetailReadResult } from "@/use-cases/read-request";
 
 export default async function RequestDetailPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ requestId: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const currentUser = await requireCurrentUser();
   const { requestId } = await params;
@@ -22,9 +16,6 @@ export default async function RequestDetailPage({
   if (!detailState) {
     notFound();
   }
-
-  const resolvedSearchParams = await searchParams;
-  const alerts = getRequestPageAlerts(resolvedSearchParams);
 
   return (
     <div className="space-y-6">
@@ -41,22 +32,6 @@ export default async function RequestDetailPage({
           trust the current state.
         </p>
       </div>
-
-      {alerts.requestError ? (
-        <Card className="border-destructive/30 bg-destructive/10 shadow-none">
-          <CardContent className="pt-6 text-sm leading-6 text-destructive">
-            {alerts.requestError}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {alerts.statusMessage ? (
-        <Card className="border-primary/25 bg-primary/5 shadow-none">
-          <CardContent className="pt-6 text-sm leading-6 text-foreground">
-            {alerts.statusMessage}
-          </CardContent>
-        </Card>
-      ) : null}
 
       <RequestDetail
         request={detailState.request}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 
 import {
@@ -19,28 +21,34 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { RequestStatus } from "@/drizzle/schema";
+import { toast } from "@/hooks/use-toast";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
 import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
+import {
+  initialRequestMutationActionState,
+  type RequestMutationActionState,
+} from "@/use-cases/request-action-state";
 
 interface RequestActionsProps {
   amountCents?: number;
   currencyCode?: string;
   requestId: string;
-  returnTo: string;
   status: RequestStatus;
   viewerRole: RequestViewerRole;
 }
 
 interface ActionButtonProps {
+  fullWidth?: boolean;
   idleLabel: string;
   pendingLabel: string;
   variant?: "default" | "destructive" | "outline" | "secondary";
 }
 
 function ActionButton({
+  fullWidth = false,
   idleLabel,
   pendingLabel,
   variant = "default",
@@ -51,7 +59,7 @@ function ActionButton({
     <Button
       type="submit"
       variant={variant}
-      className="w-full rounded-full sm:w-auto"
+      className={fullWidth ? "w-full rounded-full" : "w-full rounded-full sm:w-auto"}
       loading={pending}
       disabled={pending}
     >
@@ -60,38 +68,58 @@ function ActionButton({
   );
 }
 
-function PayConfirmButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button type="submit" className="w-full rounded-full" loading={pending}>
-      {pending ? "Processing payment..." : "Confirm payment"}
-    </Button>
-  );
-}
-
 interface RequestActionFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: (
+    previousState: RequestMutationActionState,
+    formData: FormData,
+  ) => Promise<RequestMutationActionState>;
+  children?: React.ReactNode;
+  fullWidth?: boolean;
   idleLabel: string;
+  onSuccess?: () => void;
   pendingLabel: string;
   requestId: string;
-  returnTo: string;
   variant?: "default" | "destructive" | "outline" | "secondary";
 }
 
 function RequestActionForm({
   action,
+  children,
+  fullWidth = false,
   idleLabel,
+  onSuccess,
   pendingLabel,
   requestId,
-  returnTo,
   variant,
 }: RequestActionFormProps) {
+  const router = useRouter();
+  const [state, formAction] = useActionState(
+    action,
+    initialRequestMutationActionState,
+  );
+
+  useEffect(() => {
+    if (state.status === "idle") {
+      return;
+    }
+
+    toast({
+      title: state.message,
+      variant: state.status === "error" ? "destructive" : "default",
+    });
+
+    if (state.status === "success") {
+      onSuccess?.();
+      router.refresh();
+    }
+  }, [onSuccess, router, state]);
+
   return (
-    <form action={action}>
+    <form action={formAction}>
       <input type="hidden" name="requestId" value={requestId} />
-      <input type="hidden" name="returnTo" value={returnTo} />
+      {children}
       <ActionButton
+        fullWidth={fullWidth}
         idleLabel={idleLabel}
         pendingLabel={pendingLabel}
         variant={variant}
@@ -104,20 +132,19 @@ interface PayConfirmationDialogProps {
   amountCents: number;
   currencyCode: string;
   requestId: string;
-  returnTo: string;
 }
 
 function PayConfirmationDialog({
   amountCents,
   currencyCode,
   requestId,
-  returnTo,
 }: PayConfirmationDialogProps) {
+  const [open, setOpen] = useState(false);
   const formattedAmount = formatAmountFromCents(amountCents, currencyCode);
   const currencyLabel = formatCurrencyCodeLabel(currencyCode);
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button type="button" className="w-full rounded-full sm:w-auto">
           Pay request
@@ -155,12 +182,18 @@ function PayConfirmationDialog({
               Not now
             </Button>
           </DialogClose>
-          <form action={payRequestAction} className="w-full sm:w-auto">
-            <input type="hidden" name="confirmed" value="true" />
-            <input type="hidden" name="requestId" value={requestId} />
-            <input type="hidden" name="returnTo" value={returnTo} />
-            <PayConfirmButton />
-          </form>
+          <div className="w-full sm:w-auto">
+            <RequestActionForm
+              action={payRequestAction}
+              fullWidth
+              idleLabel="Confirm payment"
+              onSuccess={() => setOpen(false)}
+              pendingLabel="Processing payment..."
+              requestId={requestId}
+            >
+              <input type="hidden" name="confirmed" value="true" />
+            </RequestActionForm>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -171,7 +204,6 @@ export function RequestActions({
   amountCents,
   currencyCode,
   requestId,
-  returnTo,
   status,
   viewerRole,
 }: RequestActionsProps) {
@@ -182,7 +214,6 @@ export function RequestActions({
         idleLabel="Cancel request"
         pendingLabel="Cancelling..."
         requestId={requestId}
-        returnTo={returnTo}
         variant="outline"
       />
     );
@@ -199,7 +230,6 @@ export function RequestActions({
           amountCents={amountCents}
           currencyCode={currencyCode}
           requestId={requestId}
-          returnTo={returnTo}
         />
       ) : null}
       <RequestActionForm
@@ -207,7 +237,6 @@ export function RequestActions({
         idleLabel="Decline request"
         pendingLabel="Declining..."
         requestId={requestId}
-        returnTo={returnTo}
         variant="outline"
       />
     </div>

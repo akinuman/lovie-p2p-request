@@ -11,25 +11,10 @@ import {
 import { syncExpiredRequest } from "@/use-cases/request-expiry";
 
 type UserIdentity = Pick<User, "email" | "id" | "phone">;
-type RequestRouteSearchParams = Record<string, string | string[] | undefined>;
 
 export interface RequestDetailReadResult {
   request: PaymentRequestRecord;
   viewerRole: RequestViewerRole;
-}
-
-function readStringParam(
-  value: string | string[] | undefined,
-): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function readStatusMessage(status?: string) {
-  if (!status) {
-    return null;
-  }
-
-  return `Request updated to ${status}.`;
 }
 
 async function syncRequestRecord(request: PaymentRequestRecord) {
@@ -82,32 +67,4 @@ export async function getRequestDetailReadResult(
 
 export async function getShareSummaryRequest(requestId: string) {
   return getRequestById(requestId);
-}
-
-export async function getCreatedRequestForUser(
-  requestId: string | undefined,
-  user: UserIdentity,
-) {
-  if (!requestId) {
-    return null;
-  }
-
-  const result = await getRequestDetailReadResult(requestId, user);
-
-  if (!result || result.viewerRole !== "sender") {
-    return null;
-  }
-
-  return result.request;
-}
-
-export function getRequestPageAlerts(
-  searchParams: RequestRouteSearchParams,
-) {
-  return {
-    requestError: readStringParam(searchParams.requestError),
-    statusMessage: readStatusMessage(
-      readStringParam(searchParams.updatedStatus),
-    ),
-  };
 }

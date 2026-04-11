@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { startTransition, useState } from "react";
+import { useState } from "react";
 
 import { ShareLinkActions } from "@/components/requests/share-link-actions";
 import {
@@ -19,8 +18,8 @@ import {
 interface RequestCreatedDialogProps {
   amountCents: number;
   currencyCode: string;
-  currentPath: string;
   note?: string | null;
+  onClose?: () => void;
   recipientLabel: string;
   requestId: string;
   shareBaseUrl: string;
@@ -34,14 +33,13 @@ function buildShareUrl(shareBaseUrl: string, sharePath: string) {
 export function RequestCreatedDialog({
   amountCents,
   currencyCode,
-  currentPath,
   note,
+  onClose,
   recipientLabel,
   requestId,
   shareBaseUrl,
   sharePath,
 }: RequestCreatedDialogProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(true);
   const shareUrl = buildShareUrl(shareBaseUrl, sharePath);
   const formattedAmount = formatAmountFromCents(amountCents, currencyCode);
@@ -52,9 +50,7 @@ export function RequestCreatedDialog({
     setOpen(nextOpen);
 
     if (!nextOpen) {
-      startTransition(() => {
-        router.replace(currentPath, { scroll: false });
-      });
+      onClose?.();
     }
   }
 

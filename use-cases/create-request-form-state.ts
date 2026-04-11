@@ -1,6 +1,15 @@
 export type RequestFormField = "amount" | "note" | "recipientContact";
 
+export interface CreatedRequestDialogState {
+  amountCents: number;
+  currencyCode: string;
+  note?: string | null;
+  recipientLabel: string;
+  requestId: string;
+}
+
 export interface CreateRequestActionState {
+  createdRequest: CreatedRequestDialogState | null;
   errors: Partial<Record<RequestFormField | "form", string>>;
   values: Record<RequestFormField, string>;
 }
@@ -12,6 +21,7 @@ export function createCreateRequestActionState(
   input?: Partial<CreateRequestActionState>,
 ): CreateRequestActionState {
   return {
+    createdRequest: input?.createdRequest ?? null,
     errors: {
       ...input?.errors,
     },
@@ -33,5 +43,13 @@ export function createCreateRequestFormErrorState(
       form: message,
     },
     values,
+  });
+}
+
+export function createCreateRequestSuccessState(
+  createdRequest: CreatedRequestDialogState,
+): CreateRequestActionState {
+  return createCreateRequestActionState({
+    createdRequest,
   });
 }

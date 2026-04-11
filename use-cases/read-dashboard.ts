@@ -14,7 +14,6 @@ import {
   getNextDashboardCursor,
 } from "@/use-cases/dashboard-pagination";
 import {
-  buildDashboardCurrentPath,
   parseDashboardQueryState,
   type DashboardQueryState,
 } from "@/use-cases/dashboard-query";
@@ -48,27 +47,8 @@ type RequestRouteSearchParams = Record<string, string | string[] | undefined>;
 type DashboardVariant = "incoming" | "outgoing";
 
 export interface DashboardPageReadResult {
-  createdRequestId?: string;
-  currentPath: string;
   filters: DashboardQueryState;
   initialPage: DashboardRequestPagePayload;
-  requestError?: string;
-  statusMessage: string | null;
-  updatedRequestId?: string;
-}
-
-function readStringParam(
-  value: string | string[] | undefined,
-): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function readStatusMessage(status?: string) {
-  if (!status) {
-    return null;
-  }
-
-  return `Request updated to ${status}.`;
 }
 
 function buildPaymentRequestPageQuery(
@@ -211,17 +191,7 @@ export async function getDashboardPageReadResult(input: {
   const filters = parseDashboardQueryState(input.searchParams);
 
   return {
-    createdRequestId:
-      input.variant === "outgoing"
-        ? readStringParam(input.searchParams.created)
-        : undefined,
-    currentPath: buildDashboardCurrentPath(input.variant, filters),
     filters,
     initialPage: await getDashboardPagePayloadForUser(input),
-    requestError: readStringParam(input.searchParams.requestError),
-    statusMessage: readStatusMessage(
-      readStringParam(input.searchParams.updatedStatus),
-    ),
-    updatedRequestId: readStringParam(input.searchParams.updated),
   };
 }

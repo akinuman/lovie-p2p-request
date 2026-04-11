@@ -12,11 +12,9 @@ import type { DashboardFilterInput } from "@/lib/validation/requests";
 import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 
 interface IncomingListProps {
-  currentPath: string;
   filters: DashboardFilterInput;
   hasActiveFilters?: boolean;
   initialPage: DashboardRequestPagePayload;
-  updatedRequestId?: string;
 }
 
 function formatDateTime(value: string) {
@@ -27,11 +25,9 @@ function formatDateTime(value: string) {
 }
 
 export function IncomingList({
-  currentPath,
   filters,
   hasActiveFilters = false,
   initialPage,
-  updatedRequestId,
 }: IncomingListProps) {
   const { errorMessage, hasMore, isLoadingMore, items, loadMore, sentinelRef } =
     useDashboardPagination({
@@ -68,18 +64,11 @@ export function IncomingList({
 
   return (
     <div className="space-y-4">
-      {items.map((request) => {
-        const isUpdated = request.id === updatedRequestId;
-
-        return (
+      {items.map((request) => (
           <Card
             key={request.id}
             data-testid="incoming-request-card"
-            className={
-              isUpdated
-                ? "border-primary/30 bg-primary/5 shadow-[0_0_0_1px_rgba(194,120,3,0.18)]"
-                : "border-white/70 bg-card/95 shadow-[0_18px_50px_rgba(83,59,30,0.1)]"
-            }
+            className="border-white/70 bg-card/95 shadow-[0_18px_50px_rgba(83,59,30,0.1)]"
           >
             <CardHeader className="gap-4 border-b border-border/70 pb-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -140,7 +129,6 @@ export function IncomingList({
                     amountCents={request.amountCents}
                     currencyCode={request.currencyCode}
                     requestId={request.id}
-                    returnTo={currentPath}
                     status={request.status}
                     viewerRole="recipient"
                   />
@@ -148,8 +136,7 @@ export function IncomingList({
               </div>
             </CardContent>
           </Card>
-        );
-      })}
+      ))}
 
       {errorMessage ? (
         <Card className="border-destructive/30 bg-destructive/10 shadow-none">

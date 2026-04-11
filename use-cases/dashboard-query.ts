@@ -65,26 +65,3 @@ export function parseDashboardQueryState(
 
   return normalizeDashboardQueryState(parsed.data);
 }
-
-function getDashboardBasePath(variant: "incoming" | "outgoing") {
-  return variant === "incoming"
-    ? "/dashboard/incoming"
-    : "/dashboard/outgoing";
-}
-
-export function buildDashboardCurrentPath(
-  variant: "incoming" | "outgoing",
-  filters: DashboardQueryState,
-) {
-  const url = new URL(getDashboardBasePath(variant), "http://localhost");
-
-  if (filters.q) {
-    url.searchParams.set("q", filters.q);
-  }
-
-  if (filters.status) {
-    url.searchParams.set("status", filters.status);
-  }
-
-  return `${url.pathname}${url.search}`;
-}
