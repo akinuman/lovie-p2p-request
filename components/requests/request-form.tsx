@@ -18,7 +18,6 @@ import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
 import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
 import { cn } from "@/lib/utils";
 import {
-  createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
 } from "@/use-cases/create-request-form-state";
@@ -161,56 +160,27 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   );
 }
 
-function normalizeCreateRequestActionState(
-  state: unknown,
-): CreateRequestActionState {
-  if (!state || typeof state !== "object") {
-    return initialCreateRequestActionState;
-  }
-
-  const candidate = state as Partial<CreateRequestActionState>;
-  const values =
-    candidate.values && typeof candidate.values === "object"
-      ? candidate.values
-      : undefined;
-  const errors =
-    candidate.errors && typeof candidate.errors === "object"
-      ? candidate.errors
-      : undefined;
-  const createdRequest =
-    "createdRequest" in candidate && candidate.createdRequest
-      ? candidate.createdRequest
-      : undefined;
-
-  return createCreateRequestActionState({
-    createdRequest,
-    errors,
-    values,
-  });
-}
-
 export function RequestForm() {
   const router = useRouter();
   const [state, formAction] = useActionState(
     createRequestAction,
     initialCreateRequestActionState,
   );
-  const safeState = normalizeCreateRequestActionState(state);
   const handledRequestIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!safeState.createdRequest) {
+    if (!state.createdRequest) {
       return;
     }
 
-    if (handledRequestIdRef.current === safeState.createdRequest.requestId) {
+    if (handledRequestIdRef.current === state.createdRequest.requestId) {
       return;
     }
 
-    handledRequestIdRef.current = safeState.createdRequest.requestId;
-    storeCreatedRequestDialogState(safeState.createdRequest);
+    handledRequestIdRef.current = state.createdRequest.requestId;
+    storeCreatedRequestDialogState(state.createdRequest);
     router.push("/dashboard/outgoing");
-  }, [router, safeState.createdRequest]);
+  }, [router, state.createdRequest]);
 
   return (
     <Card className="mx-auto w-full max-w-lg overflow-hidden border-white/20 bg-card/60 backdrop-blur-xl shadow-2xl shadow-primary/5 sm:rounded-[2rem]">
@@ -221,7 +191,7 @@ export function RequestForm() {
       </CardHeader>
       <CardContent className="space-y-6 px-6 pb-8 sm:px-8">
         <form action={formAction} className="space-y-5">
-          <RequestFormFields state={safeState} />
+          <RequestFormFields state={state} />
         </form>
       </CardContent>
     </Card>

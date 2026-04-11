@@ -71,15 +71,9 @@ export function buildDashboardFilterHref(
   basePath: string,
   filters: DashboardFilterInput,
 ) {
-  const url = new URL(basePath, "http://localhost");
-
-  if (filters.q) {
-    url.searchParams.set("q", filters.q);
-  }
-
-  if (filters.status) {
-    url.searchParams.set("status", filters.status);
-  }
-
-  return `${url.pathname}${url.search}`;
+  const params = new URLSearchParams();
+  if (filters.q) params.set("q", filters.q);
+  if (filters.status) params.set("status", filters.status);
+  const query = params.toString();
+  return query ? `${basePath}?${query}` : basePath;
 }
