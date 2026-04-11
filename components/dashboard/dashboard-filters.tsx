@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  type ChangeEvent,
   useCallback,
   useEffect,
   useState,
   useTransition,
 } from "react";
 import { useRouter } from "next/navigation";
+import { Search, X } from "lucide-react";
 
 import type { DashboardFilterInput } from "@/lib/validation/requests";
 import { hasActiveDashboardQueryState } from "@/lib/use-cases/requests/dashboard-query";
@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const STATUS_OPTIONS: Array<{
   label: string;
@@ -78,8 +85,7 @@ export function DashboardFilters({
     commitFilters({});
   }
 
-  function handleStatusChange(event: ChangeEvent<HTMLSelectElement>) {
-    const nextStatus = event.target.value;
+  function handleStatusChange(nextStatus: string) {
     const normalizedSearch = searchValue.trim();
 
     setStatusValue(nextStatus);
@@ -119,39 +125,43 @@ export function DashboardFilters({
         <div className="grid gap-4 lg:grid-cols-[1fr_220px_auto]">
           <div className="space-y-2">
             <Label htmlFor={`${basePath}-q`}>{queryLabel}</Label>
-            <Input
-              id={`${basePath}-q`}
-              value={searchValue}
-              placeholder="Search by request id, contact, or note"
-              className="rounded-2xl"
-              onChange={(event) => setSearchValue(event.target.value)}
-            />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                id={`${basePath}-q`}
+                value={searchValue}
+                placeholder="Search by request id, contact, or note"
+                className="pl-9 rounded-2xl"
+                onChange={(event) => setSearchValue(event.target.value)}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor={`${basePath}-status`}>Status</Label>
-            <select
-              id={`${basePath}-status`}
-              value={statusValue}
-              className="flex h-10 w-full rounded-2xl border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm"
-              onChange={handleStatusChange}
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Select value={statusValue} onValueChange={handleStatusChange}>
+              <SelectTrigger id={`${basePath}-status`} className="h-10 w-full rounded-2xl">
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl">
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="rounded-xl">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex flex-col gap-3 self-end sm:flex-row lg:justify-end">
             <Button
               type="button"
               variant="outline"
-              className="rounded-full"
+              className="rounded-full px-4"
               disabled={!hasActiveQuery || isPending}
               onClick={handleClear}
             >
+              <X className="mr-1.5 h-4 w-4" />
               Clear
             </Button>
           </div>

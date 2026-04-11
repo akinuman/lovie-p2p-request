@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +33,7 @@ export function ShareLinkActions({
       await navigator.clipboard.writeText(shareUrl);
       setCopyFeedback(initialAsyncActionFeedbackState);
       setCopyMessage("Share link copied.");
+      setTimeout(() => setCopyMessage(null), 2500);
     } catch {
       setCopyFeedback(
         createAsyncActionFeedbackState({
@@ -43,21 +45,27 @@ export function ShareLinkActions({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border border-border/70 bg-background/70 p-4">
+      <div className="space-y-2 rounded-2xl border border-border/70 bg-background/70 p-4">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
           Share link
         </p>
-        <p className="mt-2 break-all font-mono text-xs text-foreground">
-          {shareUrl}
-        </p>
+        <button
+          type="button"
+          onClick={handleCopyLink}
+          disabled={copyFeedback.pending}
+          className="group flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-xl border border-border/40 bg-muted/20 p-2.5 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+        >
+          <p className="truncate font-mono text-xs text-muted-foreground text-left">
+            {shareUrl}
+          </p>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background">
+            {copyMessage ? <Check className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4 opacity-70" />}
+          </div>
+        </button>
       </div>
 
       {copyFeedback.errorMessage ? (
-        <p className="text-sm text-destructive">{copyFeedback.errorMessage}</p>
-      ) : null}
-
-      {copyMessage ? (
-        <p className="text-sm text-primary">{copyMessage}</p>
+        <p className="text-sm text-destructive pl-1">{copyFeedback.errorMessage}</p>
       ) : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
@@ -66,15 +74,6 @@ export function ShareLinkActions({
             <Link href={previewHref}>Preview</Link>
           </Button>
         ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          className="rounded-full"
-          loading={copyFeedback.pending}
-          onClick={handleCopyLink}
-        >
-          Copy link
-        </Button>
       </div>
     </div>
   );

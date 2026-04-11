@@ -9,8 +9,8 @@ import {
 } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import {
-  DialogClose,
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -24,7 +24,6 @@ import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
-import { getRequestActionAvailabilityMessage } from "@/lib/use-cases/requests/request-status";
 
 interface RequestActionsProps {
   amountCents?: number;
@@ -99,10 +98,6 @@ function RequestActionForm({
       />
     </form>
   );
-}
-
-function getResolutionMessage(status: RequestStatus, viewerRole: RequestViewerRole) {
-  return getRequestActionAvailabilityMessage(status, viewerRole);
 }
 
 interface PayConfirmationDialogProps {
@@ -194,11 +189,7 @@ export function RequestActions({
   }
 
   if (viewerRole !== "recipient" || status !== "Pending") {
-    return (
-      <p className="text-sm leading-6 text-muted-foreground">
-        {getResolutionMessage(status, viewerRole)}
-      </p>
-    );
+    return null;
   }
 
   return (

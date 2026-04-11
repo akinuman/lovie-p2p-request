@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "Lovie P2P Requests",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {children}
+        <Toaster />
       </body>
     </html>
   );

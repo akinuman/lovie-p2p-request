@@ -1,16 +1,21 @@
 "use client";
 
+import { Check, Copy } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
-import type { DashboardRequestCardPayload } from "@/lib/use-cases/requests/read-dashboard";
-import { createAsyncActionFeedbackState, createPendingAsyncActionFeedbackState, initialAsyncActionFeedbackState } from "@/lib/use-cases/requests/async-action-feedback";
-import { formatAmountFromCents } from "@/lib/money/format-amount";
-import { StatusBadge } from "@/components/requests/status-badge";
 import { RequestActions } from "@/components/requests/request-actions";
+import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PaymentRequestRecord } from "@/lib/data-access/payment-requests";
+import { formatAmountFromCents } from "@/lib/money/format-amount";
+import {
+  createAsyncActionFeedbackState,
+  createPendingAsyncActionFeedbackState,
+  initialAsyncActionFeedbackState,
+} from "@/lib/use-cases/requests/async-action-feedback";
+import type { DashboardRequestCardPayload } from "@/lib/use-cases/requests/read-dashboard";
 
 interface RequestCardProps {
   currentPath?: string;
@@ -32,7 +37,9 @@ function formatDateTime(value: Date | string) {
   }).format(new Date(value));
 }
 
-function getFormattedAmount(request: DashboardRequestCardPayload | PaymentRequestRecord) {
+function getFormattedAmount(
+  request: DashboardRequestCardPayload | PaymentRequestRecord,
+) {
   if (isDashboardRequestCardPayload(request)) {
     return request.formattedAmount;
   }
@@ -40,7 +47,9 @@ function getFormattedAmount(request: DashboardRequestCardPayload | PaymentReques
   return formatAmountFromCents(request.amountCents, request.currencyCode);
 }
 
-function getRecipientLabel(request: DashboardRequestCardPayload | PaymentRequestRecord) {
+function getRecipientLabel(
+  request: DashboardRequestCardPayload | PaymentRequestRecord,
+) {
   if (isDashboardRequestCardPayload(request)) {
     return request.recipientLabel ?? "Unknown recipient";
   }
@@ -48,7 +57,9 @@ function getRecipientLabel(request: DashboardRequestCardPayload | PaymentRequest
   return request.recipientContactValue;
 }
 
-function getSenderLabel(request: DashboardRequestCardPayload | PaymentRequestRecord) {
+function getSenderLabel(
+  request: DashboardRequestCardPayload | PaymentRequestRecord,
+) {
   if (isDashboardRequestCardPayload(request)) {
     return request.senderLabel ?? "Unknown sender";
   }
@@ -56,7 +67,9 @@ function getSenderLabel(request: DashboardRequestCardPayload | PaymentRequestRec
   return request.sender.email;
 }
 
-function getNoteText(request: DashboardRequestCardPayload | PaymentRequestRecord) {
+function getNoteText(
+  request: DashboardRequestCardPayload | PaymentRequestRecord,
+) {
   if (isDashboardRequestCardPayload(request)) {
     return request.notePreview;
   }
@@ -71,7 +84,9 @@ export function RequestCard({
   variant = "outgoing",
 }: RequestCardProps) {
   const isShareVariant = variant === "share";
-  const [copyFeedback, setCopyFeedback] = useState(initialAsyncActionFeedbackState);
+  const [copyFeedback, setCopyFeedback] = useState(
+    initialAsyncActionFeedbackState,
+  );
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const recipientLabel = getRecipientLabel(request);
   const senderLabel = getSenderLabel(request);
@@ -85,10 +100,12 @@ export function RequestCard({
       await navigator.clipboard.writeText(shareUrl);
       setCopyFeedback(initialAsyncActionFeedbackState);
       setCopyMessage("Share link copied.");
+      setTimeout(() => setCopyMessage(null), 2500);
     } catch {
       setCopyFeedback(
         createAsyncActionFeedbackState({
-          errorMessage: "We couldn’t copy the share link. Copy it manually below.",
+          errorMessage:
+            "We couldn’t copy the share link. Copy it manually below.",
         }),
       );
     }
@@ -130,13 +147,17 @@ export function RequestCard({
             <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
               Created
             </dt>
-            <dd className="text-foreground">{formatDateTime(request.createdAt)}</dd>
+            <dd className="text-foreground">
+              {formatDateTime(request.createdAt)}
+            </dd>
           </div>
           <div className="space-y-1">
             <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
               Expires
             </dt>
-            <dd className="text-foreground">{formatDateTime(request.expiresAt)}</dd>
+            <dd className="text-foreground">
+              {formatDateTime(request.expiresAt)}
+            </dd>
           </div>
           {!isShareVariant ? (
             <div className="space-y-1">
@@ -144,16 +165,27 @@ export function RequestCard({
                 Share link
               </dt>
               <dd className="space-y-2">
-                <p className="break-all font-mono text-xs text-foreground">
-                  {shareUrl}
-                </p>
+                <Button
+                  type="button"
+                  onClick={handleCopyLink}
+                  disabled={copyFeedback.pending}
+                  className="group flex w-full cursor-pointer flex-row items-center justify-between gap-2.5 rounded-xl border border-border/40 bg-muted/10 p-2 shadow-sm transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                >
+                  <p className="truncate font-mono text-xs text-muted-foreground text-left">
+                    {shareUrl}
+                  </p>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background/80">
+                    {copyMessage ? (
+                      <Check className="h-4 w-4 text-primary" />
+                    ) : (
+                      <Copy className="h-3.5 w-3.5 opacity-70" />
+                    )}
+                  </div>
+                </Button>
                 {copyFeedback.errorMessage ? (
-                  <p className="text-sm text-destructive">
+                  <p className="text-sm text-destructive pl-1">
                     {copyFeedback.errorMessage}
                   </p>
-                ) : null}
-                {copyMessage ? (
-                  <p className="text-sm text-primary">{copyMessage}</p>
                 ) : null}
               </dd>
             </div>
@@ -182,15 +214,6 @@ export function RequestCard({
                 </Button>
                 <Button asChild variant="outline" className="rounded-full">
                   <Link href={`/r/${request.id}`}>Preview</Link>
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="rounded-full"
-                  loading={copyFeedback.pending}
-                  onClick={handleCopyLink}
-                >
-                  Copy link
                 </Button>
               </div>
               <RequestActions

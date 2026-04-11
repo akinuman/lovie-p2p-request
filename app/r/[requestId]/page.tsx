@@ -1,10 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { RequestShareSummary } from "@/components/requests/request-share-summary";
-import {
-  getCurrentUser,
-  getRequestViewerRole,
-} from "@/lib/auth/current-user";
+import { getCurrentUser, getRequestViewerRole } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
 import { getShareSummaryRequest } from "@/lib/use-cases/requests/read-request";
 
@@ -22,7 +19,10 @@ export default async function ShareSummaryPage({
 
   const currentUser = await getCurrentUser();
 
-  if (currentUser && getRequestViewerRole(currentUser, request) === "recipient") {
+  if (
+    currentUser &&
+    getRequestViewerRole(currentUser, request) === "recipient"
+  ) {
     redirect(`/requests/${request.id}`);
   }
 
@@ -38,10 +38,6 @@ export default async function ShareSummaryPage({
           <h1 className="text-4xl tracking-[-0.05em] text-foreground">
             Review the request before you sign in.
           </h1>
-          <p className="text-base leading-7 text-muted-foreground">
-            This page keeps the share flow lightweight: enough context to verify
-            the request, without exposing the recipient-only experience.
-          </p>
         </div>
 
         <RequestShareSummary request={request} shareUrl={shareUrl} />
