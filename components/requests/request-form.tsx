@@ -3,20 +3,18 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
-import {
-  createRequestAction,
-} from "@/app/actions/requests";
+import { createRequestAction } from "@/app/actions/requests";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { MAX_REQUEST_AMOUNT_LABEL } from "@/lib/money/parse-amount";
 import {
   createCreateRequestActionState,
   initialCreateRequestActionState,
   type CreateRequestActionState,
 } from "@/lib/use-cases/requests/create-request-form-state";
-import { MAX_REQUEST_AMOUNT_LABEL } from "@/lib/money/parse-amount";
 import { cn } from "@/lib/utils";
 
 function FieldError({ message }: { message?: string }) {
@@ -42,11 +40,7 @@ function SubmitButton() {
   );
 }
 
-function RequestFormFields({
-  state,
-}: {
-  state: CreateRequestActionState;
-}) {
+function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   const { pending } = useFormStatus();
 
   return (
@@ -65,10 +59,6 @@ function RequestFormFields({
           )}
           required
         />
-        <p className="text-sm leading-6 text-muted-foreground">
-          We normalize email to lowercase and phone numbers to E.164-style
-          `+1...` values for matching.
-        </p>
         <FieldError message={state.errors.recipientContact} />
       </div>
 
