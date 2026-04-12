@@ -64,7 +64,7 @@ test.describe("Request Lifecycle — Pay", () => {
         hasText: "E2E pay test unique note",
       })
       .first();
-    await expect(paidCard.getByText("Paid")).toBeVisible({ timeout: 10000 });
+    await expect(paidCard.getByText("Paid")).toBeVisible({ timeout: 15000 });
   });
 });
 
@@ -107,7 +107,7 @@ test.describe("Request Lifecycle — Decline", () => {
 
     // Should see decline feedback
     await expect(page.getByText(/declined/i).first()).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     });
 
     // Verify in sender's view
@@ -155,7 +155,7 @@ test.describe("Request Lifecycle — Cancel", () => {
 
     // Should see cancellation feedback
     await expect(page.getByText(/cancelled/i).first()).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     });
 
     // Card should show Cancelled status

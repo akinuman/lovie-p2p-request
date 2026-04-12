@@ -88,6 +88,39 @@ export async function createTestBranch(): Promise<NeonBranchInfo> {
   return { branchId, host, databaseUrl };
 }
 
+export async function waitForBranchReady(
+  databaseUrl: string,
+  { maxRetries = 10, delayMs = 3000 } = {},
+): Promise<void> {
+  const postgres = (await import("postgres")).default;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const sql = postgres(databaseUrl, { max: 1, connect_timeout: 10 });
+
+    try {
+      await sql`SELECT 1`;
+      console.log(
+        `Neon branch endpoint is ready (attempt ${attempt}/${maxRetries}).`,
+      );
+      await sql.end();
+      return;
+    } catch (error) {
+      console.log(
+        `Waiting for Neon branch endpoint... (attempt ${attempt}/${maxRetries})`,
+      );
+      await sql.end().catch(() => {});
+
+      if (attempt === maxRetries) {
+        throw new Error(
+          `Neon branch endpoint not ready after ${maxRetries} attempts: ${error}`,
+        );
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 export async function deleteTestBranch(branchId: string): Promise<void> {
   const projectId = getRequiredEnv("NEON_PROJECT_ID");
 

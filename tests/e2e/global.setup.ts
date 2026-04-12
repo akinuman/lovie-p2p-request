@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-import { createTestBranch } from "./neon-branch";
+import { createTestBranch, waitForBranchReady } from "./neon-branch";
 
 // Load .env so NEON_API_KEY, NEON_PROJECT_ID, DATABASE_URL are available
 const envPath = path.join(__dirname, "../../.env");
@@ -29,6 +29,10 @@ export default async function globalSetup() {
 
   // Point the app and migrations at the test branch
   process.env.DATABASE_URL = branch.databaseUrl;
+
+  // Wait for the Neon branch endpoint to be fully responsive
+  console.log("Waiting for Neon branch endpoint to be ready...");
+  await waitForBranchReady(branch.databaseUrl);
 
   console.log("Running migrations on test branch...");
   execSync("bun run db:migrate -- --force", {

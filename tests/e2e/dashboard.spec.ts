@@ -55,7 +55,7 @@ test.describe("Outgoing Dashboard", () => {
 
     // Wait for filtered results to appear
     const firstCard = page.getByTestId("outgoing-request-card").first();
-    await expect(firstCard).toBeVisible({ timeout: 10000 });
+    await expect(firstCard).toBeVisible({ timeout: 15000 });
     await expect(firstCard.getByText("Paid")).toBeVisible();
   });
 
@@ -63,10 +63,10 @@ test.describe("Outgoing Dashboard", () => {
     const searchInput = page.getByPlaceholder(
       "Search by request id, contact, or note",
     );
-    await searchInput.fill("Coffee");
+    await searchInput.fill("coffee");
 
     // Wait for debounced search to apply
-    await expect(page).toHaveURL(/q=Coffee/, { timeout: 5000 });
+    await expect(page).toHaveURL(/q=coffee/, { timeout: 20000 });
 
     // Should show matching result
     await expect(
@@ -141,6 +141,6 @@ test.describe("Incoming Dashboard", () => {
 
     // Wait for filtered results
     const firstCard = page.getByTestId("incoming-request-card").first();
-    await expect(firstCard).toBeVisible({ timeout: 10000 });
+    await expect(firstCard).toBeVisible({ timeout: 15000 });
   });
 });
