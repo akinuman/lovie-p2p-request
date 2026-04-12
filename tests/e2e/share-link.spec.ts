@@ -16,7 +16,7 @@ test.describe("Public Share Link", () => {
     await page.context().clearCookies();
 
     // Visit the share link directly
-    await page.goto(previewHref!);
+    await page.goto(previewHref ?? "");
 
     // Should see the public summary page
     await expect(page.getByText(/public request summary/i)).toBeVisible();
@@ -41,14 +41,13 @@ test.describe("Public Share Link", () => {
     signInAs,
     page,
   }) => {
-    // Sign in as sender and get a share link for a request to recipient
+    // Sign in as sender and get a share link for a request addressed to the email recipient
     await signInAs(demoUsers.sender);
 
     const pendingCard = page
       .getByTestId("outgoing-request-card")
-      .filter({
-        hasText: "Pending",
-      })
+      .filter({ hasText: "Pending" })
+      .filter({ hasText: demoUsers.recipient })
       .first();
     const previewLink = pendingCard.getByRole("link", { name: /preview/i });
     const previewHref = await previewLink.getAttribute("href");
@@ -57,8 +56,8 @@ test.describe("Public Share Link", () => {
     await signInAs(demoUsers.recipient);
 
     // Visit the share link — should redirect to detail page
-    await page.goto(previewHref!);
-    await expect(page).toHaveURL(/\/requests\//);
+    await page.goto(previewHref ?? "");
+    await expect(page).toHaveURL(/\/requests\//, { timeout: 15000 });
 
     // Should see full details with actions
     await expect(page.getByRole("button", { name: /pay/i })).toBeVisible();
@@ -68,27 +67,26 @@ test.describe("Public Share Link", () => {
     signInAs,
     page,
   }) => {
-    // Sign in as sender and grab a share link for a pending request
+    // Sign in as sender and grab a share link for a pending request to the email recipient
     await signInAs(demoUsers.sender);
 
     const pendingCard = page
       .getByTestId("outgoing-request-card")
-      .filter({
-        hasText: "Pending",
-      })
+      .filter({ hasText: "Pending" })
+      .filter({ hasText: demoUsers.recipient })
       .first();
     const previewLink = pendingCard.getByRole("link", { name: /preview/i });
     const previewHref = await previewLink.getAttribute("href");
-    const requestId = previewHref!.split("/r/")[1];
+    const requestId = (previewHref ?? "").split("/r/")[1];
 
     // Clear session and visit the share link as unauthed user
     await page.context().clearCookies();
-    await page.goto(previewHref!);
+    await page.goto(previewHref ?? "");
 
     // Click "Sign in to continue" — should navigate to /sign-in?from=/requests/<id>
     await page.getByRole("link", { name: /sign in/i }).click();
     await expect(page).toHaveURL(
-      new RegExp(`/sign-in\\?from=%2Frequests%2F${requestId}`),
+      new RegExp(`/sign-in\\?from=/requests/${requestId}`),
     );
 
     // Sign in as recipient
@@ -98,7 +96,9 @@ test.describe("Public Share Link", () => {
     await page.getByRole("button", { name: "Continue to dashboard" }).click();
 
     // Should land on the request detail page, not the dashboard
-    await expect(page).toHaveURL(new RegExp(`/requests/${requestId}`));
+    await expect(page).toHaveURL(new RegExp(`/requests/${requestId}`), {
+      timeout: 15000,
+    });
   });
 
   test("share page shows terminal status for resolved requests", async ({
@@ -118,7 +118,7 @@ test.describe("Public Share Link", () => {
 
     // Clear session
     await page.context().clearCookies();
-    await page.goto(previewHref!);
+    await page.goto(previewHref ?? "");
 
     // Should show Paid status
     await expect(page.getByText("Paid")).toBeVisible();

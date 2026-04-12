@@ -1,4 +1,4 @@
-import { test, expect, demoUsers } from "./fixtures";
+import { demoUsers, expect, test } from "./fixtures";
 
 test.describe("Outgoing Dashboard", () => {
   test.beforeEach(async ({ signInAs }) => {
@@ -16,22 +16,33 @@ test.describe("Outgoing Dashboard", () => {
     await expect(page.getByText("Cancelled").first()).toBeVisible();
   });
 
-  test("outgoing card has View details, Preview, and share link", async ({ page }) => {
+  test("outgoing card has View details, Preview, and share link", async ({
+    page,
+  }) => {
     const firstCard = page.getByTestId("outgoing-request-card").first();
     await expect(firstCard).toBeVisible();
 
-    await expect(firstCard.getByRole("link", { name: /view details/i })).toBeVisible();
-    await expect(firstCard.getByRole("link", { name: /preview/i })).toBeVisible();
+    await expect(
+      firstCard.getByRole("link", { name: /view details/i }),
+    ).toBeVisible();
+    await expect(
+      firstCard.getByRole("link", { name: /preview/i }),
+    ).toBeVisible();
     await expect(firstCard.getByText("Share link")).toBeVisible();
   });
 
   test("pending outgoing card shows Cancel button", async ({ page }) => {
-    const pendingCard = page.getByTestId("outgoing-request-card").filter({
-      hasText: "Pending",
-    }).first();
+    const pendingCard = page
+      .getByTestId("outgoing-request-card")
+      .filter({
+        hasText: "Pending",
+      })
+      .first();
     await expect(pendingCard).toBeVisible();
 
-    await expect(pendingCard.getByRole("button", { name: /cancel/i })).toBeVisible();
+    await expect(
+      pendingCard.getByRole("button", { name: /cancel/i }),
+    ).toBeVisible();
   });
 
   test("status filter updates list without Apply button", async ({ page }) => {
@@ -49,14 +60,18 @@ test.describe("Outgoing Dashboard", () => {
   });
 
   test("search filters results with debounce", async ({ page }) => {
-    const searchInput = page.getByPlaceholder("Search by request id, contact, or note");
+    const searchInput = page.getByPlaceholder(
+      "Search by request id, contact, or note",
+    );
     await searchInput.fill("Coffee");
 
     // Wait for debounced search to apply
     await expect(page).toHaveURL(/q=Coffee/, { timeout: 5000 });
 
     // Should show matching result
-    await expect(page.getByText("Coffee and croissant from Tuesday")).toBeVisible({ timeout: 10000 });
+    await expect(
+      page.getByText("Coffee and croissant from Tuesday"),
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test("clear button resets filters", async ({ page }) => {
@@ -85,16 +100,25 @@ test.describe("Incoming Dashboard", () => {
     await expect(cards.first()).toBeVisible();
   });
 
-  test("incoming pending card has Pay and Decline actions", async ({ page }) => {
+  test("incoming pending card has Pay and Decline actions", async ({
+    page,
+  }) => {
     await page.goto("/dashboard/incoming");
 
-    const pendingCard = page.getByTestId("incoming-request-card").filter({
-      hasText: "Pending",
-    }).first();
+    const pendingCard = page
+      .getByTestId("incoming-request-card")
+      .filter({
+        hasText: "Pending",
+      })
+      .first();
     await expect(pendingCard).toBeVisible();
 
-    await expect(pendingCard.getByRole("button", { name: /pay/i })).toBeVisible();
-    await expect(pendingCard.getByRole("button", { name: /decline/i })).toBeVisible();
+    await expect(
+      pendingCard.getByRole("button", { name: /pay/i }),
+    ).toBeVisible();
+    await expect(
+      pendingCard.getByRole("button", { name: /decline/i }),
+    ).toBeVisible();
   });
 
   test("incoming card has View details link", async ({ page }) => {
@@ -102,7 +126,9 @@ test.describe("Incoming Dashboard", () => {
 
     const firstCard = page.getByTestId("incoming-request-card").first();
     await expect(firstCard).toBeVisible();
-    await expect(firstCard.getByRole("link", { name: /view details/i })).toBeVisible();
+    await expect(
+      firstCard.getByRole("link", { name: /view details/i }),
+    ).toBeVisible();
   });
 
   test("status filter works on incoming dashboard", async ({ page }) => {

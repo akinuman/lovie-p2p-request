@@ -1,11 +1,13 @@
-import { test, expect, demoUsers } from "./fixtures";
+import { demoUsers, expect, test } from "./fixtures";
 
 test.describe("Request Creation Flow", () => {
   test.beforeEach(async ({ signInAs }) => {
     await signInAs(demoUsers.sender);
   });
 
-  test("creates a request and shows success dialog on outgoing dashboard", async ({ page }) => {
+  test("creates a request and shows success dialog on outgoing dashboard", async ({
+    page,
+  }) => {
     await page.goto("/requests/new");
 
     // Fill amount
@@ -15,7 +17,9 @@ test.describe("Request Creation Flow", () => {
 
     // Fill recipient and note
     await page.getByRole("textbox", { name: "To" }).fill(demoUsers.recipient);
-    await page.getByRole("textbox", { name: "For" }).fill("E2E creation test lunch");
+    await page
+      .getByRole("textbox", { name: "Note" })
+      .fill("E2E creation test lunch");
 
     // Submit
     await page.getByRole("button", { name: "Create request" }).click();
@@ -38,7 +42,9 @@ test.describe("Request Creation Flow", () => {
     await expect(dialog).not.toBeVisible();
 
     // New request visible in the list
-    await expect(page.getByText("E2E creation test lunch").first()).toBeVisible();
+    await expect(
+      page.getByText("E2E creation test lunch").first(),
+    ).toBeVisible();
   });
 
   test("amount presets fill the correct value", async ({ page }) => {
