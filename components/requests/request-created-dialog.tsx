@@ -6,7 +6,6 @@ import { ShareLinkActions } from "@/components/requests/share-link-actions";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -57,7 +56,7 @@ export function RequestCreatedDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl border-white/70 bg-card/95 p-0 shadow-[0_24px_80px_rgba(83,59,30,0.16)]">
-        <div className="space-y-6 p-6">
+        <div className="min-w-0 space-y-6 overflow-hidden p-6">
           <DialogHeader className="space-y-3 text-left">
             <div className="inline-flex w-fit rounded-full bg-primary/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-primary">
               Request created
@@ -65,10 +64,6 @@ export function RequestCreatedDialog({
             <DialogTitle className="text-3xl tracking-[-0.04em]">
               Your request is ready to share.
             </DialogTitle>
-            <DialogDescription className="text-sm leading-6 text-muted-foreground">
-              You’re back on the outgoing dashboard, and this new request is
-              live in the list below.
-            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 rounded-[1.75rem] border border-border/70 bg-background/70 p-5 sm:grid-cols-2">
@@ -96,7 +91,9 @@ export function RequestCreatedDialog({
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
                 Request ID
               </p>
-              <p className="font-mono text-xs text-foreground">{requestId}</p>
+              <p className="break-all font-mono text-xs text-foreground">
+                {requestId}
+              </p>
             </div>
           </div>
 

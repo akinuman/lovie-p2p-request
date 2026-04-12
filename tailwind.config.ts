@@ -62,10 +62,20 @@ const config: Config = {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(100%)" },
         },
+        "toast-in": {
+          from: { transform: "translateY(100%)", opacity: "0" },
+          to: { transform: "translateY(0)", opacity: "1" },
+        },
+        "toast-out": {
+          from: { transform: "translateY(0)", opacity: "1" },
+          to: { transform: "translateY(100%)", opacity: "0" },
+        },
       },
       animation: {
         "sheet-in": "sheet-in 0.3s ease-out",
         "sheet-out": "sheet-out 0.2s ease-in",
+        "toast-in": "toast-in 0.35s cubic-bezier(0.21,1.02,0.73,1)",
+        "toast-out": "toast-out 0.25s ease-in forwards",
       },
     },
   },
