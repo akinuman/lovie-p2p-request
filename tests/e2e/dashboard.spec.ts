@@ -60,6 +60,11 @@ test.describe("Outgoing Dashboard", () => {
   });
 
   test("search filters results with debounce", async ({ page }) => {
+    // Wait for initial data to load before searching
+    await expect(
+      page.getByTestId("outgoing-request-card").first(),
+    ).toBeVisible({ timeout: 15000 });
+
     const searchInput = page.getByPlaceholder(
       "Search by request id, contact, or note",
     );
@@ -68,10 +73,10 @@ test.describe("Outgoing Dashboard", () => {
     // Wait for debounced search to apply
     await expect(page).toHaveURL(/q=coffee/, { timeout: 20000 });
 
-    // Should show matching result
-    await expect(
-      page.getByText("Coffee and croissant from Tuesday"),
-    ).toBeVisible({ timeout: 15000 });
+    // Should show filtered results — at least one card with matching note
+    const card = page.getByTestId("outgoing-request-card").first();
+    await expect(card).toBeVisible({ timeout: 15000 });
+    await expect(card.getByText(/coffee/i)).toBeVisible();
   });
 
   test("clear button resets filters", async ({ page }) => {

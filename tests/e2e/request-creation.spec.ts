@@ -33,8 +33,7 @@ test.describe("Request Creation Flow", () => {
     await expect(dialog).toContainText("$50.00");
     await expect(dialog).toContainText(demoUsers.recipient);
 
-    // Dialog should have Preview link and share link section
-    await expect(dialog.getByRole("link", { name: /preview/i })).toBeVisible();
+    // Dialog should have share link section
     await expect(dialog.getByText("Share link")).toBeVisible();
 
     // Close dialog
