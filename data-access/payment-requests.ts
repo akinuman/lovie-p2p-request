@@ -5,7 +5,7 @@ import type {
   User,
 } from "@/drizzle/schema";
 
-import { and, desc, eq, ilike, lt, or } from "drizzle-orm";
+import { and, desc, eq, gt, ilike, lt, lte, or } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { paymentRequests, users } from "@/drizzle/schema";
@@ -68,6 +68,37 @@ function buildCursorWhereClause(after?: { createdAt: Date; id: string }) {
       lt(paymentRequests.id, after.id),
     ),
   );
+}
+
+function buildStatusWhereClause(
+  status: RequestStatus | undefined,
+  now: Date,
+) {
+  if (!status) {
+    return undefined;
+  }
+
+  // Pending rows whose expiresAt has passed are still stored as Pending until
+  // syncExpiredRequest mutates them. Filter them in/out here so the result set
+  // matches the user's intent without waiting for the lazy sync.
+  if (status === "Pending") {
+    return and(
+      eq(paymentRequests.status, "Pending"),
+      gt(paymentRequests.expiresAt, now),
+    );
+  }
+
+  if (status === "Expired") {
+    return or(
+      eq(paymentRequests.status, "Expired"),
+      and(
+        eq(paymentRequests.status, "Pending"),
+        lte(paymentRequests.expiresAt, now),
+      ),
+    );
+  }
+
+  return eq(paymentRequests.status, status);
 }
 
 function buildOutgoingSearchWhereClause(search?: string) {
@@ -139,44 +170,6 @@ function buildRequestPageResult(
   };
 }
 
-export async function listOutgoingPaymentRequests(userId: string) {
-  const rows = await db
-    .select({
-      paymentRequest: paymentRequests,
-      recipientMatchedUser: recipientMatchedUsers,
-      sender: senderUsers,
-    })
-    .from(paymentRequests)
-    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
-    .leftJoin(
-      recipientMatchedUsers,
-      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
-    )
-    .where(eq(paymentRequests.senderUserId, userId))
-    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id));
-
-  return rows.map(mapPaymentRequestRecord);
-}
-
-export async function listIncomingPaymentRequests(user: IncomingRequestScope) {
-  const rows = await db
-    .select({
-      paymentRequest: paymentRequests,
-      recipientMatchedUser: recipientMatchedUsers,
-      sender: senderUsers,
-    })
-    .from(paymentRequests)
-    .innerJoin(senderUsers, eq(paymentRequests.senderUserId, senderUsers.id))
-    .leftJoin(
-      recipientMatchedUsers,
-      eq(paymentRequests.recipientMatchedUserId, recipientMatchedUsers.id),
-    )
-    .where(buildIncomingScopeWhereClause(user))
-    .orderBy(desc(paymentRequests.createdAt), desc(paymentRequests.id));
-
-  return rows.map(mapPaymentRequestRecord);
-}
-
 export async function findPaymentRequestById(requestId: string) {
   const request = await db.query.paymentRequests.findFirst({
     where: (table, { eq }) => eq(table.id, requestId),
@@ -208,9 +201,7 @@ export async function listOutgoingPaymentRequestsPage(
     .where(
       and(
         eq(paymentRequests.senderUserId, userId),
-        query.status
-          ? eq(paymentRequests.status, query.status)
-          : undefined,
+        buildStatusWhereClause(query.status, new Date()),
         buildOutgoingSearchWhereClause(query.q),
         buildCursorWhereClause(query.after),
       ),
@@ -240,9 +231,7 @@ export async function listIncomingPaymentRequestsPage(
     .where(
       and(
         buildIncomingScopeWhereClause(user),
-        query.status
-          ? eq(paymentRequests.status, query.status)
-          : undefined,
+        buildStatusWhereClause(query.status, new Date()),
         buildIncomingSearchWhereClause(query.q),
         buildCursorWhereClause(query.after),
       ),

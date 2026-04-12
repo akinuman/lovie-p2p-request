@@ -37,15 +37,7 @@ export const getCurrentUser = cache(async (): Promise<User | null> => {
   return user ?? null;
 });
 
-export async function getUserById(userId: string) {
-  const { findUser } = await import("@/data-access/users");
-
-  return findUser({
-    id: userId,
-  });
-}
-
-export function doesUserMatchRequestRecipient(
+function doesUserMatchRequestRecipient(
   user: UserIdentity,
   request: RequestRecipientMatch,
 ) {
@@ -74,13 +66,6 @@ export function getRequestViewerRole(
   }
 
   return "none";
-}
-
-export function canUserAccessRequest(
-  user: UserIdentity,
-  request: RequestRecipientMatch,
-) {
-  return getRequestViewerRole(user, request) !== "none";
 }
 
 export async function requireCurrentUser() {

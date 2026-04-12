@@ -1,14 +1,13 @@
 import { type PaymentRequest } from "@/drizzle/schema";
 import { updatePaymentRequestRecord } from "@/data-access/payment-requests";
 
-export const REQUEST_EXPIRY_DAYS = 7;
-export const REQUEST_EXPIRY_MS = REQUEST_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+const REQUEST_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function computeExpiresAt(fromDate = new Date()) {
   return new Date(fromDate.getTime() + REQUEST_EXPIRY_MS);
 }
 
-export function isRequestExpired(expiresAt: Date, now = new Date()) {
+function isRequestExpired(expiresAt: Date, now = new Date()) {
   return now.getTime() >= expiresAt.getTime();
 }
 
@@ -41,6 +40,3 @@ export async function syncExpiredRequest(request: PaymentRequest) {
   return updatedRequest;
 }
 
-export async function syncExpiredRequests<T extends PaymentRequest>(requests: T[]) {
-  return Promise.all(requests.map((request) => syncExpiredRequest(request)));
-}

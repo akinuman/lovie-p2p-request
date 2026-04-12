@@ -46,11 +46,6 @@ export type DashboardRequestPagePayload =
 type RequestRouteSearchParams = Record<string, string | string[] | undefined>;
 type DashboardVariant = "incoming" | "outgoing";
 
-export interface DashboardPageReadResult {
-  filters: DashboardQueryState;
-  initialPage: DashboardRequestPagePayload;
-}
-
 function buildPaymentRequestPageQuery(
   query: DashboardQueryState,
 ): PaymentRequestPageQuery {
@@ -183,15 +178,3 @@ export async function getDashboardPagePayloadForUser(input: {
   );
 }
 
-export async function getDashboardPageReadResult(input: {
-  searchParams: RequestRouteSearchParams;
-  user: IncomingRequestScope;
-  variant: DashboardVariant;
-}): Promise<DashboardPageReadResult> {
-  const filters = parseDashboardQueryState(input.searchParams);
-
-  return {
-    filters,
-    initialPage: await getDashboardPagePayloadForUser(input),
-  };
-}

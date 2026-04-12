@@ -117,7 +117,6 @@ export const paymentRequestsRelations = relations(paymentRequests, ({ one }) => 
 }));
 
 export type User = typeof users.$inferSelect;
-export type NewUser = typeof users.$inferInsert;
 export type PaymentRequest = typeof paymentRequests.$inferSelect;
 export type NewPaymentRequest = typeof paymentRequests.$inferInsert;
 export type RequestStatus = (typeof requestStatusEnum.enumValues)[number];

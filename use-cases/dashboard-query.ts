@@ -18,7 +18,7 @@ export function hasActiveDashboardQueryState(query: DashboardQueryState): boolea
   return Boolean(query.q || query.status);
 }
 
-export function normalizeDashboardQueryState(
+function normalizeDashboardQueryState(
   query: DashboardQueryState,
 ): DashboardQueryState {
   const normalized: DashboardQueryState = {};
