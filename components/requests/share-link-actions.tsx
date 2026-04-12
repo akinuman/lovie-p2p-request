@@ -54,9 +54,9 @@ export function ShareLinkActions({
           type="button"
           onClick={handleCopyLink}
           disabled={copyFeedback.pending}
-          className="group flex w-full cursor-pointer flex-row items-center justify-between gap-4 rounded-xl border border-border/40 bg-muted/20 p-2.5 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          className="group flex w-full cursor-pointer flex-row items-center justify-between gap-4 overflow-hidden rounded-xl border border-border/40 bg-muted/20 p-2.5 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
         >
-          <p className="truncate font-mono text-xs text-muted-foreground text-left">
+          <p className="min-w-0 truncate font-mono text-xs text-muted-foreground text-left">
             {shareUrl}
           </p>
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background">

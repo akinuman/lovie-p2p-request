@@ -53,6 +53,20 @@ const config: Config = {
         sans: ["var(--font-sans)"],
         mono: ["var(--font-mono)"],
       },
+      keyframes: {
+        "sheet-in": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "sheet-out": {
+          from: { transform: "translateX(0)" },
+          to: { transform: "translateX(100%)" },
+        },
+      },
+      animation: {
+        "sheet-in": "sheet-in 0.3s ease-out",
+        "sheet-out": "sheet-out 0.2s ease-in",
+      },
     },
   },
   plugins: [],

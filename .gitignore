@@ -11,3 +11,6 @@
 .env.local
 .env.production
 .env.test
+
+./claude/skills/frontend-design/*
+./claude/skills/vercel-react-best-practices/*

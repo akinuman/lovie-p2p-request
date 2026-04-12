@@ -132,18 +132,18 @@ export function RequestCard(props: RequestCardProps) {
             <dd className="text-foreground">{formatDateTime(expiresAt)}</dd>
           </div>
           {!isShareVariant ? (
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1 sm:col-span-2">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Share link
               </dt>
-              <dd className="space-y-2">
-                <Button
+              <dd className="min-w-0 space-y-2">
+                <button
                   type="button"
                   onClick={handleCopyLink}
                   disabled={copyFeedback.pending}
-                  className="group flex w-full cursor-pointer flex-row items-center justify-between gap-2.5 rounded-xl border border-border/40 bg-muted/10 p-2 shadow-sm transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                  className="group flex w-full cursor-pointer flex-row items-center justify-between gap-2.5 overflow-hidden rounded-xl border border-border/40 bg-muted/20 p-2.5 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                 >
-                  <p className="truncate font-mono text-xs text-muted-foreground text-left">
+                  <p className="min-w-0 truncate font-mono text-xs text-muted-foreground text-left">
                     {shareUrl}
                   </p>
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background/80">
@@ -153,7 +153,7 @@ export function RequestCard(props: RequestCardProps) {
                       <Copy className="h-3.5 w-3.5 opacity-70" />
                     )}
                   </div>
-                </Button>
+                </button>
                 {copyFeedback.errorMessage ? (
                   <p className="text-sm text-destructive pl-1">
                     {copyFeedback.errorMessage}

@@ -54,7 +54,7 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1.25fr_0.85fr]">
-      <Card className="border-white/70 bg-card/95 shadow-[0_18px_50px_rgba(83,59,30,0.1)]">
+      <Card className="overflow-hidden border-white/70 bg-card/95 shadow-[0_18px_50px_rgba(83,59,30,0.1)]">
         <CardHeader className="gap-4 border-b border-border/70 pb-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
@@ -80,7 +80,7 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Request ID
               </dt>
-              <dd className="font-mono text-foreground">{request.id}</dd>
+              <dd className="break-all font-mono text-foreground">{request.id}</dd>
             </div>
             <div className="space-y-1">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
@@ -139,7 +139,7 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
         </CardContent>
       </Card>
 
-      <Card className="border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.08)]">
+      <Card className="overflow-hidden border-white/70 bg-card/90 shadow-[0_18px_50px_rgba(83,59,30,0.08)]">
         <CardHeader>
           <CardTitle className="text-xl tracking-[-0.04em]">
             {getActionPanelTitle(viewerRole)}
