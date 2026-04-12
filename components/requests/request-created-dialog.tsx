@@ -105,7 +105,7 @@ export function RequestCreatedDialog({
             </div>
           ) : null}
 
-          <ShareLinkActions previewHref={sharePath} shareUrl={shareUrl} />
+          <ShareLinkActions shareUrl={shareUrl} />
         </div>
       </DialogContent>
     </Dialog>
