@@ -3,9 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signInAction } from "@/use-cases/auth-actions";
 
-export function SignInForm() {
+export function SignInForm({ redirectTo }: { redirectTo?: string }) {
   return (
     <form action={signInAction} className="space-y-5">
+      {redirectTo && (
+        <input type="hidden" name="redirectTo" value={redirectTo} />
+      )}
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input

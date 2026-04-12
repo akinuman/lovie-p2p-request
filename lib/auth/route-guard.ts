@@ -1,5 +1,8 @@
 export const AUTHENTICATED_HOME_PATH = "/dashboard/outgoing";
-export const PROTECTED_REQUEST_ROUTE_PREFIXES = ["/dashboard", "/requests"] as const;
+export const PROTECTED_REQUEST_ROUTE_PREFIXES = [
+  "/dashboard",
+  "/requests",
+] as const;
 export const PUBLIC_AUTH_ONLY_ROUTE_PREFIXES = ["/", "/sign-in"] as const;
 
 export function isProtectedRequestRoute(pathname: string) {
@@ -34,10 +37,20 @@ export function getOptimisticAuthRedirectPath(input: {
   }
 
   if (input.hasSession && isPublicAuthOnlyRoute(input.pathname)) {
+    const from = new URLSearchParams(input.search).get("from");
+
+    if (from && from.startsWith("/") && !from.startsWith("//")) {
+      return from;
+    }
+
     return AUTHENTICATED_HOME_PATH;
   }
 
-  if (!input.hasSession && isPublicAuthOnlyRoute(input.pathname) && input.pathname === "/") {
+  if (
+    !input.hasSession &&
+    isPublicAuthOnlyRoute(input.pathname) &&
+    input.pathname === "/"
+  ) {
     return "/sign-in";
   }
 

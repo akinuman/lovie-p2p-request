@@ -1,7 +1,12 @@
 import { SignInForm } from "@/components/auth/sign-in-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
+  const { from } = await searchParams;
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(217,119,6,0.18),transparent_28%),radial-gradient(circle_at_top_right,rgba(20,83,45,0.12),transparent_28%),linear-gradient(180deg,#f5ead1_0%,#f7f1e6_48%,#fffaf3_100%)] px-4 py-10 md:px-8">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center">
@@ -17,7 +22,7 @@ export default async function SignInPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <SignInForm />
+            <SignInForm redirectTo={from} />
           </CardContent>
         </Card>
       </div>

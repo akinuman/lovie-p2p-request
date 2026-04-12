@@ -3,8 +3,20 @@
 import { redirect } from "next/navigation";
 
 import { upsertUserByEmail } from "@/data-access/users";
-import { setSessionCookie, clearSessionCookie } from "@/lib/auth/session";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
+import { clearSessionCookie, setSessionCookie } from "@/lib/auth/session";
 import { signInSchema } from "@/lib/validation/auth";
+
+function getSafeRedirectPath(value: unknown): string {
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//")
+  ) {
+    return AUTHENTICATED_HOME_PATH;
+  }
+  return value;
+}
 
 export async function signInAction(formData: FormData) {
   const parsed = signInSchema.parse({
@@ -18,7 +30,7 @@ export async function signInAction(formData: FormData) {
     userId: user.id,
   });
 
-  redirect("/dashboard/outgoing");
+  redirect(getSafeRedirectPath(formData.get("redirectTo")));
 }
 
 export async function logoutAction() {

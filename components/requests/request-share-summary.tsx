@@ -68,7 +68,9 @@ export function RequestShareSummary({
             after signing in with the matching account.
           </p>
           <Button asChild className="w-full rounded-full">
-            <Link href="/sign-in">Sign in to continue</Link>
+            <Link href={`/sign-in?from=/requests/${summary.id}`}>
+              Sign in to continue
+            </Link>
           </Button>
         </CardContent>
       </Card>
