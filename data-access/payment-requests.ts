@@ -255,6 +255,9 @@ export async function createPaymentRequestRecord(
   return createdRequest;
 }
 
+// Optimistic concurrency: callers pass expectedStatus so the UPDATE includes
+// a WHERE status = ? guard. The database becomes the single arbiter of the
+// state transition — only one concurrent mutation can win the race.
 export async function updatePaymentRequestRecord(
   requestId: string,
   values: Partial<Pick<
@@ -267,11 +270,18 @@ export async function updatePaymentRequestRecord(
     | "status"
     | "updatedAt"
   >>,
+  expectedStatus?: RequestStatus,
 ) {
+  const conditions = [eq(paymentRequests.id, requestId)];
+
+  if (expectedStatus) {
+    conditions.push(eq(paymentRequests.status, expectedStatus));
+  }
+
   const [updatedRequest] = await db
     .update(paymentRequests)
     .set(values)
-    .where(eq(paymentRequests.id, requestId))
+    .where(and(...conditions))
     .returning();
 
   return updatedRequest ?? null;

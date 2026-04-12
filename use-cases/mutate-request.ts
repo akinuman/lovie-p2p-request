@@ -103,13 +103,26 @@ async function applyRequestStatusMutation(input: {
     (input.status === "Declined" || input.status === "Paid") &&
     !input.currentRecipientMatchedUserId;
 
-  await updatePaymentRequestRecord(input.requestId, {
-    ...statusSpecificValues,
-    lastStatusChangedAt: now,
-    recipientMatchedUserId: shouldLazyMatch ? input.actorUserId : undefined,
-    status: input.status,
-    updatedAt: now,
-  });
+  // Optimistic concurrency: only transition from Pending.
+  // If another mutation already changed the status, zero rows update
+  // and we get null — preventing double-pay / double-decline races.
+  const result = await updatePaymentRequestRecord(
+    input.requestId,
+    {
+      ...statusSpecificValues,
+      lastStatusChangedAt: now,
+      recipientMatchedUserId: shouldLazyMatch ? input.actorUserId : undefined,
+      status: input.status,
+      updatedAt: now,
+    },
+    "Pending",
+  );
+
+  if (!result) {
+    throw new Error(
+      "This request has already been updated. Please refresh and try again.",
+    );
+  }
 }
 
 export async function cancelRequestMutation(
