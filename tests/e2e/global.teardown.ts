@@ -3,6 +3,17 @@ import path from "node:path";
 
 import { deleteTestBranch } from "./neon-branch";
 
+// Load .env so NEON_API_KEY, NEON_PROJECT_ID are available
+const envPath = path.join(__dirname, "../../.env");
+if (fs.existsSync(envPath)) {
+  for (const line of fs.readFileSync(envPath, "utf-8").split("\n")) {
+    const match = line.match(/^(\w+)=["']?(.+?)["']?$/);
+    if (match && !process.env[match[1]]) {
+      process.env[match[1]] = match[2];
+    }
+  }
+}
+
 const BRANCH_STATE_FILE = path.join(__dirname, ".neon-branch-state.json");
 
 export default async function globalTeardown() {
