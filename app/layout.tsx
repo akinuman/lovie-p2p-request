@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Lovie P2P Requests",
@@ -15,6 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {children}
         <Toaster />
