@@ -19,31 +19,20 @@ test.describe("Request Lifecycle — Pay", () => {
       .fill("E2E pay test unique note");
     await page.getByRole("button", { name: "Create request" }).click();
 
-    // Wait for redirect and close dialog
+    // Wait for redirect and capture request ID from success dialog
     await expect(page).toHaveURL(/\/dashboard\/outgoing/);
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Close" })
-      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const requestId = await dialog.getByText(/^[0-9a-f]{8}-/).textContent();
+    await dialog.getByRole("button", { name: "Close" }).click();
 
-    // Sign in as recipient
+    // Sign in as recipient and pay via detail page (avoids ambiguity from parallel runs)
     await signInAs(demoUsers.recipient);
-    await page.goto("/dashboard/incoming");
-
-    // Find the specific request
-    const requestCard = page
-      .getByTestId("incoming-request-card")
-      .filter({
-        hasText: "E2E pay test unique note",
-      })
-      .first();
-    await expect(requestCard).toBeVisible();
+    await page.goto(`/requests/${requestId}`);
+    await expect(page.getByText("Pending", { exact: true })).toBeVisible({ timeout: 15000 });
 
     // Click Pay — opens confirmation dialog
-    await requestCard
-      .getByRole("button", { name: /pay request/i })
-      .first()
-      .click();
+    await page.getByRole("button", { name: /pay request/i }).first().click();
     const payDialog = page.getByRole("dialog");
     await expect(payDialog).toBeVisible();
     await expect(payDialog).toContainText("$20.00");
@@ -51,22 +40,15 @@ test.describe("Request Lifecycle — Pay", () => {
     // Confirm payment
     await payDialog.getByRole("button", { name: /confirm payment/i }).click();
 
-    // Should see success toast after processing
-    await expect(page.getByText(/paid/i).first()).toBeVisible({
+    // Should see paid status after processing
+    await expect(page.getByText("Paid", { exact: true })).toBeVisible({
       timeout: 15000,
     });
 
-    // Verify status in sender's view
+    // Verify status in sender's view via detail page
     await signInAs(demoUsers.sender);
-    // Reload to ensure fresh data from the server
-    await page.reload();
-    const paidCard = page
-      .getByTestId("outgoing-request-card")
-      .filter({
-        hasText: "E2E pay test unique note",
-      })
-      .first();
-    await expect(paidCard.getByText("Paid")).toBeVisible({ timeout: 15000 });
+    await page.goto(`/requests/${requestId}`);
+    await expect(page.getByText("Paid", { exact: true })).toBeVisible({ timeout: 15000 });
   });
 });
 
@@ -84,45 +66,29 @@ test.describe("Request Lifecycle — Decline", () => {
       .getByRole("textbox", { name: "Note" })
       .fill("E2E decline test unique note");
     await page.getByRole("button", { name: "Create request" }).click();
+
+    // Capture request ID from success dialog
     await expect(page).toHaveURL(/\/dashboard\/outgoing/);
-    await page
-      .getByRole("dialog")
-      .getByRole("button", { name: "Close" })
-      .click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const requestId = await dialog.getByText(/^[0-9a-f]{8}-/).textContent();
+    await dialog.getByRole("button", { name: "Close" }).click();
 
-    // Sign in as recipient and decline
+    // Sign in as recipient and decline via detail page (avoids ambiguity from parallel runs)
     await signInAs(demoUsers.recipient);
-    await page.goto("/dashboard/incoming");
-
-    const requestCard = page
-      .getByTestId("incoming-request-card")
-      .filter({
-        hasText: "E2E decline test unique note",
-      })
-      .first();
-    await expect(requestCard).toBeVisible();
-
-    await requestCard
-      .getByRole("button", { name: /decline/i })
-      .first()
-      .click();
+    await page.goto(`/requests/${requestId}`);
+    await expect(page.getByText("Pending", { exact: true })).toBeVisible({ timeout: 15000 });
+    await page.getByRole("button", { name: /decline/i }).first().click();
 
     // Should see decline feedback
-    await expect(page.getByText(/declined/i).first()).toBeVisible({
+    await expect(page.getByText("Declined", { exact: true })).toBeVisible({
       timeout: 15000,
     });
 
-    // Verify in sender's view
+    // Verify status in sender's view via detail page
     await signInAs(demoUsers.sender);
-    // Reload to ensure fresh data from the server
-    await page.reload();
-    const declinedCard = page
-      .getByTestId("outgoing-request-card")
-      .filter({
-        hasText: "E2E decline test unique note",
-      })
-      .first();
-    await expect(declinedCard.getByText("Declined")).toBeVisible({ timeout: 15000 });
+    await page.goto(`/requests/${requestId}`);
+    await expect(page.getByText("Declined", { exact: true })).toBeVisible({ timeout: 15000 });
   });
 });
 
