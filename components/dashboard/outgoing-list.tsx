@@ -7,7 +7,7 @@ import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
+import { useDashboardPagination } from "@/hooks/use-dashboard-pagination";
 
 interface OutgoingListProps {
   filters: DashboardFilterInput;

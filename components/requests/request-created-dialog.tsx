@@ -13,6 +13,7 @@ import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
+import { buildShareUrl } from "@/lib/url";
 
 interface RequestCreatedDialogProps {
   amountCents: number;
@@ -23,10 +24,6 @@ interface RequestCreatedDialogProps {
   requestId: string;
   shareBaseUrl: string;
   sharePath: string;
-}
-
-function buildShareUrl(shareBaseUrl: string, sharePath: string) {
-  return new URL(sharePath, shareBaseUrl).toString();
 }
 
 export function RequestCreatedDialog({

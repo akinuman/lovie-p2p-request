@@ -6,21 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PaymentRequestRecord } from "@/data-access/payment-requests";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
 import { getEnv } from "@/lib/env";
+import { formatDateTime } from "@/lib/format-date";
 import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
 } from "@/lib/money/format-amount";
+import { buildShareUrl } from "@/lib/url";
 
 interface RequestDetailProps {
   request: PaymentRequestRecord;
   viewerRole: RequestViewerRole;
-}
-
-function formatDateTime(value: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(value);
 }
 
 function getViewerRoleLabel(viewerRole: RequestViewerRole) {
@@ -49,7 +44,7 @@ function getActionPanelCopy(viewerRole: RequestViewerRole) {
 
 export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
   const sharePath = `/r/${request.id}`;
-  const shareUrl = new URL(sharePath, getEnv().NEXT_PUBLIC_APP_URL).toString();
+  const shareUrl = buildShareUrl(getEnv().NEXT_PUBLIC_APP_URL, sharePath);
   const currencyLabel = formatCurrencyCodeLabel(request.currencyCode);
 
   return (

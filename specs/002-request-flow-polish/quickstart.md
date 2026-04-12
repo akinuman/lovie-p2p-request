@@ -92,7 +92,7 @@ Latest local validation attempt on April 11, 2026:
    renders.
 3. Review the implementation and confirm:
    - `lib/data-access/*` owns raw persistence operations
-   - `lib/use-cases/requests/*` owns request orchestration
+   - `lib/use-cases/*` owns request orchestration
    - page files are thinner and focused on route composition
    - authenticated navigation consistently routes users back to
      `/dashboard/outgoing`

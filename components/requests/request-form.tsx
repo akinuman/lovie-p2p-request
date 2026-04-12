@@ -14,7 +14,7 @@ import {
   formatAmountFromCents,
 } from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
-import { useCurrencyInput } from "@/lib/money/use-currency-input";
+import { useCurrencyInput } from "@/hooks/use-currency-input";
 import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
 import { cn } from "@/lib/utils";
 import {

@@ -1,19 +1,14 @@
 "use client";
 
-import { Check, Copy } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 import { RequestActions } from "@/components/requests/request-actions";
 import type { PublicShareSummary } from "@/components/requests/request-share-summary";
 import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  createAsyncActionFeedbackState,
-  createPendingAsyncActionFeedbackState,
-  initialAsyncActionFeedbackState,
-} from "@/use-cases/async-action-feedback";
+import { CopyLinkButton } from "@/components/ui/copy-link-button";
+import { formatDateTime } from "@/lib/format-date";
 import type { DashboardRequestCardPayload } from "@/use-cases/read-dashboard";
 
 type RequestCardProps =
@@ -30,40 +25,9 @@ type RequestCardProps =
       request?: never;
     };
 
-function formatDateTime(value: Date | string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
 export function RequestCard(props: RequestCardProps) {
   const { shareUrl, variant = "outgoing" } = props;
   const isShareVariant = variant === "share";
-
-  const [copyFeedback, setCopyFeedback] = useState(
-    initialAsyncActionFeedbackState,
-  );
-  const [copyMessage, setCopyMessage] = useState<string | null>(null);
-
-  async function handleCopyLink() {
-    setCopyMessage(null);
-    setCopyFeedback(createPendingAsyncActionFeedbackState());
-
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopyFeedback(initialAsyncActionFeedbackState);
-      setCopyMessage("Share link copied.");
-      setTimeout(() => setCopyMessage(null), 2500);
-    } catch {
-      setCopyFeedback(
-        createAsyncActionFeedbackState({
-          errorMessage:
-            "We couldn't copy the share link. Copy it manually below.",
-        }),
-      );
-    }
-  }
 
   // Extract display values from whichever data shape we received.
   // We check props.variant directly (not a derived boolean) so TypeScript
@@ -136,29 +100,8 @@ export function RequestCard(props: RequestCardProps) {
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Share link
               </dt>
-              <dd className="min-w-0 space-y-2">
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  disabled={copyFeedback.pending}
-                  className="group flex w-full cursor-pointer flex-row items-center justify-between gap-2.5 overflow-hidden rounded-xl border border-border/40 bg-muted/20 p-2.5 shadow-sm transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                >
-                  <p className="min-w-0 truncate font-mono text-xs text-muted-foreground text-left">
-                    {shareUrl}
-                  </p>
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors group-hover:bg-background/80">
-                    {copyMessage ? (
-                      <Check className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5 opacity-70" />
-                    )}
-                  </div>
-                </button>
-                {copyFeedback.errorMessage ? (
-                  <p className="text-sm text-destructive pl-1">
-                    {copyFeedback.errorMessage}
-                  </p>
-                ) : null}
+              <dd className="min-w-0">
+                <CopyLinkButton url={shareUrl} />
               </dd>
             </div>
           ) : null}

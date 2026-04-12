@@ -7,7 +7,8 @@ import { StatusBadge } from "@/components/requests/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatAmountFromCents } from "@/lib/money/format-amount";
-import { useDashboardPagination } from "@/components/dashboard/use-dashboard-pagination";
+import { formatDateTime } from "@/lib/format-date";
+import { useDashboardPagination } from "@/hooks/use-dashboard-pagination";
 import type { DashboardFilterInput } from "@/lib/validation/requests";
 import type { DashboardRequestPagePayload } from "@/use-cases/read-dashboard";
 
@@ -15,13 +16,6 @@ interface IncomingListProps {
   filters: DashboardFilterInput;
   hasActiveFilters?: boolean;
   initialPage: DashboardRequestPagePayload;
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
 }
 
 export function IncomingList({
