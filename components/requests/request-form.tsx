@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,21 +30,6 @@ function FieldError({ message }: { message?: string }) {
   }
 
   return <p className="text-sm text-destructive">{message}</p>;
-}
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button
-      type="submit"
-      className="w-full rounded-full sm:w-auto"
-      loading={pending}
-      disabled={pending}
-    >
-      {pending ? "Creating request..." : "Create request"}
-    </Button>
-  );
 }
 
 function RequestFormFields({ state }: { state: CreateRequestActionState }) {
@@ -184,7 +170,10 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
         <p className="text-xs leading-5 text-muted-foreground">
           Requests stay pending for 7 days unless resolved.
         </p>
-        <SubmitButton />
+        <FormSubmitButton
+          idleLabel="Create request"
+          pendingLabel="Creating request..."
+        />
       </div>
     </fieldset>
   );

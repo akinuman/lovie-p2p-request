@@ -1,7 +1,7 @@
-import { signInAction } from "@/use-cases/auth-actions";
-import { Button } from "@/components/ui/button";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { signInAction } from "@/use-cases/auth-actions";
 
 export function SignInForm() {
   return (
@@ -24,9 +24,11 @@ export function SignInForm() {
         <strong>recipient-phone@example.com</strong>.
       </div>
 
-      <Button type="submit" className="w-full rounded-full">
-        Continue to dashboard
-      </Button>
+      <FormSubmitButton
+        className="w-full rounded-full"
+        idleLabel="Continue to dashboard"
+        pendingLabel="Signing in..."
+      />
     </form>
   );
 }

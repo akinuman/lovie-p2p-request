@@ -1,14 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { useFormStatus } from "react-dom";
 
-import {
-  cancelRequestAction,
-  declineRequestAction,
-  payRequestAction,
-} from "@/use-cases/request-actions";
-import { useActionStateEffect } from "@/hooks/use-action-state-effect";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,7 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FormSubmitButton } from "@/components/ui/form-submit-button";
 import type { RequestStatus } from "@/drizzle/schema";
+import { useActionStateEffect } from "@/hooks/use-action-state-effect";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
 import {
   formatAmountFromCents,
@@ -30,6 +25,11 @@ import {
   initialRequestMutationActionState,
   type RequestMutationActionState,
 } from "@/use-cases/request-action-state";
+import {
+  cancelRequestAction,
+  declineRequestAction,
+  payRequestAction,
+} from "@/use-cases/request-actions";
 
 interface RequestActionsProps {
   amountCents?: number;
@@ -37,34 +37,6 @@ interface RequestActionsProps {
   requestId: string;
   status: RequestStatus;
   viewerRole: RequestViewerRole;
-}
-
-interface ActionButtonProps {
-  fullWidth?: boolean;
-  idleLabel: string;
-  pendingLabel: string;
-  variant?: "default" | "destructive" | "outline" | "secondary";
-}
-
-function ActionButton({
-  fullWidth = false,
-  idleLabel,
-  pendingLabel,
-  variant = "default",
-}: ActionButtonProps) {
-  const { pending } = useFormStatus();
-
-  return (
-    <Button
-      type="submit"
-      variant={variant}
-      className={fullWidth ? "w-full rounded-full" : "w-full rounded-full sm:w-auto"}
-      loading={pending}
-      disabled={pending}
-    >
-      {pending ? pendingLabel : idleLabel}
-    </Button>
-  );
 }
 
 interface RequestActionFormProps {
@@ -102,8 +74,10 @@ function RequestActionForm({
     <form action={formAction}>
       <input type="hidden" name="requestId" value={requestId} />
       {children}
-      <ActionButton
-        fullWidth={fullWidth}
+      <FormSubmitButton
+        className={
+          fullWidth ? "w-full rounded-full" : "w-full rounded-full sm:w-auto"
+        }
         idleLabel={idleLabel}
         pendingLabel={pendingLabel}
         variant={variant}
