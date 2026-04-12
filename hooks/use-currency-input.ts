@@ -78,12 +78,20 @@ function getCursorPosition(
   return dotPos;
 }
 
-export function useCurrencyInput(initialValue = "") {
+export function useCurrencyInput(initialValue = "", syncValue?: string) {
   const [state, setState] = useState<CurrencyInputState>(() =>
     parseInitialValue(initialValue),
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const pendingCursorRef = useRef<number | null>(null);
+  const lastSyncValueRef = useRef(syncValue);
+
+  // When an external syncValue changes (e.g. server resets form state),
+  // reset the input to match.
+  if (syncValue !== lastSyncValueRef.current) {
+    lastSyncValueRef.current = syncValue;
+    setState(parseInitialValue(syncValue ?? ""));
+  }
 
   const displayValue = formatDisplay(state);
   const rawValue = toRawValue(state);

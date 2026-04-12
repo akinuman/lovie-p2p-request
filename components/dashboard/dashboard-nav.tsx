@@ -12,26 +12,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
+import { NAV_ITEMS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
-
-const NAV_ITEMS = [
-  {
-    href: AUTHENTICATED_HOME_PATH,
-    label: "Outgoing",
-    matchMode: "prefix",
-  },
-  {
-    href: "/dashboard/incoming",
-    label: "Incoming",
-    matchMode: "prefix",
-  },
-  {
-    href: "/requests/new",
-    label: "New request",
-    matchMode: "exact",
-  },
-] as const;
 
 function isActiveNavItem(
   pathname: string,

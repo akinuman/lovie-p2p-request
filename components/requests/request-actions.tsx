@@ -1,7 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 
 import {
@@ -9,6 +8,7 @@ import {
   declineRequestAction,
   payRequestAction,
 } from "@/use-cases/request-actions";
+import { useActionStateEffect } from "@/hooks/use-action-state-effect";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,7 +21,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { RequestStatus } from "@/drizzle/schema";
-import { toast } from "@/hooks/use-toast";
 import type { RequestViewerRole } from "@/lib/auth/current-user";
 import {
   formatAmountFromCents,
@@ -92,27 +91,12 @@ function RequestActionForm({
   requestId,
   variant,
 }: RequestActionFormProps) {
-  const router = useRouter();
   const [state, formAction] = useActionState(
     action,
     initialRequestMutationActionState,
   );
 
-  useEffect(() => {
-    if (state.status === "idle") {
-      return;
-    }
-
-    toast({
-      title: state.message,
-      variant: state.status === "error" ? "destructive" : "default",
-    });
-
-    if (state.status === "success") {
-      onSuccess?.();
-      router.refresh();
-    }
-  }, [onSuccess, router, state]);
+  useActionStateEffect(state, onSuccess);
 
   return (
     <form action={formAction}>

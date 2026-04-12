@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 import { Button } from "@/components/ui/button";
@@ -15,7 +14,8 @@ import {
 } from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
 import { useCurrencyInput } from "@/hooks/use-currency-input";
-import { storeCreatedRequestDialogState } from "@/lib/request-created-dialog-storage";
+import { useRequestCreationRedirect } from "@/hooks/use-request-creation-redirect";
+import { AMOUNT_PRESETS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   initialCreateRequestActionState,
@@ -46,8 +46,6 @@ function SubmitButton() {
   );
 }
 
-const AMOUNT_PRESETS = [5, 10, 50] as const;
-
 function RequestFormFields({ state }: { state: CreateRequestActionState }) {
   const { pending } = useFormStatus();
   const {
@@ -58,12 +56,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
     handleKeyDown,
     handleChange,
     setFromPreset,
-    reset,
-  } = useCurrencyInput(state.values.amount);
-
-  useEffect(() => {
-    reset(state.values.amount);
-  }, [state.values.amount, reset]);
+  } = useCurrencyInput(state.values.amount, state.values.amount);
 
   const currencySymbol =
     new Intl.NumberFormat("en-US", {
@@ -198,26 +191,12 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
 }
 
 export function RequestForm() {
-  const router = useRouter();
   const [state, formAction] = useActionState(
     createRequestAction,
     initialCreateRequestActionState,
   );
-  const handledRequestIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (!state.createdRequest) {
-      return;
-    }
-
-    if (handledRequestIdRef.current === state.createdRequest.requestId) {
-      return;
-    }
-
-    handledRequestIdRef.current = state.createdRequest.requestId;
-    storeCreatedRequestDialogState(state.createdRequest);
-    router.push("/dashboard/outgoing");
-  }, [router, state.createdRequest]);
+  useRequestCreationRedirect(state.createdRequest ?? null);
 
   return (
     <Card className="mx-auto w-full max-w-lg overflow-hidden border-white/20 bg-card/60 backdrop-blur-xl shadow-2xl shadow-primary/5 sm:rounded-[2rem]">
