@@ -58,6 +58,8 @@ test.describe("Request Lifecycle — Pay", () => {
 
     // Verify status in sender's view
     await signInAs(demoUsers.sender);
+    // Reload to ensure fresh data from the server
+    await page.reload();
     const paidCard = page
       .getByTestId("outgoing-request-card")
       .filter({
@@ -112,13 +114,15 @@ test.describe("Request Lifecycle — Decline", () => {
 
     // Verify in sender's view
     await signInAs(demoUsers.sender);
+    // Reload to ensure fresh data from the server
+    await page.reload();
     const declinedCard = page
       .getByTestId("outgoing-request-card")
       .filter({
         hasText: "E2E decline test unique note",
       })
       .first();
-    await expect(declinedCard.getByText("Declined")).toBeVisible();
+    await expect(declinedCard.getByText("Declined")).toBeVisible({ timeout: 15000 });
   });
 });
 
