@@ -1,7 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import type { DashboardStatusValue } from "@/components/dashboard/dashboard-filters";
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
@@ -41,7 +48,10 @@ export function useDashboardFilters({
   );
 
   const lastSubmittedFilterKeyRef = useRef(
-    getFilterSubmissionKey(filters.q ?? "", normalizeStatusValue(filters.status)),
+    getFilterSubmissionKey(
+      filters.q ?? "",
+      normalizeStatusValue(filters.status),
+    ),
   );
 
   const appliedSearchValue = filters.q ?? "";
@@ -52,6 +62,9 @@ export function useDashboardFilters({
   );
 
   useEffect(() => {
+    if (appliedFilterKey === lastSubmittedFilterKeyRef.current) {
+      return;
+    }
     setSearchValue(appliedSearchValue);
     setStatusValue(appliedStatusValue);
     lastSubmittedFilterKeyRef.current = appliedFilterKey;
