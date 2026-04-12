@@ -75,7 +75,9 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
                 Request ID
               </dt>
-              <dd className="break-all font-mono text-foreground">{request.id}</dd>
+              <dd className="break-all font-mono text-foreground">
+                {request.id}
+              </dd>
             </div>
             <div className="space-y-1">
               <dt className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground/80">
@@ -142,6 +144,9 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
           <p>{getActionPanelCopy(viewerRole)}</p>
+          {viewerRole === "sender" ? (
+            <ShareLinkActions shareUrl={shareUrl} />
+          ) : null}
           <RequestActions
             amountCents={request.amountCents}
             currencyCode={request.currencyCode}
@@ -149,9 +154,6 @@ export function RequestDetail({ request, viewerRole }: RequestDetailProps) {
             status={request.status}
             viewerRole={viewerRole}
           />
-          {viewerRole === "sender" ? (
-            <ShareLinkActions previewHref={sharePath} shareUrl={shareUrl} />
-          ) : null}
         </CardContent>
       </Card>
     </div>
