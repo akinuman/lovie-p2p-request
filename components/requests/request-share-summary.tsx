@@ -5,6 +5,7 @@ import type { RequestStatus } from "@/drizzle/schema";
 import { RequestCard } from "@/components/requests/request-card";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AUTHENTICATED_HOME_PATH } from "@/lib/auth/route-guard";
 import {
   formatAmountFromCents,
   formatCurrencyCodeLabel,
@@ -25,11 +26,13 @@ export interface PublicShareSummary {
 interface RequestShareSummaryProps {
   summary: PublicShareSummary;
   shareUrl: string;
+  isSignedIn: boolean;
 }
 
 export function RequestShareSummary({
   summary,
   shareUrl,
+  isSignedIn,
 }: RequestShareSummaryProps) {
   const formattedAmount = formatAmountFromCents(
     summary.amountCents,
@@ -68,9 +71,13 @@ export function RequestShareSummary({
             after signing in with the matching account.
           </p>
           <Button asChild className="w-full rounded-full">
-            <Link href={`/sign-in?from=/requests/${summary.id}`}>
-              Sign in to continue
-            </Link>
+            {isSignedIn ? (
+              <Link href={AUTHENTICATED_HOME_PATH}>Back to dashboard</Link>
+            ) : (
+              <Link href={`/sign-in?from=/requests/${summary.id}`}>
+                Sign in to continue
+              </Link>
+            )}
           </Button>
         </CardContent>
       </Card>

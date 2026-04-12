@@ -40,11 +40,17 @@ export default async function ShareSummaryPage({
             Public request summary
           </p>
           <h1 className="text-4xl tracking-[-0.05em] text-foreground">
-            Review the request before you sign in.
+            {currentUser
+              ? "Review the shared request."
+              : "Review the request before you sign in."}
           </h1>
         </div>
 
-        <RequestShareSummary summary={shareSummary} shareUrl={shareUrl} />
+        <RequestShareSummary
+          summary={shareSummary}
+          shareUrl={shareUrl}
+          isSignedIn={!!currentUser}
+        />
       </div>
     </main>
   );
