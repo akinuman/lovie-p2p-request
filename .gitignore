@@ -11,6 +11,7 @@
 .env.local
 .env.production
 .env.test
+.neon-branch-state.json
 
 ./claude/skills/frontend-design/*
 ./claude/skills/vercel-react-best-practices/*

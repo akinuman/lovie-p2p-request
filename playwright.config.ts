@@ -10,6 +10,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   globalSetup: "./tests/e2e/global.setup.ts",
+  globalTeardown: "./tests/e2e/global.teardown.ts",
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
   outputDir: "test-results",
@@ -42,5 +43,7 @@ export default defineConfig({
         url: baseURL,
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        // Next.js loads .env.local (written by globalSetup) which overrides
+        // .env with the temporary branch DATABASE_URL.
       },
 });
