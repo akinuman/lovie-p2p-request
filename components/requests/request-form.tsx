@@ -8,14 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useCurrencyInput } from "@/hooks/use-currency-input";
+import { useRequestCreationRedirect } from "@/hooks/use-request-creation-redirect";
+import { AMOUNT_PRESETS } from "@/lib/constants";
 import {
   DEFAULT_CURRENCY_CODE,
   formatAmountFromCents,
 } from "@/lib/money/format-amount";
 import { MAX_REQUEST_AMOUNT_CENTS } from "@/lib/money/parse-amount";
-import { useCurrencyInput } from "@/hooks/use-currency-input";
-import { useRequestCreationRedirect } from "@/hooks/use-request-creation-redirect";
-import { AMOUNT_PRESETS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
   initialCreateRequestActionState,
@@ -89,7 +89,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
           <input
             ref={inputRef}
             id="amount"
-            inputMode="numeric"
+            inputMode="decimal"
             autoComplete="off"
             value={displayValue}
             onKeyDown={handleKeyDown}
@@ -152,7 +152,7 @@ function RequestFormFields({ state }: { state: CreateRequestActionState }) {
 
         <div className="space-y-2">
           <Label htmlFor="note" className="text-sm font-medium text-foreground">
-            For
+            Note
           </Label>
           <Textarea
             id="note"
