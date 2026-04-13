@@ -23,8 +23,7 @@ export function SignInForm({ redirectTo }: { redirectTo?: string }) {
 
       <div className="rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
         Demo accounts: <strong>sender@example.com</strong>,{" "}
-        <strong>recipient@example.com</strong>, and{" "}
-        <strong>recipient-phone@example.com</strong>.
+        <strong>recipient@example.com</strong>
       </div>
 
       <FormSubmitButton
