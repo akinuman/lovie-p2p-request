@@ -32,16 +32,16 @@ browser interaction across chromium and mobile-chrome viewports.
 
 ## Tech Stack
 
-| Layer          | Choice                                     |
-| -------------- | ------------------------------------------ |
-| Framework      | Next.js 15 App Router + React 19           |
-| Language       | TypeScript 5                               |
-| Database       | Neon PostgreSQL + Drizzle ORM              |
-| Styling        | Tailwind CSS + shadcn/ui + Radix primitives|
-| Validation     | Zod (server-side, shared schemas)          |
-| E2E Testing    | Playwright (chromium + mobile-chrome)      |
-| Package Mgr    | Bun                                        |
-| Deployment     | Vercel                                     |
+| Layer       | Choice                                      |
+| ----------- | ------------------------------------------- |
+| Framework   | Next.js 15 App Router + React 19            |
+| Language    | TypeScript 5                                |
+| Database    | Neon PostgreSQL + Drizzle ORM               |
+| Styling     | Tailwind CSS + shadcn/ui + Radix primitives |
+| Validation  | Zod (server-side, shared schemas)           |
+| E2E Testing | Playwright (chromium + mobile-chrome)       |
+| Package Mgr | Bun                                         |
+| Deployment  | Vercel                                      |
 
 ## Architecture and Engineering Decisions
 
@@ -168,26 +168,25 @@ After spec-driven implementation, remaining UI fixes and polish were built with
 
 ### Demo Accounts
 
-| Email                          | Role                        |
-| ------------------------------ | --------------------------- |
-| `sender@example.com`           | Creates outgoing requests   |
-| `recipient@example.com`        | Receives requests via email |
-| `recipient-phone@example.com`  | Receives requests via phone |
+| Email                   | Role                        |
+| ----------------------- | --------------------------- |
+| `sender@example.com`    | Creates outgoing requests   |
+| `recipient@example.com` | Receives requests via email |
 
 ## Development Commands
 
-| Command                    | Description                                      |
-| -------------------------- | ------------------------------------------------ |
-| `bun run dev`              | Start Next.js dev server                         |
-| `bun run build`            | Production build                                 |
-| `bun run lint`             | ESLint                                           |
-| `bun run test:e2e`         | Run Playwright E2E suite                         |
-| `bun run test:e2e:headed`  | Run E2E tests with visible browser               |
-| `bun run playwright:report`| Open HTML test report                            |
-| `bun run db:generate`      | Generate a new migration from schema changes     |
-| `bun run db:migrate`       | Apply ordered SQL migration files                |
-| `bun run db:push`          | Diff schema directly against live DB (dev only)  |
-| `bun run db:seed`          | Seed demo users and sample requests              |
+| Command                     | Description                                     |
+| --------------------------- | ----------------------------------------------- |
+| `bun run dev`               | Start Next.js dev server                        |
+| `bun run build`             | Production build                                |
+| `bun run lint`              | ESLint                                          |
+| `bun run test:e2e`          | Run Playwright E2E suite                        |
+| `bun run test:e2e:headed`   | Run E2E tests with visible browser              |
+| `bun run playwright:report` | Open HTML test report                           |
+| `bun run db:generate`       | Generate a new migration from schema changes    |
+| `bun run db:migrate`        | Apply ordered SQL migration files               |
+| `bun run db:push`           | Diff schema directly against live DB (dev only) |
+| `bun run db:seed`           | Seed demo users and sample requests             |
 
 ## Running E2E Tests
 
