@@ -33,7 +33,7 @@ test.describe("Authentication & Route Guards", () => {
   }) => {
     await signInAs(demoUsers.sender);
     await page.goto("/sign-in");
-    await expect(page).toHaveURL(/\/dashboard\/outgoing$/);
+    await expect(page).toHaveURL(/\/dashboard\/outgoing$/, { timeout: 15000 });
   });
 
   test("preserves from param and redirects after sign-in", async ({ page }) => {

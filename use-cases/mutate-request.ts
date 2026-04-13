@@ -173,8 +173,8 @@ export async function payRequestMutation(
   );
 
   guardRequestMutation("pay", request, actorUser);
-  await new Promise((resolve) => setTimeout(resolve, 2_500));
 
+  // Re-fetch to guard against races (e.g. expiry between dialog open and confirm).
   const freshRequest = await getFreshRequestOrThrow(requestId);
 
   try {

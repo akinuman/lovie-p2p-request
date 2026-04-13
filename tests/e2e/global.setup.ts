@@ -35,7 +35,7 @@ export default async function globalSetup() {
   await waitForBranchReady(branch.databaseUrl);
 
   console.log("Running migrations on test branch...");
-  execSync("bun run db:migrate -- --force", {
+  execSync("bun run db:push -- --force", {
     stdio: "inherit",
     env: { ...process.env, DATABASE_URL: branch.databaseUrl },
   });

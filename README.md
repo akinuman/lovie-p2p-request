@@ -82,7 +82,9 @@ requests in the incoming dashboard.
 - `bun run test:unit`
 - `bun run test:e2e`
 - `bun run playwright:report`
-- `bun run db:migrate`
+- `bun run db:generate` — generate a new migration from schema changes
+- `bun run db:migrate` — apply ordered SQL migration files
+- `bun run db:push` — diff schema directly against live DB (dev/test only)
 - `bun run db:seed`
 
 ## How To Run E2E Tests

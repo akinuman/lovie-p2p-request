@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -92,6 +92,11 @@ interface PayConfirmationDialogProps {
   requestId: string;
 }
 
+// Simulated processing delay (2.5s) lives client-side so the server action
+// returns immediately — avoids wasting a serverless invocation / event-loop
+// slot on a pure UI concern.
+const SIMULATED_PROCESSING_MS = 2_500;
+
 function PayConfirmationDialog({
   amountCents,
   currencyCode,
@@ -100,6 +105,19 @@ function PayConfirmationDialog({
   const [open, setOpen] = useState(false);
   const formattedAmount = formatAmountFromCents(amountCents, currencyCode);
   const currencyLabel = formatCurrencyCodeLabel(currencyCode);
+
+  const payWithProcessingDelay = useCallback(
+    async (
+      previousState: RequestMutationActionState,
+      formData: FormData,
+    ): Promise<RequestMutationActionState> => {
+      await new Promise((resolve) =>
+        setTimeout(resolve, SIMULATED_PROCESSING_MS),
+      );
+      return payRequestAction(previousState, formData);
+    },
+    [],
+  );
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -142,7 +160,7 @@ function PayConfirmationDialog({
           </DialogClose>
           <div className="w-full sm:w-auto">
             <RequestActionForm
-              action={payRequestAction}
+              action={payWithProcessingDelay}
               fullWidth
               idleLabel="Confirm payment"
               onSuccess={() => setOpen(false)}

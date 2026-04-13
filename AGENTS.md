@@ -30,7 +30,8 @@ tests/
 
 - `bun install`
 - `bun run dev`
-- `bun run db:migrate`
+- `bun run db:migrate` — apply ordered SQL migration files
+- `bun run db:push` — diff schema directly against live DB (dev/test only)
 - `bun run db:seed`
 - `bun run test:e2e`
 - `bun run test`
