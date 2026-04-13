@@ -1,7 +1,7 @@
 import { desc, relations } from "drizzle-orm";
 import {
+  bigint,
   index,
-  integer,
   pgEnum,
   pgTable,
   text,
@@ -58,7 +58,7 @@ export const paymentRequests = pgTable(
         onDelete: "set null",
       },
     ),
-    amountCents: integer("amount_cents").notNull(),
+    amountCents: bigint("amount_cents", { mode: "number" }).notNull(),
     currencyCode: text("currency_code").notNull().default("USD"),
     note: text("note"),
     status: requestStatusEnum("status").notNull().default("Pending"),

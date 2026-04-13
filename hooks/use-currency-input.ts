@@ -13,7 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * - Cursor is positioned at the logical editing point after each keystroke.
  */
 
-const MAX_INTEGER_DIGITS = 6; // Up to 999,999
+const MAX_INTEGER_DIGITS = 8; // Up to 99,999,999
 
 interface CurrencyInputState {
   /** The integer (dollar) digits, e.g. "1234" */
