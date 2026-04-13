@@ -114,6 +114,16 @@ Client interactivity is pushed to leaf components: filter controls, currency
 input, copy-to-clipboard, countdown timer, confirmation dialogs. This keeps the
 JS bundle small and data fetching on the server.
 
+### RSC Data Boundary on Share Links
+
+The public share page (`/r/:id`) renders as a Server Component that fetches the
+full request record server-side — including recipient-matching fields needed for
+the authenticated redirect check — but **destructures out internal fields before
+passing props to the client component**. Unauthenticated visitors see only the
+safe DTO (amount, note, status, sender label). The `_recipientMatch` data never
+crosses the RSC boundary and never appears in the client bundle or network
+payload.
+
 ## How I Built It
 
 I used **Spec Kit** to drive the implementation through a structured
@@ -149,9 +159,12 @@ After spec-driven implementation, remaining UI fixes and polish were built with
    - `DATABASE_URL` — Neon PostgreSQL connection string
    - `SESSION_SECRET` — any random string (min 16 chars)
    - `NEXT_PUBLIC_APP_URL` — `http://localhost:3000` for local dev
-3. `bun run db:push` to apply the schema
-4. `bun run db:seed` to create demo accounts and sample requests
-5. `bun run dev` and open [http://localhost:3000](http://localhost:3000)
+   - `NEON_API_KEY` — Neon API key (required for E2E tests)
+   - `NEON_PROJECT_ID` — Neon project ID (required for E2E tests)
+3. `bun run db:generate` to generate migration files from the Drizzle schema
+4. `bun run db:migrate` to apply migrations to the database
+5. `bun run db:seed` to create demo accounts and sample requests
+6. `bun run dev` and open [http://localhost:3000](http://localhost:3000)
 
 ### Demo Accounts
 
@@ -178,12 +191,15 @@ After spec-driven implementation, remaining UI fixes and polish were built with
 
 ## Running E2E Tests
 
+E2E tests require `NEON_API_KEY` and `NEON_PROJECT_ID` in your `.env` — the
+suite creates an ephemeral Neon database branch for each run so tests never
+touch your development or production data.
+
 ```bash
 bun run test:e2e
 ```
 
-The suite creates an ephemeral Neon branch, runs all tests against it, and
-cleans up automatically. Video recordings are saved to `test-results/`.
+Video recordings are saved to `test-results/`.
 
 **Test coverage includes:**
 
