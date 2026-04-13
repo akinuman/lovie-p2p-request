@@ -58,6 +58,11 @@ export async function setSessionCookie(payload: Omit<SessionPayload, "issuedAt">
     issuedAt: new Date().toISOString(),
   });
 
+  // NOTE: No maxAge/expires and issuedAt is never validated by decodeSession —
+  // the session lives until browser close with no server-side expiry check.
+  // Acceptable for this take-home's mock auth (the assignment scope is P2P
+  // payment flows, not auth hardening), but a production fintech app would set
+  // a short maxAge and validate issuedAt + sliding window on decode.
   cookieStore.set(SESSION_COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: "lax",

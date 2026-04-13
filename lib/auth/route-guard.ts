@@ -18,6 +18,11 @@ export function isPublicAuthOnlyRoute(pathname: string) {
   );
 }
 
+// NOTE: This only checks cookie presence — no HMAC signature verification or
+// payload decode. The session.ts HMAC check runs server-side on every protected
+// action, so forged cookies can't access data. Middleware could HMAC-verify in
+// Edge for tighter redirects, but for this take-home's mock auth the focus is
+// on the P2P payment flows, not auth middleware hardening.
 export function hasOptimisticSessionCookie(cookieValue?: string | null) {
   return Boolean(cookieValue);
 }

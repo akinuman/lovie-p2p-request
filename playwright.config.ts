@@ -7,6 +7,12 @@ export default defineConfig({
   expect: {
     timeout: 10_000,
   },
+  // NOTE: Tests run fully parallel across two projects (chromium + mobile-chrome)
+  // against a single shared Neon branch seeded once in globalSetup. There is no
+  // per-worker DB isolation. This works for this take-home because mutating tests
+  // (pay, decline, cancel) create their own requests and read-only tests use loose
+  // assertions. In production, we'd isolate a DB branch per worker or serialize
+  // mutating specs to eliminate shared-state flakiness.
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   globalSetup: "./tests/e2e/global.setup.ts",

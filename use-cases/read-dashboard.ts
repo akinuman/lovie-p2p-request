@@ -66,6 +66,12 @@ function buildPaymentRequestPageQuery(
   };
 }
 
+// NOTE: Lazy expiration means a status=Pending filter may briefly include
+// rows that syncExpiredRecord flips to Expired on read. The inconsistency is
+// one-shot and self-healing (subsequent loads see the corrected status).
+// A production system would either pre-filter with `expires_at > now()` plus
+// a matching OR clause in the Expired filter, or post-filter the synced
+// results — both add query/pagination complexity out of scope here.
 async function syncExpiredRecord(request: PaymentRequestRecord) {
   const syncedRequest = await syncExpiredRequest(request);
 
