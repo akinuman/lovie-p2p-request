@@ -1,7 +1,7 @@
 const TWO_DECIMAL_AMOUNT_PATTERN = /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/;
 
-export const MAX_REQUEST_AMOUNT_CENTS = 1_000_000_000;
-export const MAX_REQUEST_AMOUNT_LABEL = "10,000,000";
+export const MAX_REQUEST_AMOUNT_CENTS = 9_999_999;
+export const MAX_REQUEST_AMOUNT_LABEL = "99,999.99";
 
 export function parseAmountToCents(rawAmount: string): number {
   const normalized = rawAmount.trim();

@@ -67,7 +67,7 @@ test.describe("Request Creation Flow", () => {
     await expect(page).toHaveURL(/\/requests\/new/);
   });
 
-  test("validates amount exceeding $10,000,000", async ({ page }) => {
+  test("validates amount exceeding $99,999.99", async ({ page }) => {
     await page.goto("/requests/new");
 
     const amountInput = page.locator("#amount");
@@ -77,14 +77,12 @@ test.describe("Request Creation Flow", () => {
     await amountInput.press("0");
     await amountInput.press("0");
     await amountInput.press("0");
-    await amountInput.press("0");
-    await amountInput.press("1");
 
     await page.getByRole("textbox", { name: "To" }).fill(demoUsers.recipient);
     await page.getByRole("button", { name: "Create request" }).click();
 
     // Should show max amount validation error
-    await expect(page.getByText(/10,000,000 or less/)).toBeVisible();
+    await expect(page.getByText(/99,999\.99 or less/)).toBeVisible();
   });
 
   test("validates invalid recipient email", async ({ page }) => {
