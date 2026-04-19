@@ -200,6 +200,13 @@ bun run test:e2e
 
 Video recordings are saved to `test-results/`.
 
+> **Note on first run:** Neon's serverless compute suspends after inactivity and
+> takes a few seconds to wake. On a fresh clone — or if the project has been
+> idle for a while — the first `bun run test:e2e` may see one or two specs fail
+> with `toBeVisible` / navigation timeouts because the dev server's first query
+> hits a cold branch endpoint. Simply re-run `bun run test:e2e` once the
+> compute is warm and the suite will pass.
+
 **Test coverage includes:**
 
 - Sender creates and shares a request
