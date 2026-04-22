@@ -9,6 +9,7 @@ interface FormSubmitButtonProps {
   idleLabel: string;
   pendingLabel: string;
   variant?: "default" | "destructive" | "outline" | "secondary";
+  size?: "default" | "sm" | "lg";
 }
 
 export function FormSubmitButton({
@@ -16,6 +17,7 @@ export function FormSubmitButton({
   idleLabel,
   pendingLabel,
   variant = "default",
+  size = "default",
 }: FormSubmitButtonProps) {
   const { pending } = useFormStatus();
 
@@ -23,6 +25,7 @@ export function FormSubmitButton({
     <Button
       type="submit"
       variant={variant}
+      size={size}
       className={className}
       loading={pending}
       disabled={pending}
